@@ -1,0 +1,46 @@
+# ---------------------------------------------------------------------------
+# Line endings
+# ---------------------------------------------------------------------------
+* text=auto eol=lf
+
+*.md      text eol=lf
+*.txt     text eol=lf
+*.json    text eol=lf
+*.yml     text eol=lf
+*.yaml    text eol=lf
+
+# Binary files (never apply line-ending normalization)
+*.png     binary
+*.jpg     binary
+*.jpeg    binary
+*.gif     binary
+*.webp    binary
+*.ico     binary
+*.pdf     binary
+*.zip     binary
+*.gz      binary
+*.tgz     binary
+*.woff    binary
+*.woff2   binary
+*.ttf     binary
+*.otf     binary
+
+# ---------------------------------------------------------------------------
+# Files and directories excluded from `git archive` exports / release zips
+# (Keel Phase 7: keep release artifacts lean — only the skill ships)
+# ---------------------------------------------------------------------------
+/.gitignore        export-ignore
+/.gitattributes    export-ignore
+/.github/          export-ignore
+/.editorconfig     export-ignore
+/.vscode/          export-ignore
+/.idea/            export-ignore
+
+# Repo-only documentation (do not ship in release tarballs)
+/README.md         export-ignore
+/INSTALL.md        export-ignore
+
+# Tests and tooling (none yet, but reserved so future additions stay out of release)
+/tests/            export-ignore
+/test/             export-ignore
+/.editorconfig     export-ignore
