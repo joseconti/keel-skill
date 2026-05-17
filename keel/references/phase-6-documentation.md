@@ -1,6 +1,6 @@
 # Phase 6 — Documentation
 
-Goal: produce complete, usable documentation in `docs/` so anyone (including future-you) can understand, use, extend, and maintain the project without reverse-engineering the code. Documentation has been accumulating since Phase 1; this phase completes and consolidates it.
+Goal: produce complete, usable documentation in `docs/` so anyone (including future-you) can understand, use, extend, and maintain the project without reverse-engineering the code. Documentation has been accumulating since Phase 1; this phase **consolidates** it — it does not write the API/class/function/hook reference from scratch. Per the Phase 5 rule, every public surface introduced during development was already documented at the moment of creation, with a runnable example, as part of the slice that introduced it. If something is missing here it is a Phase 5 defect to fix, not new Phase 6 work.
 
 ## The `docs/` layout
 
@@ -63,15 +63,18 @@ No public surface may be undocumented. If something is intentionally internal/pr
 ### reference/
 - classes.md: every public class — responsibility, constructor, public methods, properties, usage example.
 - functions.md: every public function — signature, params, return, side effects, example.
-- hooks-and-extension-points.md: how to extend the project safely (WP actions/filters, MCP ability registration, plugin points), with examples.
+- hooks-and-extension-points.md: how to extend the project safely (WP actions/filters, MCP ability registration, plugin extension points), with examples. For extensible project types this must reflect the Phase 5 density rule: every user-facing string filter, every before/after decision action, every queryable filter, every response filter, and every replaceable public class is listed with its prefixed name, the slice where it was introduced, the parameters passed to listeners, and a runnable example. A missing extension point here means it was not exposed in Phase 5 — that's the defect, not a doc gap.
 
 ### security.md
 A concrete summary of how the loaded security profile was applied in THIS project: which protections are in place, where, and how a maintainer should keep them intact. Not the generic profile — the applied result.
 
 ## Rules
 
+- **This phase consolidates.** Per Phase 5, every public surface was documented at the moment it was created with a runnable example. If a surface is undocumented here, it is a Phase 5 defect — fix the slice, do not retroactively invent docs from the code.
 - **Document the as-built reality**, reconciled with the spec. If code and `docs/02-functional-spec.md` disagree, that's a defect to resolve (fix code to match spec, or, if UI, raise a Design Request) — don't document a divergence as if intended.
 - **Every public surface documented, with a runnable example.** Examples that don't actually run are a defect.
+- **No duplicate functions/methods/classes in the docs.** A near-duplicate in the docs is the trace of a duplicate in the code — refactor the code (per the Phase 5 reuse rule) before consolidating the docs.
+- **Extensible project types:** the hooks-and-extension-points reference reflects the density rule (filters on user-facing strings, before/after actions on decisions, filters on queries and responses, replace/extend mechanism on public classes). Missing extension points are Phase 5 defects.
 - **Changelog ordering:** in changelogs, list versions oldest → newest (e.g. 2.1.0 then 2.1.1). Never invert.
 - **Mark placeholders.** Any not-yet-final doc section is labeled as such, never shipped as if complete.
 

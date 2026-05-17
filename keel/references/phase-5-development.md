@@ -12,6 +12,9 @@ Goal: implement the functional spec (and, if there was UI, the faithful build) i
 ## Principles
 
 - **Implement to the spec, not around it.** If the spec is wrong or incomplete, fix the spec (and, if UI-related, that's a Design Request) — don't silently diverge in code.
+- **Reuse internal API; never duplicate code.** Before writing any new function, method, or class, search `docs/api/` and `docs/reference/` (which were started at the beginning of Phase 5 and grow with each slice) for an existing fit. If one exists, reuse it. If one is close but not exact, generalize the existing function (add a parameter, lift the type) rather than create a near-duplicate. A near-duplicate is a defect: it gets refactored, not committed. The codebase has exactly one canonical implementation per behavior.
+- **Document every new public surface at creation, not later.** Every new function/method/class/hook/action/filter/REST route/MCP ability/CLI command is documented in the right `docs/api/` or `docs/reference/` file as part of the same slice that introduces it. The slice's test point includes "docs updated; example runs". Phase 6 consolidates the documentation that exists; it does not write it from zero.
+- **Maximum extensibility for extensible project types.** For WordPress/WooCommerce plugins, MCP servers, and libraries/components, every slice exposes extension points so third parties can override behavior without forking. The default density is: every user-facing string passes through a filter (e.g. WordPress `apply_filters`), every meaningful decision in a flow exposes a `do_action` before and after, every database/query result is filterable before return, every external response (REST, MCP, webhook) is filterable before send, and every public class supports a documented mechanism to be replaced or extended. All extension points are prefixed (the project's namespace), documented in `docs/reference/hooks-and-extension-points.md` at the same slice, and have at least one runnable example.
 - **Test points are checkpoints, not a final phase.** After each meaningful unit (a flow, an integration, a permission boundary), stop and verify before continuing — same logic as the one-step-at-a-time external setup: catch the defect where it happened.
 - **Security profile is live.** Every input boundary, auth path, data write, and external call is checked against the profile as you build it.
 - **Project-type structure.** Lay the codebase out per the conventions for the type (WordPress plugin layout, MCP server layout, etc.) — the security profile and Phase 7 depend on a sane structure.
@@ -41,8 +44,11 @@ Create the project structure appropriate to the type, the `docs/` dir (already s
 
 Work feature/flow by feature/flow, not layer by layer. For each slice:
 
+- **Search the existing internal API before writing new code.** Open `docs/api/` and `docs/reference/` and check whether what you need already exists. Reuse if it does. If a near-fit exists, generalize the existing function instead of forking it. Only create a new function when there is genuinely no fit. Record any reuse/generalization in the slice's notes.
 - Implement the slice to its functional requirements.
-- **Test point:** verify the slice against its acceptance criteria from `docs/02-functional-spec.md` — success path, empty, invalid, permission failure, and the failure/recovery branch from its flow file. Write automated tests where the output is objectively verifiable; for UI, verify against `docs/BUILD-SPEC.md` state matrix.
+- **Add extension points as you go (extensible project types).** For WordPress/WooCommerce plugins, MCP servers, and libraries: as each user-facing string, decision, query, and response is written, expose the corresponding filter/action (or platform-equivalent extension point) with the project's prefix. Default to "filterable" rather than hard-coded; opt out only with a recorded reason.
+- **Document the new public surfaces of this slice — now, not later.** For every new function, method, class, hook, action, filter, REST route, MCP ability, or CLI command introduced by this slice, write the entry in `docs/api/` and/or `docs/reference/` (signature, params, return, errors, auth, runnable example). The example must actually run.
+- **Test point:** verify the slice against its acceptance criteria from `docs/02-functional-spec.md` — success path, empty, invalid, permission failure, and the failure/recovery branch from its flow file. Write automated tests where the output is objectively verifiable; for UI, verify against `docs/BUILD-SPEC.md` state matrix. The test point also confirms: (a) no duplicated function was introduced; (b) every new public surface is documented and its example runs; (c) for extensible types, the planned extension points are present and prefixed.
 - Run the relevant security checks from the profile for this slice (e.g. nonce/capability for a WP admin action, scope/PKCE for an OAuth step, input sanitization, output escaping).
 - Only move to the next slice when this one passes its test point. Report the test-point result to the user before continuing on substantial slices.
 
@@ -76,21 +82,24 @@ Maintain `docs/05-test-points.md`:
 
 ```
 # Test Points — [Project name]
-| Slice | Acceptance criteria checked | Security checks | i18n (strings externalized) | Result | Notes |
+| Slice | Acceptance criteria checked | Security checks | i18n (strings externalized) | Reuse checked (no new duplicate) | Docs updated (api/reference, example runs) | Extension points exposed (filter/action) | Result | Notes |
 ```
 
-Every slice must appear with a result before Phase 6.
+Every slice must appear with a result before Phase 6. The reuse, docs, and extension-point columns are not optional fields — an empty cell is a missing check.
 
 ## Definition of done
 
 - Every v1 feature implemented to spec with its test point passed and logged.
 - Every flow, including failure/recovery paths, verified.
 - Security profile checklist passed for every relevant boundary.
+- **Internal API coherent and reused.** No near-duplicate functions/methods/classes; reuse verified per slice; the codebase has one canonical implementation per behavior.
+- **Every public surface introduced in Phase 5 is already documented** in `docs/api/` and/or `docs/reference/` with a runnable example. Phase 6 will only consolidate — there is no undocumented public surface entering Phase 6.
+- **For extensible project types (WP/Woo plugins, MCP servers, libraries):** every meaningful user-facing string passes through a filter, every meaningful decision exposes an action before/after, every query/response is filterable, and every public class supports a documented replace/extend mechanism. All extension points are prefixed and documented in `docs/reference/hooks-and-extension-points.md` with at least one runnable example each.
 - If multi-language: zero hardcoded/concatenated user-facing strings; every string externalized via the platform's idiomatic i18n mechanism (function-wrapping or key/constant catalog); base language is the Phase 1 base language; base catalog/locale resource generated from it and current.
 - If installed base: upgrade tested from the real previous version (not just clean install); existing data preserved/migrated; backward compat held or breaking change gated and documented; clean uninstall verified.
 - Every Phase 1 dependency: version checked and fail-safe behavior verified when absent/incompatible (no fatal).
 - If UI: build still matches `docs/BUILD-SPEC.md`.
-- `docs/05-test-points.md` complete.
+- `docs/05-test-points.md` complete (all columns, including reuse / docs / extension points).
 - Every sprint was closed properly: `docs/PROGRESS.md` reflects reality, `docs/lessons-learned.md` updated, finished docs archived to `docs/old/sprint-<N>/`, and a self-sufficient continuation prompt was produced at each sprint close.
 
 No silent divergence from the spec or the design. Then Phase 6.
