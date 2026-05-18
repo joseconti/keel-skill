@@ -2,17 +2,17 @@
 name: keel
 license: GPL-3.0-or-later
 metadata:
-  version: 1.0.0
+  version: 1.1.0
 description: Use this skill for ANY new software project from idea to release — websites, WordPress/WooCommerce plugins, MCP servers, web apps, components, or libraries. It runs a complete multi-phase workflow so the user never has to re-explain their standing requirements each project. The phases are discovery and feature discussion, functional spec with flows, the design handoff to Claude Design (and what Design must return), faithful build by Cowork/Code with no deviation, development with test points, full docs/ (API, classes, functions, usage, architecture), platform-specific security, and release hygiene (.gitignore, .gitattributes export-ignore). Trigger whenever the user starts a new project or feature, says "I have an idea for a plugin/site/app", "let's plan this project", "set up the project", mentions design handoff between Design and Code/Cowork, asks for project documentation or security review, or is preparing a release/package. Each phase loads its own reference file on demand.
 ---
 
 # Keel — project lifecycle (idea → release)
 
-**Keel v1.0.0** — Licensed under GPL-3.0-or-later. *Keel* is the structural backbone laid down first, on which the whole project is built.
+**Keel v1.1.0** — Licensed under GPL-3.0-or-later. *Keel* is the structural backbone laid down first, on which the whole project is built.
 
 ## Version reporting
 
-If the user asks which version of Keel they have or are using (e.g. "what version is this skill", "which Keel version do I have"), state it plainly from the frontmatter: "You're using Keel v1.0.0." Keep the version in the frontmatter (`metadata.version`), this line, and `CHANGELOG.md` in sync whenever the skill is updated; the frontmatter is the source of truth.
+If the user asks which version of Keel they have or are using (e.g. "what version is this skill", "which Keel version do I have"), state it plainly from the frontmatter: "You're using Keel v1.1.0." Keep the version in the frontmatter (`metadata.version`), this line, and `CHANGELOG.md` in sync whenever the skill is updated; the frontmatter is the source of truth.
 
 ## Version change policy (UNBREAKABLE RULE — never bump under any circumstance without explicit user instruction)
 
@@ -62,7 +62,7 @@ Work through these in order. The reference file for a phase is the authoritative
 
 | Phase | Purpose | Reference to load |
 |-------|---------|-------------------|
-| 1. Discovery | Idea, feature discussion, project type, constraints | `references/phase-1-discovery.md` |
+| 1. Discovery | Competitive scan first, then idea, feature discussion, project type, constraints | `references/phase-1-discovery.md` |
 | 2. Functional spec | Flows, requirements, scope, what needs design | `references/phase-2-functional-spec.md` |
 | 3. Design handoff | What to tell Design + the files Design must read/return | `references/phase-3-design-handoff.md` |
 | 4. Faithful build | Audit Design's return, consolidate spec, build with zero deviation, guided external setup | `references/phase-4-faithful-build.md` |
