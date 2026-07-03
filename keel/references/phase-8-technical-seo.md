@@ -8,7 +8,7 @@ A verifiable checklist, not generic advice. Each item is something you can confi
 - **Meta description**: unique per page, accurate, ~150–160 chars. Not keyword-stuffed.
 - **One `<h1>` per page**, matching the page's purpose; logical `h2/h3` hierarchy (no skipped levels for styling).
 - **Canonical URL** set per page; no accidental duplicate-content URLs (trailing slash, query params, www vs non-www consolidated).
-- **Open Graph + Twitter card** metadata (title, description, image, type) so shared links render correctly.
+- **Open Graph + Twitter card** present and *complete* — not just an image. A partial block (image but missing `og:title`/`og:description`/`og:url`) renders no card at all. Full required set in the dedicated section below.
 - **Language**: correct `lang` attribute; if the site is multilingual, `hreflang` between locale versions (ties to the discovery i18n decision).
 
 ### Base `<head>` meta tags (every page)
@@ -21,7 +21,43 @@ These are non-negotiable and easy to miss in vanilla builds:
 - `<meta name="color-scheme" content="light dark">` if dark mode is supported.
 - `<meta name="referrer" content="strict-origin-when-cross-origin">` (or stricter — coordinate with the security profile).
 - `<meta name="format-detection" content="telephone=no">` unless phone numbers really should be linkified.
+- `<meta name="robots" content="index, follow">` on indexable pages; `noindex, nofollow` only where intended (utility/thank-you pages). **Check that no stray `noindex` survived from a staging build** — a single leftover `noindex` silently de-indexes the whole site.
 - Author/`<meta name="author">` per the E-E-A-T item.
+
+### Open Graph & Twitter Card (social share) — every page
+
+A partial social-card block is the single most common share bug. The classic failure: shipping `og:image` (and `twitter:image`) but omitting `og:title`/`og:description`/`og:url` — X, Facebook, LinkedIn, WhatsApp and Slack then render **no card at all, not even the image**. The image alone is never enough. Treat the OG set below as mandatory and complete, not a pick-list; set them **per page**, not one home-page block copied everywhere.
+
+**Required Open Graph — all of these, or the card does not render:**
+
+- `og:title` — share title (may differ from `<title>`; ~40–60 chars).
+- `og:description` — one-line share summary (~110–160 chars).
+- `og:url` — the page's **absolute** canonical URL, identical to `<link rel="canonical">`.
+- `og:type` — `website` for home/landing, `article` for blog/changelog posts.
+- `og:image` — see the image rules below.
+
+**Recommended Open Graph:**
+
+- `og:site_name` — the project/site name.
+- `og:locale` — e.g. `es_ES`; add an `og:locale:alternate` per extra locale on multilingual sites (consistent with `hreflang`).
+
+**The `og:image` — where most "image doesn't show" bugs live:**
+
+- **Absolute HTTPS URL** (e.g. `https://example.com/og/home.png`) — never a relative path and never `localhost`/a dev host. Relative or dev URLs are the second most common reason the image stays blank.
+- **1200×630 px** (1.91:1) — the safe size for X `summary_large_image`, Facebook and LinkedIn.
+- `og:image:width` (`1200`) and `og:image:height` (`630`) declared, so scrapers can lay out the card before fetching the file.
+- `og:image:type` (`image/png` or `image/jpeg`) matching the real file.
+- `og:image:alt` — describes the image.
+- The file must return `200` at that URL, be PNG or JPEG (avoid SVG/WebP for maximum compatibility), and stay **under ~5 MB** (X drops larger images).
+
+**Twitter / X card — it needs its own card type:**
+
+- `twitter:card` — `summary_large_image` for a large image (or `summary` for a thumbnail). **Without `twitter:card`, X shows no card even when every `og:` tag is present.**
+- `twitter:title`, `twitter:description`, `twitter:image` — set them explicitly; don't rely on X falling back to the OG tags.
+- `twitter:image:alt` — accessibility.
+- `twitter:site` / `twitter:creator` (`@handle`) — only if the project/author has an X account.
+
+**Verify on the live URL, never trust source HTML** (enforced at launch): Facebook Sharing Debugger, X (Twitter) Card Validator, LinkedIn Post Inspector, or opengraph.xyz. They also force a re-scrape, refreshing any cached blank card.
 
 ## Site-wide files (the "well-known set")
 
@@ -146,7 +182,7 @@ A few rules that catch most mistakes:
 - No render-blocking bloat; critical CSS sane; defer non-critical JS.
 - Acceptable LCP/CLS/INP on mobile, not just desktop.
 - Self-hosted fonts (Phase 8 design direction) loaded with `font-display: swap` and only the actual weights/styles used — no unused font files shipped.
-- Accessible markup doubles as SEO: meaningful `alt` text, sufficient contrast, keyboard navigability, semantic landmarks.
+- Accessible markup doubles as SEO: meaningful `alt` text, sufficient contrast, keyboard navigability, semantic landmarks — but accessibility is required in its own right, not merely as an SEO side effect. The site meets the Web/HTML section of `references/accessibility.md` (WCAG 2.2 AA floor, AAA where feasible; EN 301 549 / EAA in EU scope), verified with real assistive technology, per the Phase 1 commitment.
 
 ## Honesty rule
 
@@ -169,11 +205,11 @@ The build must also get the site AEO-ready, not only classic SEO. AEO is about b
 
 ## Definition of done (this reference)
 
-- Every page has unique title, meta description, single h1, canonical, OG/Twitter, base meta tags (charset/viewport/theme-color/referrer), correct `lang`, and `hreflang` if multilingual.
+- Every page has unique title, meta description, single h1, canonical, a **complete OG/Twitter card** (`og:title`/`description`/`url`/`type`/`image` + `twitter:card` — not just an image), base meta tags (charset/viewport/theme-color/referrer/robots), correct `lang`, and `hreflang` if multilingual.
 - Site-wide files present and correct: `robots.txt` (with sitemap reference and explicit AI-crawler policy), `sitemap.xml` (with `lastmod`, hreflang alternates if multilingual), `humans.txt`, `manifest.json` (with theme/background color and icons including a maskable variant), `.well-known/security.txt` (with `Contact` and future-dated `Expires`), `llms.txt` (AEO), favicon set (`.ico`, `.svg`, `apple-touch-icon`, manifest icons).
 - HTTPS / canonical-host / redirects / 404 all behave correctly; URL structure clean and stable.
 - JSON-LD shipped per page type (WebSite + Organization/Person at minimum; SoftwareApplication/FAQPage/HowTo/Article/Product/BreadcrumbList as applicable), inline in HTML, validated on live URLs, consistent with rendered content.
-- Performance and accessibility checks pass on mobile, with self-hosted fonts using `font-display: swap`.
+- Accessibility meets the Web/HTML section of `references/accessibility.md` (WCAG 2.2 AA floor: semantic structure, keyboard operability, visible focus, contrast, reduced-motion, reflow), verified with automated tools **and** a real assistive-tech pass — not only a performance-adjacent check. Performance checks pass on mobile, with self-hosted fonts using `font-display: swap`.
 - Search-engine verification done if the user uses Search Console / Bing Webmaster / IndexNow.
 - AEO: answer-first passages under question headings, `llms.txt` published, AI-crawler policy explicit, extractable factual content, E-E-A-T and freshness, content present in HTML.
 - No manipulative tactics introduced (SEO or AEO).

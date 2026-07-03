@@ -19,7 +19,12 @@ Walk `references/phase-8-technical-seo.md` against the live site:
 
 - Unique title + meta description + single h1 + canonical on every page.
 - Base `<head>` meta tags present: charset, viewport, theme-color, color-scheme (if used), referrer policy, author.
-- OG/Twitter render correctly when a URL is shared (test with a real share/preview, not just the source HTML).
+- **Open Graph / Twitter card complete on every distinct template** — verify each required tag is actually present, not merely that "something renders":
+  - `og:title`, `og:description`, `og:url` (absolute, = canonical), `og:type` and `og:image` all present. The classic failure is `og:image` present while `og:title`/`og:description`/`og:url` are missing — the card then renders blank or not at all.
+  - `og:image` is an **absolute HTTPS URL** returning `200`, 1200×630, PNG/JPEG, under ~5 MB, with `og:image:width`/`height`/`alt` set.
+  - `twitter:card` set (`summary_large_image`) plus `twitter:title`/`description`/`image`.
+  - OG values are **per page** (not the home block copied everywhere): titles, descriptions and `og:url` differ per page.
+  - Validated on the live URL in Facebook Sharing Debugger, X Card Validator and LinkedIn Post Inspector (which also force a re-scrape of any cached blank card) — on the deployed domain, not source HTML or localhost.
 - `lang` attribute correct; if multilingual, `hreflang` alternates resolve correctly on every locale.
 
 ### Site-wide files (fetch each at its absolute URL and inspect)
@@ -50,10 +55,22 @@ Walk `references/phase-8-technical-seo.md` against the live site:
 
 ### Performance & headers
 
-- Mobile performance and accessibility acceptable on the deployed site, not just in dev (Core Web Vitals: LCP/CLS/INP).
+- Mobile performance acceptable on the deployed site, not just in dev (Core Web Vitals: LCP/CLS/INP). Accessibility is verified in its own section below.
 - Self-hosted fonts load locally only (no Google Fonts/CDN request in the network panel); `font-display: swap` applied.
 - Compression (gzip/brotli) and sane `Cache-Control` headers on static assets; HTML not aggressively cached.
 - HTTPS canonical-host redirect works (the non-canonical host 301s to the canonical one).
+
+## Accessibility (hard gate — verified with real assistive technology on the live site)
+
+Per the Web/HTML section of `references/accessibility.md` and the Phase 1 commitment. Verify on the deployed site, not just in dev — automated tooling alone is insufficient:
+
+- **Keyboard-only:** every interactive element reachable and operable, logical focus order, visible focus, no keyboard trap, the skip link works, focus not obscured by sticky headers/overlays.
+- **Screen-reader pass** (VoiceOver / NVDA): landmarks and a single-`h1` heading outline are navigable; every control exposes an accessible name/role/state; images have correct text alternatives (decorative ones empty); forms have associated labels and errors are announced.
+- **Contrast:** every text and UI-object pair meets WCAG 2.2 AA (4.5:1 text / 3:1 large text and UI objects) — measured, not eyeballed.
+- **Reflow & text scaling:** usable at 200% text and 320px reflow with no clipping, overlap, or loss of content/function.
+- **User preferences honored:** `prefers-reduced-motion`, `prefers-contrast` / forced-colors (Windows High Contrast), `prefers-color-scheme`.
+- **Automated scan** (axe / Lighthouse / WAVE / pa11y) clean of violations — as a complement to, never a replacement for, the manual passes above.
+- The result meets WCAG 2.2 AA (AAA where reached) or the shortfall is honestly recorded in `docs/accessibility.md` (no overlay, no false conformance claim).
 
 ## Screenshots & generated assets
 
@@ -78,6 +95,7 @@ Walk `references/phase-8-technical-seo.md` against the live site:
 - Real-environment verification passed on the actual domain.
 - SEO present and correct on every live page; the full well-known set (`robots.txt`, `sitemap.xml`, `humans.txt`, `manifest.json`, `.well-known/security.txt`, `llms.txt`, favicons) reachable and valid.
 - Structured data validates live; AEO checks (answer-first, HTML-extractable, AI-crawler policy, `llms.txt`) all green.
+- Accessibility verified on the live site with real assistive technology (WCAG 2.2 AA floor: keyboard, screen reader, contrast, reflow, honored user preferences) per `references/accessibility.md`.
 - No placeholder/legal gaps.
 - Faithfulness to design holds live; hygiene done.
 

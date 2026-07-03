@@ -2,17 +2,17 @@
 name: keel
 license: GPL-3.0-or-later
 metadata:
-  version: 1.1.0
-description: Use this skill for ANY new software project from idea to release — websites, WordPress/WooCommerce plugins, MCP servers, web apps, components, or libraries. It runs a complete multi-phase workflow so the user never has to re-explain their standing requirements each project. The phases are discovery and feature discussion, functional spec with flows, the design handoff to Claude Design (and what Design must return), faithful build by Cowork/Code with no deviation, development with test points, full docs/ (API, classes, functions, usage, architecture), platform-specific security, and release hygiene (.gitignore, .gitattributes export-ignore). Trigger whenever the user starts a new project or feature, says "I have an idea for a plugin/site/app", "let's plan this project", "set up the project", mentions design handoff between Design and Code/Cowork, asks for project documentation or security review, or is preparing a release/package. Each phase loads its own reference file on demand.
+  version: 1.2.0
+description: Use this skill for ANY new software project from idea to release — websites, WordPress/WooCommerce plugins, MCP servers, web apps, components, or libraries. It runs a complete multi-phase workflow so the user never has to re-explain their standing requirements each project. The phases are discovery and feature discussion, functional spec with flows, the design handoff to Claude Design (and what Design must return), faithful build by Cowork/Code with no deviation, development with test points, full docs/ (API, classes, functions, usage, architecture), platform-specific security, non-negotiable accessibility applied from the first line on every platform (web, iOS, Android, macOS, Windows), and release hygiene (.gitignore, .gitattributes export-ignore). Trigger whenever the user starts a new project or feature, says "I have an idea for a plugin/site/app", "let's plan this project", "set up the project", mentions design handoff between Design and Code/Cowork, asks for project documentation or security review, or is preparing a release/package. Each phase loads its own reference file on demand.
 ---
 
 # Keel — project lifecycle (idea → release)
 
-**Keel v1.1.0** — Licensed under GPL-3.0-or-later. *Keel* is the structural backbone laid down first, on which the whole project is built.
+**Keel v1.2.0** — Licensed under GPL-3.0-or-later. *Keel* is the structural backbone laid down first, on which the whole project is built.
 
 ## Version reporting
 
-If the user asks which version of Keel they have or are using (e.g. "what version is this skill", "which Keel version do I have"), state it plainly from the frontmatter: "You're using Keel v1.1.0." Keep the version in the frontmatter (`metadata.version`), this line, and `CHANGELOG.md` in sync whenever the skill is updated; the frontmatter is the source of truth.
+If the user asks which version of Keel they have or are using (e.g. "what version is this skill", "which Keel version do I have"), state it plainly from the frontmatter: "You're using Keel v1.2.0." Keep the version in the frontmatter (`metadata.version`), this line, and `CHANGELOG.md` in sync whenever the skill is updated; the frontmatter is the source of truth.
 
 ## Version change policy (UNBREAKABLE RULE — never bump under any circumstance without explicit user instruction)
 
@@ -50,6 +50,7 @@ The user builds many projects (WordPress/WooCommerce plugins, MCP servers, web a
 - **Never invent or interpret silently.** When something is undefined, ask the user. When a design detail is missing downstream, request it from Design — don't guess.
 - **Code adapts to the design, never the design to the code.**
 - **Security is per-platform and non-optional.** The relevant profile is consulted from Phase 1 onward, not bolted on at the end.
+- **Accessibility is non-negotiable, on every platform, and designed in from the first line — never retrofitted.** Whatever is built — HTML, iOS, Android, macOS, Windows, or a cross-platform framework — is usable with assistive technology from the first slice, using every accessibility tool the platform offers. It is stated up front in Phase 1 (like the internationalization decision) precisely because building accessibly from the start and "making it accessible" at the end are not the same work — the second is a rewrite. The target is the maximum reasonably achievable: WCAG 2.2 AA as the floor (AAA where feasible), EN 301 549 and the European Accessibility Act where they apply, and the native accessibility API on every other platform. See "Accessibility" below and `references/accessibility.md`.
 - **Build once, reuse by manifest.** Never regenerate structurally-identical pages/screens.
 - **Reuse internal API; never duplicate code.** Before writing any new function, method, or class, search the project's existing internal API. If a suitable function already exists, reuse it. If one is *close* but not exact, generalize it (parameterize) rather than fork it. Write a new function only when there is no existing fit. Duplication is treated as a defect, the same as a security issue: it gets refactored, not left behind. The internal API grows deliberately and is documented as it grows (see next).
 - **Document every public surface at the moment it is created, not retrospectively.** Every new function, method, class, hook, action, filter, REST route, MCP ability, CLI command, or other public surface is documented in `docs/api/` and/or `docs/reference/` at the same test point where it is built. The slice does not pass its Phase 5 test point until its docs are written and its example actually runs. Phase 6 *consolidates* documentation; it does not create it from scratch.
@@ -90,6 +91,14 @@ After Phase 1 sets the project type, load exactly one profile (don't load all of
 
 If a project spans types (e.g. a WordPress plugin that ships an MCP server), load both relevant profiles and apply the stricter rule on any conflict.
 
+## Accessibility (cross-cutting, non-negotiable)
+
+Accessibility is not a project type or a phase — it applies to everything built, on every platform, and it is decided and stated **up front in Phase 1**, not discovered at the end. Building accessibly from line one and "making it accessible" after the fact are different jobs; the second is a rewrite. Treat accessibility exactly like security: load its reference the moment the project type and target platform(s) are fixed in Phase 1, keep it live through every later phase, and tell the user it is in force before anything is built.
+
+Load `references/accessibility.md` once the platform is known. It has a universal core (applies everywhere) plus a section per platform — Web/HTML, WordPress/WooCommerce, iOS/iPadOS, Android, macOS, Windows, and cross-platform frameworks. Apply the universal core plus the section(s) matching the project's target platform(s). If the project spans platforms, apply every matching section.
+
+The commitment is the maximum reasonably achievable, never a token gesture: WCAG 2.2 AA as the floor with AAA where feasible, EN 301 549 and the European Accessibility Act where they apply (they apply to the user's EU market), and the platform's native accessibility API and assistive technologies fully supported — screen readers (VoiceOver, TalkBack, Narrator, NVDA/JAWS), Switch Control / Switch Access, Voice Control / Voice Access, Dynamic Type / system text scaling, and the reduced-motion and high-contrast preferences. "Use every accessibility tool the platform offers" is the standing rule.
+
 ## How to run a phase
 
 1. Announce the phase to the user in one line.
@@ -128,6 +137,7 @@ Resume capability: if the user returns mid-project, read `docs/PROGRESS.md` firs
 - `references/design-brief-template.md`
 - `references/build-spec-template.md`
 - `references/design-request-template.md`
+- `references/accessibility.md` (cross-cutting — non-negotiable, loaded from Phase 1 like the security profile)
 - `references/security/wordpress.md`
 - `references/security/web-app.md`
 - `references/security/mcp-server.md`

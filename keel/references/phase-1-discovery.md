@@ -105,7 +105,7 @@ Pin down exactly one primary type (note a secondary if it genuinely spans):
 - Web app (SPA, API backend, hosted service)
 - Reusable component / library / package
 
-The type selects: the security profile (load it now — see SKILL.md "Security routing"), the project structure, the release/packaging rules, and whether design is needed at all.
+The type selects: the security profile (load it now — see SKILL.md "Security routing"), the project structure, the release/packaging rules, and whether design is needed at all. Fixing the type — and its target platform(s) — also selects the accessibility toolkit: load `references/accessibility.md` now too (see SKILL.md "Accessibility") and apply it from here on, exactly like the security profile.
 
 ### 3. Feature discussion
 
@@ -119,7 +119,18 @@ Draft a feature list with the user. For each feature capture: what it does, who 
 - **Installed base / upgrade reality.** Is this a fresh v1, or does it iterate on something already running in production with real users and stored data (e.g. an existing plugin going from 2.1.0 → 2.1.1)? If there is an installed base, data migration, backward compatibility, and clean uninstall are NOT optional — record this now; it drives hard rules in Phase 5 and a gate in Phase 7.
 - **External dependencies with fixed versions.** List every external dependency the project needs and its exact version and source (e.g. the WordPress MCP Adapter plugin from GitHub at a specific tag, a PHP/Node minimum, a packagist/npm package). Record what must happen if a dependency is absent or version-incompatible — the project must fail safe (degrade with an admin notice), never fatal. This drives a Phase 5 verification.
 
-### 5. Internationalization decision (blocking — decide now, never later)
+### 5. Accessibility commitment (blocking — decide and state up front, never bolt on later)
+
+State plainly to the user, now, that everything with a UI will be built accessible from the first line. This is non-negotiable, and it is said before any building starts on purpose: building accessibly from the start and "making it accessible" at the end are different jobs, and the second is a rewrite — exactly like retrofitting i18n. So it is fixed here, not discovered at release.
+
+- **Confirm the target platform(s).** Accessibility tooling is platform-specific: web/HTML, WordPress/WooCommerce, iOS/iPadOS, Android, macOS, Windows, or a cross-platform framework (Flutter, React Native, MAUI, Electron/Tauri). Record which — a project may span several — so the matching section(s) of `references/accessibility.md` apply.
+- **Load `references/accessibility.md`** now (alongside the security profile) and keep it live through every later phase.
+- **State the targeted conformance level.** Default and recommended: WCAG 2.2 AA as the floor, AAA where feasible, plus EN 301 549 / the European Accessibility Act where they apply (the EAA has applied since 28 June 2025 and covers EU e-commerce and digital services — in scope for the user's market), plus each target platform's native accessibility API and assistive technologies. Aiming below AA is a conscious decision with a recorded reason — never a silent default.
+- This propagates downstream: Phase 2 acceptance criteria include accessibility conditions, the Phase 3 design brief requires Design to specify accessibility, Phase 5 gives every slice an accessibility test point, and Phase 7 has an accessibility release gate.
+
+Record the decision in the discovery doc.
+
+### 6. Internationalization decision (blocking — decide now, never later)
 
 Decide explicitly, with the user, before any later phase:
 
@@ -129,11 +140,11 @@ Decide explicitly, with the user, before any later phase:
 
 Record the decision in the discovery doc. It propagates to Phase 3 (Design must not hardcode copy; strings are translatable) and is a hard verification point in Phase 5.
 
-### 6. Project website intent (global picture only — execution is a separate skill)
+### 7. Project website intent (global picture only — execution is a separate skill)
 
 Ask now whether the project will have its own presentation website. This is asked early only so the global picture is known (it can influence naming, branding, domain). Record: will there be a project site? and if so, own domain or a subdomain of the user's existing domain? Do NOT build it here — the website is built in Phase 8 of this skill, normally after the first release. This step only captures the intent so it informs naming/branding/domain.
 
-### 7. Decide if design is needed
+### 8. Decide if design is needed
 
 State plainly: does this have a UI a human will see and that needs visual design? 
 - Yes → Phases 3 and 4 are mandatory.
@@ -174,6 +185,10 @@ ALWAYS use this template:
 - Multi-language? [yes / no]
 - If yes: base language [..], target locales [..], mechanism [e.g. WP text domain + .pot, or .strings catalog]
 - If no: single language [..] (explicit, intentional)
+## Accessibility (non-negotiable — stated up front)
+- Target platform(s): [web / WordPress-Woo / iOS / Android / macOS / Windows / cross-platform framework — one or several]
+- Reference loaded: references/accessibility.md
+- Targeted level: [WCAG 2.2 AA floor + AAA where feasible; EN 301 549 / EAA if EU scope; native platform a11y APIs] (below AA only with a recorded reason)
 ## Project website intent
 - Will there be a project site? [yes / no]   If yes: own domain / subdomain of user's domain
 - (Built in Phase 8 of this skill, later — not built here)
@@ -193,6 +208,7 @@ ALWAYS use this template:
 - Installed-base/upgrade reality is recorded; if there's an installed base, the migration obligation is noted.
 - External dependencies are listed with exact version, source, and fail-safe behavior.
 - The multi-language vs single-language decision is made and recorded (with base/locales/mechanism if multi-language).
+- Accessibility commitment recorded and stated to the user up front: target platform(s) captured, `references/accessibility.md` loaded, and the targeted conformance level stated (WCAG 2.2 AA floor by default; below AA only with a recorded reason).
 - Project-website intent is captured (yes/no + domain choice).
 - "Design needed?" is answered.
 - `docs/01-discovery.md` exists and has zero open questions left unresolved.

@@ -8,6 +8,7 @@ Goal: implement the functional spec (and, if there was UI, the faithful build) i
 - `docs/flows/*.md` (journeys to implement)
 - `docs/BUILD-SPEC.md` (if there was a UI — the faithful build contract; never deviate from it)
 - The loaded security profile (`references/security/<type>.md`) — apply throughout, not at the end.
+- `references/accessibility.md` and the accessibility decision from `docs/01-discovery.md` — apply throughout, not at the end; if there was UI, also the accessibility spec in the handoff (`SPEC/accessibility.md` / `docs/BUILD-SPEC.md` §4a).
 
 ## Principles
 
@@ -17,6 +18,7 @@ Goal: implement the functional spec (and, if there was UI, the faithful build) i
 - **Maximum extensibility for extensible project types.** For WordPress/WooCommerce plugins, MCP servers, and libraries/components, every slice exposes extension points so third parties can override behavior without forking. The default density is: every user-facing string passes through a filter (e.g. WordPress `apply_filters`), every meaningful decision in a flow exposes a `do_action` before and after, every database/query result is filterable before return, every external response (REST, MCP, webhook) is filterable before send, and every public class supports a documented mechanism to be replaced or extended. All extension points are prefixed (the project's namespace), documented in `docs/reference/hooks-and-extension-points.md` at the same slice, and have at least one runnable example.
 - **Test points are checkpoints, not a final phase.** After each meaningful unit (a flow, an integration, a permission boundary), stop and verify before continuing — same logic as the one-step-at-a-time external setup: catch the defect where it happened.
 - **Security profile is live.** Every input boundary, auth path, data write, and external call is checked against the profile as you build it.
+- **Accessibility is live, built into every slice.** Every UI slice is built accessible as it is written — semantic/native controls first, accessible name/role/state exposed to the platform accessibility API, keyboard/assistive-tech operability, visible focus and correct focus order, contrast met, adequate target sizes, error identification (not color-only), and honored user preferences (reduced motion, text scaling, high contrast). It is verified at the slice's test point, never deferred. The target is the Phase 1 level (WCAG 2.2 AA floor / AAA where feasible; EN 301 549 / EAA where in scope; the platform's native a11y API). Per `references/accessibility.md`.
 - **Project-type structure.** Lay the codebase out per the conventions for the type (WordPress plugin layout, MCP server layout, etc.) — the security profile and Phase 7 depend on a sane structure.
 - **Internationalization is a build rule from line one.** If Phase 1 decided multi-language: every user-facing string is externalized through the platform's i18n mechanism, never hardcoded at the use site, never concatenated (use parameterized/placeholder formatting with translator notes, not string addition). The mechanism is platform-specific — do not assume the WordPress pattern is universal:
   - *Function-wrapping model* (WordPress, many web backends): strings wrapped at the use site, e.g. `__()`/`_e()`/`esc_html__()` with the correct text domain; the base locale file (`.pot`) generated from the source strings.
@@ -48,7 +50,8 @@ Work feature/flow by feature/flow, not layer by layer. For each slice:
 - Implement the slice to its functional requirements.
 - **Add extension points as you go (extensible project types).** For WordPress/WooCommerce plugins, MCP servers, and libraries: as each user-facing string, decision, query, and response is written, expose the corresponding filter/action (or platform-equivalent extension point) with the project's prefix. Default to "filterable" rather than hard-coded; opt out only with a recorded reason.
 - **Document the new public surfaces of this slice — now, not later.** For every new function, method, class, hook, action, filter, REST route, MCP ability, or CLI command introduced by this slice, write the entry in `docs/api/` and/or `docs/reference/` (signature, params, return, errors, auth, runnable example). The example must actually run.
-- **Test point:** verify the slice against its acceptance criteria from `docs/02-functional-spec.md` — success path, empty, invalid, permission failure, and the failure/recovery branch from its flow file. Write automated tests where the output is objectively verifiable; for UI, verify against `docs/BUILD-SPEC.md` state matrix. The test point also confirms: (a) no duplicated function was introduced; (b) every new public surface is documented and its example runs; (c) for extensible types, the planned extension points are present and prefixed.
+- **Build the slice accessible as you write it (UI slices).** Use semantic/native controls first; expose accessible name/role/state to the platform accessibility API; ensure keyboard/assistive-tech operability, visible focus and correct focus order; meet contrast and target size; identify errors non-visually too; honor reduced motion, text scaling and high contrast. If there was a design handoff, implement to `SPEC/accessibility.md` / `BUILD-SPEC.md` §4a. Per `references/accessibility.md`.
+- **Test point:** verify the slice against its acceptance criteria from `docs/02-functional-spec.md` — success path, empty, invalid, permission failure, and the failure/recovery branch from its flow file. Write automated tests where the output is objectively verifiable; for UI, verify against `docs/BUILD-SPEC.md` state matrix. The test point also confirms: (a) no duplicated function was introduced; (b) every new public surface is documented and its example runs; (c) for extensible types, the planned extension points are present and prefixed; (d) for UI slices, accessibility is verified — an automated check plus a keyboard pass and a real assistive-tech pass — against `references/accessibility.md` and the accessibility spec.
 - Run the relevant security checks from the profile for this slice (e.g. nonce/capability for a WP admin action, scope/PKCE for an OAuth step, input sanitization, output escaping).
 - Only move to the next slice when this one passes its test point. Report the test-point result to the user before continuing on substantial slices.
 
@@ -58,7 +61,7 @@ After integrating external services: verify auth, the happy path, rate/quota han
 
 ### 4. Cross-cutting verification
 
-Before declaring development done, run the full pass: all acceptance criteria, all flows including failure paths, the full security profile checklist, and (if UI) the Phase 4 faithfulness checklist still holds after wiring. If multi-language: confirm no user-facing string is hardcoded or concatenated, every string uses the translation mechanism with the right text domain, and the base locale file is generated and current.
+Before declaring development done, run the full pass: all acceptance criteria, all flows including failure paths, the full security profile checklist, and (if UI) the Phase 4 faithfulness checklist still holds after wiring. If UI: accessibility verified end to end against `references/accessibility.md` — automated checks plus keyboard-only and real assistive-technology passes, at the largest text size, with user preferences honored. If multi-language: confirm no user-facing string is hardcoded or concatenated, every string uses the translation mechanism with the right text domain, and the base locale file is generated and current.
 
 ### 5. Close the sprint (mandatory at the end of every sprint)
 
@@ -82,16 +85,17 @@ Maintain `docs/05-test-points.md`:
 
 ```
 # Test Points — [Project name]
-| Slice | Acceptance criteria checked | Security checks | i18n (strings externalized) | Reuse checked (no new duplicate) | Docs updated (api/reference, example runs) | Extension points exposed (filter/action) | Result | Notes |
+| Slice | Acceptance criteria checked | Security checks | Accessibility (automated + AT pass) | i18n (strings externalized) | Reuse checked (no new duplicate) | Docs updated (api/reference, example runs) | Extension points exposed (filter/action) | Result | Notes |
 ```
 
-Every slice must appear with a result before Phase 6. The reuse, docs, and extension-point columns are not optional fields — an empty cell is a missing check.
+Every slice must appear with a result before Phase 6. The accessibility, reuse, docs, and extension-point columns are not optional fields — an empty cell is a missing check. (The accessibility cell applies to UI slices; a non-UI slice records "n/a".)
 
 ## Definition of done
 
 - Every v1 feature implemented to spec with its test point passed and logged.
 - Every flow, including failure/recovery paths, verified.
 - Security profile checklist passed for every relevant boundary.
+- **Accessibility built into every UI slice and verified** (automated + keyboard + real assistive-tech), meeting the Phase 1 targeted level per `references/accessibility.md`, with user preferences honored; if there was UI, built to `SPEC/accessibility.md`.
 - **Internal API coherent and reused.** No near-duplicate functions/methods/classes; reuse verified per slice; the codebase has one canonical implementation per behavior.
 - **Every public surface introduced in Phase 5 is already documented** in `docs/api/` and/or `docs/reference/` with a runnable example. Phase 6 will only consolidate — there is no undocumented public surface entering Phase 6.
 - **For extensible project types (WP/Woo plugins, MCP servers, libraries):** every meaningful user-facing string passes through a filter, every meaningful decision exposes an action before/after, every query/response is filterable, and every public class supports a documented replace/extend mechanism. All extension points are prefixed and documented in `docs/reference/hooks-and-extension-points.md` with at least one runnable example each.
@@ -99,7 +103,7 @@ Every slice must appear with a result before Phase 6. The reuse, docs, and exten
 - If installed base: upgrade tested from the real previous version (not just clean install); existing data preserved/migrated; backward compat held or breaking change gated and documented; clean uninstall verified.
 - Every Phase 1 dependency: version checked and fail-safe behavior verified when absent/incompatible (no fatal).
 - If UI: build still matches `docs/BUILD-SPEC.md`.
-- `docs/05-test-points.md` complete (all columns, including reuse / docs / extension points).
+- `docs/05-test-points.md` complete (all columns, including accessibility / reuse / docs / extension points).
 - Every sprint was closed properly: `docs/PROGRESS.md` reflects reality, `docs/lessons-learned.md` updated, finished docs archived to `docs/old/sprint-<N>/`, and a self-sufficient continuation prompt was produced at each sprint close.
 
 No silent divergence from the spec or the design. Then Phase 6.

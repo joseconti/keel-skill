@@ -4,7 +4,7 @@
 
 Use it for any new project — WordPress/WooCommerce plugins, MCP servers, web apps, components, libraries, or websites. Keel runs a complete multi-phase workflow so you never have to re-explain your standing requirements every time you start something new.
 
-- **Version:** 1.1.0
+- **Version:** 1.2.0
 - **License:** GPL-3.0-or-later
 - **Author:** [José Conti](https://plugins.joseconti.com/en)
 
@@ -14,7 +14,7 @@ Keel encodes a full project lifecycle as a single skill. When you start a new pr
 
 | Phase | Purpose |
 |-------|---------|
-| 1. Discovery | Idea assessment, project type, constraints, language model, website intent |
+| 1. Discovery | Idea assessment, project type, constraints, accessibility commitment, language model, website intent |
 | 2. Functional spec | Flows, data model, integrations, permissions, design split, acceptance criteria |
 | 3. Design handoff | What to tell Claude Design and the files Design must read and return |
 | 4. Faithful build | Audit Design's return, consolidate the build spec, build with zero deviation, guided external setup |
@@ -25,6 +25,8 @@ Keel encodes a full project lifecycle as a single skill. When you start a new pr
 
 Security is cross-cutting. As soon as Phase 1 fixes the project type, Keel loads the matching security profile (WordPress/WooCommerce, web app, MCP server, library/component) and keeps it in mind through every later phase.
 
+Accessibility is cross-cutting too, and non-negotiable. As soon as Phase 1 fixes the project type and target platform(s), Keel loads `references/accessibility.md` and applies it — from the first line, on every platform (web, iOS, Android, macOS, Windows) — through every later phase, targeting WCAG 2.2 AA (AAA where feasible), EN 301 549 and the European Accessibility Act where they apply, and each platform's native accessibility API. It is stated up front, never retrofitted at the end.
+
 ## Operating principles
 
 - Decide the project type early and let it drive everything.
@@ -33,6 +35,7 @@ Security is cross-cutting. As soon as Phase 1 fixes the project type, Keel loads
 - Never invent or interpret silently. Ask the user. If a design detail is missing downstream, request it from Design.
 - Code adapts to the design, never the design to the code.
 - Security is per-platform and non-optional.
+- Accessibility is non-negotiable, on every platform, and designed in from the first line — never retrofitted.
 - Build once, reuse by manifest. Never regenerate structurally-identical pages or screens.
 - Confirm before advancing a phase. Each phase has a definition of done.
 
@@ -75,6 +78,7 @@ keel-skill/
         ├── design-brief-template.md
         ├── build-spec-template.md
         ├── design-request-template.md
+        ├── accessibility.md
         └── security/
             ├── wordpress.md
             ├── web-app.md

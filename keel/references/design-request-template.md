@@ -40,6 +40,12 @@ For each item: what is missing, where it was expected, and what is needed.
 - **Needed:** [every exact value the user must enter by hand: software + version, exact path inside it, each field, each exact value/toggle, and the order — because downstream the user is walked through this one verified step at a time and an implicit value cannot be guided. Ask the user for anything that is theirs to decide (IDs, domains, secrets).]
 - **Deliver into:** [`SPEC/external-setup.md`]
 
+### [Category — e.g. Accessibility spec]
+- **Missing:** [e.g. `SPEC/accessibility.md` has no contrast ratios for the primary buttons, and the listing screen has no focus order or error-identification pattern]
+- **Where expected:** [`SPEC/accessibility.md` + `SPEC/screens/<screen>.md`]
+- **Needed:** [the accessibility spec for those screens per `references/accessibility.md`: contrast-verified pairs with measured ratios, visible focus + focus order, accessible name/role/state per state, heading/landmark structure, target sizes, reduced-motion variant, text-scaling/high-contrast behavior, and error identification (never color-only). Ask the user for anything that is their brand/content call.]
+- **Deliver into:** [`SPEC/accessibility.md` + the relevant `SPEC/screens/*.md`]
+
 ### [Category — e.g. Asset Design couldn't produce, missing/thin base prompt]
 - **Missing:** [e.g. the landing hero is a photographic image Design can't generate; `SPEC/external-assets.md` names it but has no base prompt, or one too thin to adapt to a generator faithfully]
 - **Where expected:** [`SPEC/external-assets.md`]

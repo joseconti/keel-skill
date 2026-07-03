@@ -32,6 +32,7 @@ design-handoff/
     ├── assets-index.md        # every asset: filename → where used, intrinsic size, format
     ├── external-assets.md     # assets Design CANNOT produce itself (photos, complex art) — to be generated externally
     ├── external-setup.md      # EVERY config value for external software the user must set by hand
+    ├── accessibility.md       # the a11y contract: contrast pairs, focus order, name/role/state, headings, target sizes, reduced-motion, errors
     └── open-questions.md      # anything undefined; MUST be empty/resolved before build starts
 ```
 
@@ -53,6 +54,8 @@ design-handoff/
 
 8. **Assets Design cannot produce are declared, not faked.** If a needed asset is something Design cannot generate itself (a photographic image, a complex illustration, a rendered 3D scene), Design MUST list it in `SPEC/external-assets.md` and, for each, (a) explain what the asset is and why it's needed, (b) give all placement detail (role, exact usage location, intended final filename, format, intrinsic dimensions/aspect ratio), and (c) **write a ready, generator-neutral base prompt** describing subject, composition, mood, what to include and exclude, and the exact palette/style pulled from `design-tokens.md`. The base prompt is Design's authorship: downstream the builder only *adapts* it to the user's chosen generator — it does not invent visual content. It is a contract violation to leave such an asset as a silent gap, an unlabeled placeholder, or a bare description with no base prompt. If Design cannot write a faithful base prompt because something is undefined, that is a question for the user (recorded in `open-questions.md`), never a Build-side invention.
 
+9. **Accessibility is specified, not left to the build.** `SPEC/accessibility.md` plus per-screen accessibility notes capture the a11y contract: contrast-verified color pairs (with measured ratios), the visible focus indicator and focus order, accessible name/role/state per component and per state, heading/landmark structure, target sizes, reduced-motion variants, behavior under text scaling and high-contrast/forced-colors, and error identification (never color-only). A screen delivered without its accessibility spec is an incomplete handoff — the build must not invent it; the gap becomes a Design Request. Per `references/accessibility.md`.
+
 ## What "complete" means
 
 The handoff is complete when:
@@ -61,6 +64,7 @@ The handoff is complete when:
 - Every unique screen SPEC file covers all states and breakpoints with exact tokens.
 - Every asset referenced in any SPEC exists in `artifacts/assets/` and appears in `assets-index.md`, OR is declared in `SPEC/external-assets.md` with full generation detail.
 - Every external-software configuration the user must perform by hand has every value captured in `SPEC/external-setup.md` (no implicit values left inside artifact files).
+- `SPEC/accessibility.md` and every unique screen's accessibility are complete per `references/accessibility.md` (contrast pairs, focus order, name/role/state, heading/landmark structure, target sizes, reduced-motion, error identification) — nothing left for the build to invent.
 - `open-questions.md` has zero unresolved items.
 
 Anything short of this is an incomplete handoff and the Build phase must treat the gaps as a Design Request, not as license to improvise.

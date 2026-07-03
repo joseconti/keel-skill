@@ -44,7 +44,7 @@ Content-dense vs spacious; long-scroll landing vs compartmentalised pages; how p
 Real screenshots? Illustrations? Photography? Anything Design cannot generate (photos, complex illustration) must be declared in `SPEC/external-assets.md` with a ready base prompt — the Phase 4 guided one-asset-at-a-time generation loop handles producing them with the user's chosen generator. Decide the strategy here so the brief is explicit.
 
 ### 6. Responsiveness & accessibility intent
-Required breakpoints, mobile-first or not, accessibility target (contrast, keyboard nav, focus states). These are also SEO/quality gates (`references/phase-8-technical-seo.md`).
+Required breakpoints, mobile-first or not, and the **accessibility spec** Design must deliver per `references/accessibility.md` and the handoff contract's `SPEC/accessibility.md`: contrast-verified color pairs (with ratios), visible focus and focus order, accessible name/role/state per component and state, heading/landmark structure, target sizes, reduced-motion variants, reflow at large text, and error identification. WCAG 2.2 AA is the floor (AAA where feasible; EN 301 549 / EAA in EU scope). These are also SEO/quality gates (`references/phase-8-technical-seo.md`), but accessibility is required in its own right — not deferred to the build.
 
 ### 7. Constraints carried from discovery
 Host constraints (e.g. static-only, no heavy frameworks), language/RTL needs if the site is multilingual, brand non-negotiables.
@@ -74,5 +74,5 @@ Two-branch failure handling, same as the rest of Keel:
 - Any chosen font declared as an external asset (family, weights, formats, legal source + license) for the guided procurement loop.
 - Every product screenshot declared in `SPEC/screenshots.md` with reserved slot, target screen/state, approx size and slot CSS — for the guided capture loop and CSS-fit in the build.
 - Reference points captured or explicitly absent.
-- Responsiveness/accessibility intent stated.
+- Responsiveness stated, and the accessibility spec Design must deliver (`SPEC/accessibility.md`, WCAG 2.2 AA floor) stated per `references/accessibility.md`.
 - The brief, with this direction, satisfies the handoff contract before Design starts.

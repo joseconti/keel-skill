@@ -33,7 +33,8 @@ docs/
 │   ├── classes.md
 │   ├── functions.md
 │   └── hooks-and-extension-points.md
-└── security.md                   (NEW — applied security summary, from the profile)
+├── security.md                   (NEW — applied security summary, from the profile)
+└── accessibility.md              (NEW — applied a11y: standard targeted, per-platform measures, verification, known gaps)
 ```
 
 Adapt names to the project type (e.g. for a WordPress plugin, `api/` documents REST routes, WP-CLI commands, and MCP abilities; `reference/hooks-and-extension-points.md` documents actions/filters; for an MCP server, `api/` documents tools/abilities and their schemas).
@@ -68,6 +69,9 @@ No public surface may be undocumented. If something is intentionally internal/pr
 ### security.md
 A concrete summary of how the loaded security profile was applied in THIS project: which protections are in place, where, and how a maintainer should keep them intact. Not the generic profile — the applied result.
 
+### accessibility.md
+A concrete summary of how accessibility was applied in THIS project: the standard targeted (WCAG 2.2 AA floor / AAA where reached; EN 301 549 / EAA if in scope), the per-platform measures actually implemented (semantic/native structure, keyboard/AT operability, focus management, contrast, target sizes, reduced-motion, honored user preferences), how it was verified (which automated tools and which assistive technologies were tested), how a maintainer keeps it intact, and any known gaps recorded honestly (no overlay, no false conformance claim). Not the generic reference — the applied result. See `references/accessibility.md`.
+
 ## Rules
 
 - **This phase consolidates.** Per Phase 5, every public surface was documented at the moment it was created with a runnable example. If a surface is undocumented here, it is a Phase 5 defect — fix the slice, do not retroactively invent docs from the code.
@@ -75,6 +79,7 @@ A concrete summary of how the loaded security profile was applied in THIS projec
 - **Every public surface documented, with a runnable example.** Examples that don't actually run are a defect.
 - **No duplicate functions/methods/classes in the docs.** A near-duplicate in the docs is the trace of a duplicate in the code — refactor the code (per the Phase 5 reuse rule) before consolidating the docs.
 - **Extensible project types:** the hooks-and-extension-points reference reflects the density rule (filters on user-facing strings, before/after actions on decisions, filters on queries and responses, replace/extend mechanism on public classes). Missing extension points are Phase 5 defects.
+- **Accessibility is consolidated, not invented at the end.** Per Phase 5, accessibility was built and verified in each slice; `docs/accessibility.md` consolidates the applied result and the verification evidence (tools + assistive technologies tested). A barrier discovered here is a Phase 5 defect to fix, not a doc to soften — and no accessibility overlay or unverified conformance claim substitutes for the real thing.
 - **Changelog ordering:** in changelogs, list versions oldest → newest (e.g. 2.1.0 then 2.1.1). Never invert.
 - **Mark placeholders.** Any not-yet-final doc section is labeled as such, never shipped as if complete.
 
@@ -82,7 +87,7 @@ A concrete summary of how the loaded security profile was applied in THIS projec
 
 - The full `docs/` layout exists and is populated.
 - Every public API/class/function/hook is documented with a runnable example.
-- architecture.md, usage/, security.md complete and reconciled with the as-built code.
+- architecture.md, usage/, security.md, accessibility.md complete and reconciled with the as-built code.
 - No undocumented public surface; no unlabeled placeholder.
 
 Then Phase 7.

@@ -54,6 +54,14 @@ For each unique screen, every state the build MUST implement, with its spec refe
 | breakpoint [x] | ... | ... | ☐ |
 | variant [role/plan] | ... | ... | ☐ |
 
+## 4a. Accessibility spec (from `SPEC/accessibility.md`)
+
+Copied from the handoff's accessibility spec; the build implements every row. A blank row is a gap → Design Request, not a guess. Per `references/accessibility.md`.
+
+| Screen / component | Contrast pairs (ratio) | Name / role / state (per state) | Focus order + visible focus | Target size | Reduced-motion / text-scaling / high-contrast | Error identification | Spec reference | Built |
+|--------------------|------------------------|---------------------------------|-----------------------------|-------------|-----------------------------------------------|----------------------|----------------|-------|
+| [name] | [pairs + ratios] | [per state] | [order + style] | [px/pt/dp] | [behavior] | [pattern] | `SPEC/accessibility.md#...` | ☐ |
+
 ## 5. Interaction & logic table
 
 From `SPEC/interactions.md`. Every behavior, conditional render, gating rule, transition.
@@ -113,4 +121,5 @@ How the real artifacts are ported into [target stack]. This is the ONLY place co
 - ☐ Every external-setup step guided one at a time, every value traced to §7/SPEC, each verifiable step screenshot-confirmed before advancing; unverified steps flagged.
 - ☐ Every externally generated asset built from its §8/SPEC entry, saved at the exact path/name/format, confirmed on-system; unverified assets flagged; no invented visual detail.
 - ☐ Every code-side adaptation logged in §9 with design intent confirmed intact.
+- ☐ Accessibility built to §4a / `SPEC/accessibility.md`: contrast pairs met, keyboard/AT operable, visible focus and specified focus order, name/role/state per state, headings/landmarks, target sizes, reduced-motion and text-scaling/high-contrast honored, error identification — verified with automated tools **and** a real assistive-tech pass (per `references/accessibility.md`).
 - ☐ Zero unresolved Design Requests.

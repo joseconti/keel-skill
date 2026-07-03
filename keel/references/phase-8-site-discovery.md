@@ -55,7 +55,7 @@ This is a decision in its own right, not an implicit inheritance. A project can 
 
 - Where it will be hosted/deployed (static host, the user's existing hosting, a platform), since it affects the domain decision and the launch checklist.
 - Brand assets available (logo, palette) or to be created.
-- Performance/accessibility expectations (these become SEO and quality gates).
+- Performance expectations, and accessibility — non-negotiable and inherited from the Phase 1 commitment: the site targets WCAG 2.2 AA (AAA where feasible; EN 301 549 / EAA in EU scope) per `references/accessibility.md`, verified with real assistive technology at launch. Both are also SEO/quality gates.
 
 ## Definition of done (this reference)
 

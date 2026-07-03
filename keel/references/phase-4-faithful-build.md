@@ -26,6 +26,7 @@ Input is `docs/design/design-handoff/`. Check against `references/handoff-contra
 - `SPEC/assets-index.md` — every referenced asset exists in `artifacts/assets/` with size/format?
 - `SPEC/external-assets.md` — for any asset Design couldn't produce, is there full generation detail (role, location, filename, format, dimensions, visual description, palette/style from tokens)? Any asset that's a silent gap or unlabeled placeholder instead of declared here is a gap. If "none", confirm no such assets are actually needed.
 - `SPEC/external-setup.md` — if external software must be configured by hand, is EVERY value present (software/version, exact path, each field, each value/toggle, order)? Anything implicit in an artifact instead of here is a gap. If "none", confirm nothing actually requires manual setup.
+- `SPEC/accessibility.md` — present and complete (contrast-verified pairs with ratios, visible focus + focus order, accessible name/role/state per component and state, heading/landmark structure, target sizes, reduced-motion variants, text-scaling/high-contrast behavior, error identification)? Is per-screen accessibility present in each `SPEC/screens/*.md`? A missing or thin accessibility spec is a gap — the build must not invent it. Per `references/accessibility.md`.
 - `SPEC/open-questions.md` — empty/resolved? Any item is a hard blocker.
 - Any placeholder copy that would otherwise ship?
 
@@ -46,6 +47,7 @@ Only when `docs/BUILD-SPEC.md` is complete and gap-free:
 - Port real artifacts into the target stack. Templates stay templates; don't flatten into N duplicated pages, don't duplicate where Design unified.
 - Match tokens exactly. No "close enough".
 - Implement every state in the state matrix; a screen isn't done until every documented state is built.
+- Implement the accessibility spec exactly (`SPEC/accessibility.md`): accessible name/role/state for every component and state, keyboard/assistive-tech operability, visible focus and the specified focus order, target sizes, reduced-motion variants, and error identification. A screen isn't done until its accessibility is built and verified, per `references/accessibility.md`.
 - Where the stack forces a change, change the code strategy and log it in `BUILD-SPEC.md` integration notes — never alter the design.
 - Mid-build unspecified discovery → stop, return to Step 3 for that item.
 
@@ -89,8 +91,8 @@ Once an asset is confirmed and saved at its target path/name, treat it as a real
 
 ## Step 7 — Verify against the faithfulness checklist
 
-Walk the checklist in `docs/BUILD-SPEC.md`: every screen matches artifact+SPEC; every state exists and is reachable; no invented values/behavior; no unintended placeholder copy; reuse preserved; every external-setup step guided one at a time with traced values and screenshot confirmation (unverified flagged); every external asset generated from the SPEC, saved at its exact path/name/format, and confirmed (unverified flagged); every code-side adaptation logged with design intent intact; zero unresolved Design Requests. Report results. A failure is a build defect (fix code) or a genuine gap (Design Request) — never a reason to relax the design.
+Walk the checklist in `docs/BUILD-SPEC.md`: every screen matches artifact+SPEC; every state exists and is reachable; no invented values/behavior; no unintended placeholder copy; reuse preserved; every external-setup step guided one at a time with traced values and screenshot confirmation (unverified flagged); every external asset generated from the SPEC, saved at its exact path/name/format, and confirmed (unverified flagged); accessibility built to `SPEC/accessibility.md` and verified (automated checks plus a real assistive-tech pass); every code-side adaptation logged with design intent intact; zero unresolved Design Requests. Report results. A failure is a build defect (fix code) or a genuine gap (Design Request) — never a reason to relax the design.
 
 ## Definition of done
 
-`docs/BUILD-SPEC.md` complete and gap-free, build matches it, external setup verified or explicitly flagged, every external asset generated and placed or explicitly flagged, faithfulness checklist passed. Then Phase 5.
+`docs/BUILD-SPEC.md` complete and gap-free, build matches it, external setup verified or explicitly flagged, every external asset generated and placed or explicitly flagged, accessibility built to `SPEC/accessibility.md` and verified (automated + real assistive-tech pass), faithfulness checklist passed. Then Phase 5.

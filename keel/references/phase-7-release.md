@@ -41,6 +41,7 @@ State the resulting package contents to the user so the boundary is visible and 
 Before tagging:
 - Phase 5 test points all pass; Phase 6 docs complete.
 - Security profile checklist passed (link `docs/security.md`).
+- **Accessibility verification (gate — no tag without it for anything with a UI).** Automated checks pass, and a manual pass with the platform's **real assistive technology** — screen reader, keyboard/switch, largest text size, reduced-motion and high-contrast on — succeeds on the **actual distributable** in a real environment, not just in dev. It meets the Phase 1 targeted level (WCAG 2.2 AA floor / AAA where feasible; EN 301 549 / EAA where in scope) or the shortfall is honestly recorded in `docs/accessibility.md` (no overlay, no false conformance claim). Link `docs/accessibility.md`. Per `references/accessibility.md`.
 - Build the distributable the way the user actually ships it (e.g. `git archive` / the plugin packaging step) and inspect the output: no secrets, no dev files, all runtime files present, correct version.
 - **Real-environment verification (hard gate — no tag without it).** "Tests pass" is not "it works when installed". Take the exact distributable a user receives and install/deploy it in a real environment of the correct type — a real WordPress site for a plugin, the actual Fly.io app for a service, a clean target install for a library — then exercise the critical path there. If there's an installed base, also run the real upgrade from the previous shipped version on that environment. A failure here blocks the release; it is never waved through because unit tests were green.
 - If UI: faithfulness checklist from `docs/BUILD-SPEC.md` still holds.
@@ -61,6 +62,7 @@ Before tagging:
 ## Package contents (verified)
 ## Changelog entry (oldest → newest)
 ## Pre-release verification results
+## Accessibility verification results (automated + real assistive-tech, on the distributable)
 ## Release artifacts
 ```
 
@@ -71,6 +73,7 @@ Before tagging:
 - Version set, changelog updated oldest → newest.
 - Distributable built and its contents verified.
 - Real-environment verification passed on the actual distributable (and the real upgrade, if there's an installed base).
+- Accessibility verification passed on the actual distributable for anything with a UI (automated + real assistive-tech), meeting the Phase 1 targeted level or with the shortfall honestly recorded in `docs/accessibility.md`.
 - `docs/07-release.md` complete.
 
 This is the final phase of the build lifecycle. Report the release summary to the user.

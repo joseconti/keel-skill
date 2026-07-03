@@ -64,7 +64,7 @@ Document each in `SPEC/screens/<screen>.md`. Document cross-screen behavior and 
 - **Copy:** [final copy provided / use placeholder]. If placeholder, mark it clearly as placeholder in the SPEC so it is never shipped.
 - **Icons/illustrations:** export real SVG/PNG into `artifacts/assets/`. Index every asset in `SPEC/assets-index.md` (filename → where used → intrinsic size → format).
 - **i18n:** [locales needed, e.g. en + es — or none]. If strings need externalizing, note it in the SPEC.
-- **Accessibility target:** [e.g. WCAG AA, keyboard nav, focus visible — or state baseline].
+- **Accessibility target:** WCAG 2.2 AA floor (AAA where feasible); EN 301 549 / EAA if in EU scope; the target platform's native a11y API. This is specified per screen in Section 5d — not a one-line target.
 
 ## 5b. External software configuration (critical for the manual walkthrough)
 
@@ -91,6 +91,23 @@ If you cannot write a faithful base prompt because a creative detail is undefine
 
 If there are no such assets, state "none" in `SPEC/external-assets.md` so the absence is explicit.
 
+## 5d. Accessibility (non-negotiable — specify per screen, do not defer to the build)
+
+Accessibility is designed and documented by you (Design), not left for the build to infer. For every screen and component, specify and record it in `SPEC/accessibility.md` (plus per-screen notes in `SPEC/screens/<screen>.md`):
+
+- **Targeted level:** [WCAG 2.2 AA floor + AAA where feasible; EN 301 549 / EAA if in EU scope; the target platform's native accessibility API].
+- **Contrast-verified color pairs:** every text and UI-object foreground/background pair with its measured ratio (≥4.5:1 text, ≥3:1 large text and UI objects; AAA where feasible). Passing values, not guesses.
+- **Visible focus indicator:** exact style/tokens, and the **focus order** per screen.
+- **Accessible name, role, state** for every component in every state (default, hover, focus, active, disabled, loading, empty, error, success).
+- **Heading and landmark/region structure** per screen (navigable by headings/landmarks).
+- **Target sizes** meeting at least the platform minimum (24×24 CSS px / 44×44 pt / 48×48 dp) with adequate spacing.
+- **Reduced-motion variant** for every animation/transition; behavior under **text scaling / reflow** and **high-contrast / forced-colors**.
+- **Error identification** pattern (shown and announced, never color-only) and how status changes are announced.
+- **Text alternatives** intent for every image/icon/media; confirm **no meaning is carried by color alone**.
+- **RTL / bidi** behavior if the project is multilingual.
+
+Anything here you cannot decide is a question for the user in `SPEC/open-questions.md` — never an invented value, and never something for the build to fill in. See `references/accessibility.md`.
+
 ## 6. Required delivery structure (non-negotiable)
 
 Deliver a `design-handoff/` folder exactly like this:
@@ -112,6 +129,7 @@ design-handoff/
     ├── assets-index.md     # every asset mapped
     ├── external-assets.md  # assets you cannot produce — full generation detail (or "none")
     ├── external-setup.md   # every exact config value for external software (or "none")
+    ├── accessibility.md    # per-screen a11y spec: contrast pairs, focus, name/role/state, headings, target sizes, reduced-motion, errors
     └── open-questions.md   # anything undefined — ask the user, list it here
 ```
 
@@ -126,6 +144,7 @@ Do not consider the handoff finished until:
 - Every asset referenced anywhere exists in `artifacts/assets/` and is in `assets-index.md`, OR is declared in `external-assets.md` with full generation detail.
 - Every asset you cannot produce yourself is in `external-assets.md` (or it explicitly says "none"); none left as a silent gap or unlabeled placeholder.
 - Every external-software configuration value is captured in `external-setup.md` (or it explicitly says "none"); nothing needed is left implicit in an artifact.
+- `SPEC/accessibility.md` and per-screen accessibility are complete (contrast-verified pairs, focus style/order, name/role/state per state, heading/landmark structure, target sizes, reduced-motion, text-scaling/high-contrast behavior, error identification) per `references/accessibility.md` — none left for the build to invent.
 - `open-questions.md` has zero unresolved items (you asked the user and recorded the answers).
 - No structurally-identical pages were duplicated.
 

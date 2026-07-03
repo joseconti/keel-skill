@@ -8,6 +8,7 @@ This phase absorbs the former `design-spec-handoff` skill. Read `references/hand
 
 - `docs/02-functional-spec.md` → the "Design split" (screens that need design, template-reuse candidates, external-setup items).
 - `docs/01-discovery.md` → project type, constraints, the loaded security profile (Design must respect host/security constraints, e.g. WP admin scheme, no external font CDNs), and the **internationalization decision**. If multi-language: the brief must tell Design that all copy is translatable — no baked-in text that can't be swapped per locale, mark every string as content (not decoration), account for text expansion/RTL if relevant — so the build can externalize strings without redesigning. Carry the base language and target locales into the brief.
+- `docs/01-discovery.md` (accessibility commitment, target platform, targeted level) and `docs/02-functional-spec.md` (per-screen accessibility requirements) → the **accessibility decision**. The brief must require Design to *specify* accessibility, never leave it to the build: contrast-verified color pairs, the visible focus style, focus order, accessible name/role/state per component and per state, heading/landmark structure, target sizes, reduced-motion variants, behavior under text scaling and high-contrast, and error identification. Carry the targeted level (WCAG 2.2 AA floor / AAA where feasible; EN 301 549 / EAA if in scope) into the brief. Per `references/accessibility.md`.
 
 ## Core principles to encode into the brief
 
@@ -18,6 +19,7 @@ This phase absorbs the former `design-spec-handoff` skill. Read `references/hand
 - **Exact values only.** Hex, px/rem, font names+weights, ms durations, easing, z-index.
 - **External setup is fully extracted.** Every value the user must set by hand in external software goes into `SPEC/external-setup.md` — never left implicit in an artifact (it will be guided one verified step at a time in Phase 4).
 - **Assets Design can't produce are declared, not faked.** Any photo/complex illustration/3D render Design cannot generate goes into `SPEC/external-assets.md` with full generation detail (role, location, filename, format, dimensions, visual description, palette/style from tokens) — never a silent gap or unlabeled placeholder (it will be generated one asset at a time with the user's chosen generator in Phase 4).
+- **Accessibility is specified, never deferred.** Every screen's accessibility is designed and documented by Design: contrast-verified color pairs (with measured ratios), the visible focus indicator, focus order, accessible name/role/state per component and per state (including error/empty/loading/disabled), heading/landmark structure, target sizes, reduced-motion variants, behavior under text scaling and high-contrast/forced-colors, and error identification (never color-only). A screen without its accessibility spec is incomplete — the build must not invent it. Per `references/accessibility.md`.
 
 ## Steps
 
@@ -36,6 +38,7 @@ The brief must:
 - Enumerate, per screen, every required state and breakpoint.
 - Require `SPEC/external-setup.md` with every external-software config value (or explicit "none").
 - Require `SPEC/external-assets.md` with every asset Design can't produce, fully detailed (or explicit "none").
+- Require `SPEC/accessibility.md` plus per-screen accessibility notes (contrast-verified pairs, focus style/order, name/role/state per component and state, heading/landmark structure, target sizes, reduced-motion variants, text-scaling/high-contrast behavior, error identification), per `references/accessibility.md`.
 - Forbid duplicating structurally-identical pages.
 
 ### 3. Hand the brief to the user
@@ -44,12 +47,13 @@ Tell the user the brief is at `docs/design/DESIGN-BRIEF.md`, to paste into Desig
 
 ## What Design must return (the handoff contract)
 
-A `design-handoff/` folder per `references/handoff-contract.md`: real artifacts under `artifacts/` (templates built once, components, only-unique pages, real assets, tokens-as-code) plus `SPEC/` (`manifest.md`, `design-tokens.md`, `screens/*.md`, `interactions.md`, `assets-index.md`, `external-assets.md`, `external-setup.md`, `open-questions.md`). Place the returned handoff at `docs/design/design-handoff/`.
+A `design-handoff/` folder per `references/handoff-contract.md`: real artifacts under `artifacts/` (templates built once, components, only-unique pages, real assets, tokens-as-code) plus `SPEC/` (`manifest.md`, `design-tokens.md`, `screens/*.md`, `interactions.md`, `assets-index.md`, `external-assets.md`, `external-setup.md`, `accessibility.md`, `open-questions.md`). Place the returned handoff at `docs/design/design-handoff/`.
 
 ## Definition of done
 
 - `docs/design/DESIGN-BRIEF.md` exists, fully filled, with no unresolved user questions.
-- The brief mandates the exact handoff contract including `external-setup.md` and `external-assets.md`.
+- The brief mandates the exact handoff contract including `external-setup.md`, `external-assets.md`, and `accessibility.md`.
+- The brief requires Design to specify accessibility per screen (`SPEC/accessibility.md` + per-screen notes), per `references/accessibility.md`.
 - The user has what they need to run Design.
 
 Phase 4 begins only once Design returns the handoff.

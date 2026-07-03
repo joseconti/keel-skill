@@ -15,6 +15,7 @@ This phase is the former standalone `keel-web` skill, absorbed into Keel so ther
 - **Reuse Keel's phases, don't reinvent.** Design handoff, faithful build, guided image generation, sprint tracking, security, release hygiene are Phases 3–7 — apply them to the site. The six references here only add the web-specific depth.
 - **No deviation, no invention.** Same handoff contract and build faithfulness as Phase 4. Missing design detail → Design Request. Build once, reuse by manifest — never regenerate near-identical pages.
 - **Vanilla by default; fonts and images self-contained.** Plain HTML/CSS/JS — no frameworks/libraries/CDN/runtime third-party scripts. The only exception is a user-approved static-site generator for a specific site type (e.g. docs micro-site), explicitly recorded; the assistant never decides this itself. Fonts always self-hosted via local `@font-face` (never Google Fonts/CDN), procured through a guided one-step-at-a-time loop. Images Design can't produce use the Phase 4 guided generation loop. Details in `references/phase-8-design-direction.md`.
+- **Accessibility is a verified deliverable, not a side effect.** The site meets the Web/HTML section of `references/accessibility.md` (WCAG 2.2 AA floor, AAA where feasible; EN 301 549 / EAA in EU scope) — semantic HTML, keyboard operability, visible focus, contrast, honored `prefers-reduced-motion`/`prefers-contrast`, reflow at large text — built in from the first section and verified with real assistive technology at launch. This is the Phase 1 commitment applied to the site.
 - **Decide structure-shaping things before design.** Site type, site language (its own blocking decision), design direction, section set and domain are decided and recorded BEFORE the design handoff.
 
 ## Steps (web specifics layered on Keel's phases)
@@ -43,6 +44,7 @@ Run order: study the product → discovery → sections/domain/SEO+AEO spec (all
 - Domain decided with reasoning; DNS/TLS routed into the Phase 4 guided setup loop.
 - Design direction (incl. vanilla + self-hosted fonts + reserved screenshot slots) in the brief; handoff satisfies the Phase 3 contract.
 - Built faithfully (Phase 4); fonts self-hosted, images generated, product screenshots captured and CSS-fitted via guided loops; zero unresolved Design Requests.
+- Web accessibility verified per `references/accessibility.md` (WCAG 2.2 AA floor) with real assistive technology at launch — not only as an SEO adjacent check.
 - SEO and AEO present and verified per page.
 - Real-environment launch verification passed (`references/phase-8-launch-checklist.md`).
 

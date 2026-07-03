@@ -57,3 +57,19 @@ Initial public release (GPL-3.0-or-later).
 - Per-platform security profiles: WordPress/WooCommerce, web app, MCP server, library/component.
 - Shared templates: handoff contract, design brief, build spec, design request.
 - Version reporting instruction and GPL-3.0-or-later licensing.
+
+## 1.2.0
+
+### Added
+- Accessibility as a cross-cutting, non-negotiable concern applied on every platform and designed in from the first line — treated like security, and established up front in Phase 1 rather than retrofitted at the end.
+  - New `references/accessibility.md`: a universal core (POUR non-negotiables, WCAG 2.2 AA floor with AAA where feasible, EN 301 549 / European Accessibility Act, honored user preferences) plus per-platform sections — Web/HTML, WordPress/WooCommerce, iOS/iPadOS, Android, macOS, Windows, and cross-platform frameworks — each with its native accessibility API, assistive technologies, and verification tooling. Includes the design deliverables, a phase map, and an honesty rule (no accessibility overlay, no unverified conformance claim).
+  - SKILL.md: new operating principle, a cross-cutting "Accessibility" section parallel to Security routing (load `references/accessibility.md` once the project type and platform are fixed in Phase 1), a reference-index entry, and the description updated.
+  - Phase 1 Discovery: a blocking "Accessibility commitment" step stated up front and paired with the i18n decision (retrofit = rewrite); target platform(s) captured; discovery-doc template and Definition of done extended.
+  - Phase 2 Functional Spec: accessibility conditions required in every UI feature's acceptance criteria; per-screen accessibility requirements feed the design split.
+  - Phase 3 Design Handoff, design brief and handoff contract: Design must deliver `SPEC/accessibility.md` and per-screen accessibility (contrast-verified pairs, focus order and visible focus, name/role/state per state, heading/landmark structure, target sizes, reduced-motion, error identification); a missing spec is a Design Request.
+  - Phase 4 Faithful Build, BUILD-SPEC and Design Request templates: audit the accessibility spec, carry it into `BUILD-SPEC.md` (new §4a), and request it back when missing; faithfulness checklist and Definition of done extended.
+  - Phase 5 Development: accessibility built into every UI slice with its own test point (automated + keyboard + real assistive technology); new accessibility column in `docs/05-test-points.md`; Definition of done extended.
+  - Phase 6 Documentation: new `docs/accessibility.md` (applied measures, verification evidence, known gaps) consolidated, not invented at the end.
+  - Phase 7 Release: accessibility verification is a release gate — automated checks plus a real assistive-technology pass on the actual distributable.
+  - Phase 8 Project Website: web accessibility (WCAG 2.2 AA floor) is an explicit, verified deliverable checked with real assistive technology at launch, across the website orchestration, technical SEO, design direction, site discovery, and launch checklist references.
+- README.md updated to describe accessibility as a cross-cutting, non-negotiable concern and to list `references/accessibility.md` in the repository layout.

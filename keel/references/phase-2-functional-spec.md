@@ -38,9 +38,13 @@ This is the bridge to Phase 3. Produce a clear split:
 - **External software the user must configure by hand** (Unity, hosting panel, OAuth console, SaaS settings, DNS, payment gateway): list each. These become the `SPEC/external-setup.md` requirements in Phase 3 and the guided walkthrough in Phase 4.
 - **Assets Design likely can't produce** (photographic images, complex illustrations, 3D renders): flag any you can already foresee. These become `SPEC/external-assets.md` requirements in Phase 3 and the guided one-asset-at-a-time generation loop in Phase 4.
 
+For every screen that needs design, also record its **accessibility requirements** (semantic structure and heading order, keyboard/assistive-tech operability, contrast, focus order and visible focus, error identification, target size, reduced-motion) — these become part of what Design must specify in Phase 3, per `references/accessibility.md`. Accessibility is not deferred to the build; it is specified with the screen.
+
 ### 5. Acceptance criteria
 
 Define, per feature, the conditions under which it's considered done. These feed Phase 5 test points and the Phase 4 faithfulness checklist.
+
+Every feature with a UI includes **accessibility conditions** in its acceptance criteria — operable by keyboard and assistive technology, accessible name/role/state exposed, contrast met, visible focus, error identification (not color-only), adequate target size, and honored user preferences (reduced motion, text scaling). Accessibility is a done condition of the feature, not a separate later pass (see `references/accessibility.md`).
 
 ## `docs/02-functional-spec.md` structure
 
@@ -60,13 +64,14 @@ ALWAYS use this template:
 - Needs design: [screens, with template-reuse notes]
 - No design: [...]
 - External manual setup: [...]
-## Acceptance criteria (per feature)
+## Acceptance criteria (per feature — include accessibility conditions for every UI feature)
 ## Open questions for the user
 ```
 
 ## Definition of done
 
 - Every v1 feature has testable requirements and acceptance criteria.
+- Every UI feature's acceptance criteria include accessibility conditions (keyboard/AT operable, name/role/state, contrast, visible focus, error identification, target size, honored user preferences) per `references/accessibility.md`; every screen that needs design has its accessibility requirements recorded for the Phase 3 brief.
 - Every multi-step/branching journey has a flow file.
 - Data model, integrations, and permissions are specified.
 - The design split is explicit, including external-setup items.
