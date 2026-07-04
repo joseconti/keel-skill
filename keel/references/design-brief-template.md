@@ -1,6 +1,6 @@
 # Design Brief Template
 
-Fill every bracket from the Step 1 interview. Output the filled version as a markdown file the user pastes into Design. Do not leave brackets unfilled — an unfilled bracket is exactly the "left in the air" problem this skill exists to prevent. If a value is genuinely the user's call and unknown, it goes to the user as a question (Step 1), not into Design as a guess.
+Fill every bracket from the Phase 1–2 artifacts (discovery, functional spec, technical plan) and the Phase 3 Step 1 confirmation. Output the filled version as a markdown file the user pastes into Design. Do not leave brackets unfilled — an unfilled bracket is exactly the "left in the air" problem this skill exists to prevent. If a value is genuinely the user's call and unknown, it goes to the user as a question now (Phase 3 Step 1), not into Design as a guess.
 
 ---
 
@@ -27,14 +27,20 @@ You are producing a **reusable design system + real built artifacts + a governin
 
 ## 2. Brand & tokens (the canonical values)
 
+- **Design system status:** [existing — the values below COME FROM it (source: <path/repo/URL/doc>); apply them as-is and raise any deviation you want as a question, never restyle silently / founding — no system exists; YOU are creating the brand's canonical design system with this project, so build tokens, logo treatment and component styles for reuse beyond this project / one-off — this look intentionally stands alone]
 - **Color palette:** [exact hex list with semantic roles: bg, surface, text, primary, danger, etc. — or "UNDEFINED → ask user"]
 - **Typography:** [font families, weights, sizes/scale, line-heights — or ask]
 - **Spacing scale:** [e.g. 4/8/12/16/24/32 — or ask]
 - **Radius / shadows / borders:** [exact — or ask]
 - **Motion:** [durations + easing for transitions — or ask]
-- **Logo & brand assets provided:** [yes: list / no]
+- **Logo:** [provided — files listed below / **you (Design) create it** as part of founding this system / pending from the user — a dependency, not yours to invent]
+  - If you create it: deliver real files, not a description — a master **SVG**, variants (horizontal / stacked / icon-only), on-light and on-dark versions, a monochrome version, minimum sizes and clear-space rules. Everything indexed in `SPEC/assets-index.md` and usable to derive favicons/app icons later. Iterate with the user before finalizing — the logo is their call.
+- **Brand assets provided:** [list — or "none"]
+- **Founding seed (only when founding):** [the Phase 1 founding-interview answers, carried verbatim: colors loved/vetoed, typeface preference + licensing, personality adjectives, references liked/disliked, dark-mode intent, iconography/imagery style, vetoes. This is your starting base — found the identity FROM it; anything unanswered goes to `SPEC/open-questions.md`, never guessed.]
 
 If any of the above is "ask user", you must request it before finalizing — do not choose for them.
+
+If the design system is **existing**, the values above are canonical and closed: do not introduce new colors, typefaces, or component styles outside it without asking the user first. If **founding**, document everything you define in `SPEC/design-tokens.md` and `artifacts/styles/` knowing they become the brand's canonical system for future projects.
 
 ## 3. Screen inventory (split for reuse)
 

@@ -4,7 +4,7 @@
 
 Use it for any new project — WordPress/WooCommerce plugins, MCP servers, web apps, components, libraries, or websites. Keel runs a complete multi-phase workflow so you never have to re-explain your standing requirements every time you start something new.
 
-- **Version:** 1.2.0
+- **Version:** 1.3.0
 - **License:** GPL-3.0-or-later
 - **Author:** [José Conti](https://plugins.joseconti.com/en)
 
@@ -14,8 +14,8 @@ Keel encodes a full project lifecycle as a single skill. When you start a new pr
 
 | Phase | Purpose |
 |-------|---------|
-| 1. Discovery | Idea assessment, project type, constraints, accessibility commitment, language model, website intent |
-| 2. Functional spec | Flows, data model, integrations, permissions, design split, acceptance criteria |
+| 1. Discovery | Competitive scan, idea assessment, project type, constraints, license, accessibility commitment, language model, design system (existing or founded), website intent |
+| 2. Functional spec | Flows, data model, integrations, permissions, technical plan (stack, architecture, conventions), design split, acceptance criteria |
 | 3. Design handoff | What to tell Claude Design and the files Design must read and return |
 | 4. Faithful build | Audit Design's return, consolidate the build spec, build with zero deviation, guided external setup |
 | 5. Development | Sprint planning, vertical slices with test points, living progress tracker, lessons learned |
@@ -27,8 +27,16 @@ Security is cross-cutting. As soon as Phase 1 fixes the project type, Keel loads
 
 Accessibility is cross-cutting too, and non-negotiable. As soon as Phase 1 fixes the project type and target platform(s), Keel loads `references/accessibility.md` and applies it — from the first line, on every platform (web, iOS, Android, macOS, Windows) — through every later phase, targeting WCAG 2.2 AA (AAA where feasible), EN 301 549 and the European Accessibility Act where they apply, and each platform's native accessibility API. It is stated up front, never retrofitted at the end.
 
+Project state is cross-cutting as well. From the first minute of Phase 1, Keel maintains a living state system (`docs/PROGRESS.md` with the project card and exact position, `docs/decisions.md` as an append-only decision log, `docs/lessons-learned.md` as a problem-to-solution log) defined in `references/project-state.md`. Any fresh chat resumes from these files — in a fixed, cache-friendly reading order — instead of re-scanning code or re-asking questions, and decisions already made are never re-litigated.
+
+Keel has three entry modes: a new project (Phase 1 from zero), resuming an in-progress Keel project (from `docs/PROGRESS.md`), and **adoption** — applying Keel to a project already underway (`references/adoption.md`): read-only inventory, the never-made Phase 1 decisions asked, artifacts reconstructed as-built, and a gap audit against Keel's standards prioritized with the user, changing no code.
+
+Every Keel project also carries a **portability lock**: a `CLAUDE.md` block (optionally plus the skill embedded at `.claude/skills/keel/`) that binds any environment or AI opening the repo — Claude app, Cowork, Claude Code in VS Code, or another assistant — to the Keel workflow, even where the skill is not installed. Workflow files never ship in the distributable (Phase 7 export-ignore).
+
 ## Operating principles
 
+- Keep the living state current from the first minute; a fresh chat resumes from state, never from re-scanning code.
+- Work from recorded state; read code surgically. Fixed reading order, cache-friendly sessions.
 - Decide the project type early and let it drive everything.
 - Assess ideas and decisions honestly, even when it is uncomfortable. No default praise.
 - Document as you go, in `docs/`. Documentation is not a final-phase afterthought.
@@ -52,6 +60,7 @@ Once installed, the skill is invoked automatically whenever you start a new proj
 ```
 keel-skill/
 ├── README.md
+├── INSTALL.md
 ├── .gitignore
 ├── .gitattributes
 └── keel/
@@ -60,6 +69,8 @@ keel-skill/
     ├── LICENSE            # GPL-3.0-or-later
     ├── NOTICE             # Copyright notice
     └── references/        # Phase reference files, loaded on demand
+        ├── project-state.md
+        ├── adoption.md
         ├── phase-1-discovery.md
         ├── phase-2-functional-spec.md
         ├── phase-3-design-handoff.md

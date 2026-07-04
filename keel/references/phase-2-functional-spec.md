@@ -6,6 +6,7 @@ Goal: turn the agreed v1 scope into a precise functional specification with flow
 
 - `docs/02-functional-spec.md` — the functional contract.
 - `docs/flows/` — one flow per significant user/system journey (markdown with step lists; include a Mermaid diagram where it clarifies branching).
+- `docs/03-technical-plan.md` — the technical foundation: stack, architecture, code map, conventions (step 4). Without it, every later session invents its own conventions and the codebase drifts.
 
 ## Steps
 
@@ -29,7 +30,45 @@ Identify every journey that has more than one step or any branching: e.g. instal
 - External integrations: every external API/service, with auth method, endpoints used, rate/quota limits, failure handling. Cross-check the security profile for anything sensitive (tokens, secrets, PII).
 - Permissions matrix: who (role/plan) can do what.
 
-### 4. Decide precisely what needs design
+### 4. Technical foundation → `docs/03-technical-plan.md`
+
+Decide, with the user, the technical shape of the project — BEFORE design (Phase 3's brief must state where the final code will live) and before any code (Phase 5 confirms and follows it). This is where stack, architecture, and conventions are fixed once, so no later session re-decides them. Record the significant choices in `docs/decisions.md` too.
+
+ALWAYS use this template for `docs/03-technical-plan.md`:
+
+```
+# Technical Plan — [Project name]
+
+## Stack (exact versions)
+- Language/runtime + minimum versions; host/framework (e.g. WP min, Woo min, PHP min); key dependencies (pinned, from the Phase 1 dependency table)
+- Why this stack: [1–3 lines]
+## Support matrix & budgets
+- Minimum supported platform versions (e.g. PHP / WordPress / WooCommerce / browsers / OS) — these go in the platform headers where applicable
+- Performance budgets or capacity assumptions, if relevant
+## Architecture
+- Components and their responsibilities; data flow (Mermaid where branching)
+- Persistence: engine, schema ownership, migration approach (if Phase 1 recorded an installed base: versioned, idempotent migrations per Phase 5)
+## Code map (keep current — future sessions orient HERE, never by scanning the tree)
+| Path | Purpose (one line) |
+## Conventions
+- Prefix/namespace: [the project prefix — every function/class/option/hook uses it]
+- Naming: [functions / classes / files / hooks patterns]
+- Error handling: [one strategy: exceptions vs error objects (e.g. WP_Error) vs result types; user-facing error policy]
+- Logging: [mechanism + levels; never log secrets — per the security profile]
+## Testing
+- Framework(s) + exact run commands; what gets unit vs integration vs end-to-end coverage
+- Regression rule: every bug fixed gets a test pinning the fix (linked from lessons-learned)
+## Tooling commands
+- lint / test / build / package: the exact commands (verified end-to-end at Phase 5 scaffold)
+## Version touchpoints
+- Every place the project's version string lives (e.g. plugin header, readme.txt Stable tag, a VERSION constant, package.json) — Phase 7 syncs ALL of them on release
+## License & dependency compatibility
+- Project license (from Phase 1); rule: every dependency's license is verified compatible BEFORE adoption
+```
+
+The code map and conventions are what keep multi-chat development coherent: a fresh session reads this file instead of exploring the codebase. Keeping the code map current when the layout changes is part of the change, not optional.
+
+### 5. Decide precisely what needs design
 
 This is the bridge to Phase 3. Produce a clear split:
 
@@ -40,7 +79,7 @@ This is the bridge to Phase 3. Produce a clear split:
 
 For every screen that needs design, also record its **accessibility requirements** (semantic structure and heading order, keyboard/assistive-tech operability, contrast, focus order and visible focus, error identification, target size, reduced-motion) — these become part of what Design must specify in Phase 3, per `references/accessibility.md`. Accessibility is not deferred to the build; it is specified with the screen.
 
-### 5. Acceptance criteria
+### 6. Acceptance criteria
 
 Define, per feature, the conditions under which it's considered done. These feed Phase 5 test points and the Phase 4 faithfulness checklist.
 
@@ -60,6 +99,8 @@ ALWAYS use this template:
 ## Permissions matrix
 ## Flows index
 - links to docs/flows/*.md
+## Technical plan
+- see docs/03-technical-plan.md (stack, architecture, code map, conventions — produced in step 4)
 ## Design split
 - Needs design: [screens, with template-reuse notes]
 - No design: [...]
@@ -74,7 +115,9 @@ ALWAYS use this template:
 - Every UI feature's acceptance criteria include accessibility conditions (keyboard/AT operable, name/role/state, contrast, visible focus, error identification, target size, honored user preferences) per `references/accessibility.md`; every screen that needs design has its accessibility requirements recorded for the Phase 3 brief.
 - Every multi-step/branching journey has a flow file.
 - Data model, integrations, and permissions are specified.
+- `docs/03-technical-plan.md` complete per its template: stack with exact versions, support matrix, architecture, code map, conventions (prefix, naming, error handling, logging), testing approach with run commands, version touchpoints, license-compatibility rule. Significant choices recorded in `docs/decisions.md`.
 - The design split is explicit, including external-setup items.
 - Zero unresolved open questions.
+- `docs/PROGRESS.md` updated (phase status, artifacts, next action).
 
 If the project needs design, proceed to Phase 3. If Phase 1 said no design and Phase 2 confirms no UI, skip to Phase 5.

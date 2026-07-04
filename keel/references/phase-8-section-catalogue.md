@@ -1,6 +1,6 @@
 # Phase 8 — Project Website: Section Catalogue & Sitemap
 
-Run alongside Phase 2 (Functional Spec). This produces the sitemap and the exact section set per page, with required vs optional and the template-reuse logic — the depth the old skill lacked. Record it in the Phase 2 functional-spec doc under "Site structure".
+Run alongside Phase 2 (Functional Spec). This produces the sitemap and the exact section set per page, with required vs optional and the template-reuse logic — the depth the old skill lacked. Record it in the **site's** functional-spec doc (`docs/site/02-functional-spec.md`, or the site repo's `docs/02-functional-spec.md`) under "Site structure".
 
 ## How to use this
 

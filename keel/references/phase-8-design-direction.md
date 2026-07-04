@@ -18,7 +18,7 @@ Same mechanism as Phase 4 — declared in `SPEC/external-assets.md` with a ready
 ### Product screenshots (Design reserves the space; the user captures; the build fits them)
 A plugin/app site usually needs real screenshots of the product. Design cannot take them, so it must NOT leave a guess or an unlabeled gap:
 
-- **Design reserves the slot** in the layout (the exact place a screenshot goes) and declares it in `SPEC/screenshots.md`: what the screenshot is, exactly which product screen/state it must show (cross-referencing `docs/design/PRODUCT-BRIEF.md`), the approximate size it should be, and the slot's reserved CSS container so the build knows what it's fitting into.
+- **Design reserves the slot** in the layout (the exact place a screenshot goes) and declares it in `SPEC/screenshots.md`: what the screenshot is, exactly which product screen/state it must show (cross-referencing `<site-docs>/design/PRODUCT-BRIEF.md`), the approximate size it should be, and the slot's reserved CSS container so the build knows what it's fitting into.
 - **The build guides the user one screenshot at a time** (same loop as fonts/images — catch the mistake where it happens, not after the whole site is built): which product screen to open and capture, where to save it, with what filename and file type. Confirm (the user shows it) before the next.
 - **The build places each screenshot in its slot and adjusts the slot's CSS** so it sits well — because a real capture never matches the reserved size exactly. Adjusting the container CSS to fit the real image is expected and allowed; deforming the screenshot or changing the design is not.
 
@@ -29,7 +29,7 @@ Two-branch failure handling, same as the rest of Keel:
 ## Decide and put in the brief
 
 ### 1. Identity relationship
-Does the site reuse the product's existing visual identity (logo, palette, type already used in the plugin/app), or create a site-specific identity? State which. If reusing, point Design at the exact tokens (the product's `design-tokens` if it has them); if new, the user decides the palette/type now — Design must ask, not invent (same ask-don't-invent rule as Phase 3).
+The default is inheritance: the site uses the brand's design system recorded in the PROGRESS.md project card (Phase 1 step 9) — the product's canonical tokens, logo, typography and component styles. Point Design at the exact source (e.g. the product's `SPEC/design-tokens.md` + `artifacts/styles/` + logo assets). A site-specific identity is the exception: it is the user's explicit, recorded decision, never drift — and even then the user decides the palette/type now; Design must ask, not invent (same ask-don't-invent rule as Phase 3). If no design system exists yet (the product had no UI), the site's design founds it: say so in the brief, per Phase 1 step 9.
 
 ### 2. Tone / personality
 One or two lines: e.g. "technical and sober, developer audience, no marketing fluff" vs "bold and conversion-focused" vs "minimal and editorial". This single decision drives layout density, imagery, and copy voice. Vague tone → inconsistent design.

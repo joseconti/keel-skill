@@ -81,6 +81,7 @@ Per the Web/HTML section of `references/accessibility.md` and the Phase 1 commit
 
 - No placeholder copy shipped (placeholders were marked in discovery — confirm none remain).
 - Required legal pages present and linked (privacy/cookies/imprint as flagged in discovery).
+- **Analytics matches the discovery decision:** if "none", the network panel shows zero tracking requests; if self-hosted, only the self-hosted endpoint; if third-party, it is the explicitly approved exception. If tracking uses cookies/identifiers in EU scope: consent is requested first, nothing fires before consent, and the cookie/privacy pages describe it accurately.
 - License stated where relevant (e.g. GPL/open-source statement); repo link works if applicable.
 
 ## Faithfulness & hygiene (reuse keel)

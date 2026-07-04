@@ -18,9 +18,22 @@ This is constructive honesty, not destructive criticism: every objection comes w
 
 ## What to produce
 
-Create `docs/01-discovery.md` containing the sections below. This is the first artifact in `docs/`.
+- The project state files, initialized FIRST (see step 0a): `docs/PROGRESS.md`, `docs/decisions.md`, `docs/lessons-learned.md`.
+- `docs/00-competitive-landscape.md` (step 0).
+- `docs/01-discovery.md` containing the sections below.
 
 ## Steps
+
+### 0a. Initialize the project state (before anything else)
+
+Read `references/project-state.md` (if not already loaded). Confirm with the user where the project lives — the project directory / repository — and create it if it doesn't exist; never write into an arbitrary working directory. Then create `docs/PROGRESS.md`, `docs/decisions.md`, and `docs/lessons-learned.md` from the templates in that reference, filling the project card with what is known so far (the rest is filled as this phase decides it). From this moment on, every decision goes to `decisions.md` and every position change goes to `PROGRESS.md` — at the moment it happens, not at phase end.
+
+Also make the workflow portable across environments (the user may continue this project from the Claude app, Cowork, Claude Code in VS Code, or another AI — per `references/project-state.md` "Portability"):
+
+- **Create the `CLAUDE.md` lock** at the repo root (or insert the Keel block between its delimiters if a `CLAUDE.md` already exists). This binds ANY future assistant/session opening the repo to the Keel workflow, whether or not the skill is installed there. Mirror it in `AGENTS.md` if the user works with non-Claude assistants.
+- **Offer to embed the skill** at `.claude/skills/keel/` (recommended): the repo becomes self-sufficient — Claude Code loads it as a project skill automatically, and any other environment reads it as files via the lock. Ask once; record the choice in the project card.
+
+If the project already has real code but no Keel state, this is not Phase 1 — it is an adoption: switch to `references/adoption.md`.
 
 ### 0. Competitive scan (always first — before any other step)
 
@@ -118,6 +131,7 @@ Draft a feature list with the user. For each feature capture: what it does, who 
 - Compliance/data concerns (PII, payments, auth) — flag these now so the security profile is applied early.
 - **Installed base / upgrade reality.** Is this a fresh v1, or does it iterate on something already running in production with real users and stored data (e.g. an existing plugin going from 2.1.0 → 2.1.1)? If there is an installed base, data migration, backward compatibility, and clean uninstall are NOT optional — record this now; it drives hard rules in Phase 5 and a gate in Phase 7.
 - **External dependencies with fixed versions.** List every external dependency the project needs and its exact version and source (e.g. the WordPress MCP Adapter plugin from GitHub at a specific tag, a PHP/Node minimum, a packagist/npm package). Record what must happen if a dependency is absent or version-incompatible — the project must fail safe (degrade with an admin notice), never fatal. This drives a Phase 5 verification.
+- **License (decide now — it constrains dependencies).** The project's license is a Phase 1 decision, not a release-time afterthought: it determines which dependencies may be adopted at all (license compatibility is checked for every dependency added in Phase 5) and what the marketplace/platform requires (e.g. WordPress.org requires GPL-compatible). Ask the user; record the license in the discovery doc and `decisions.md`. Phase 7 verifies the LICENSE file and headers ship correctly.
 
 ### 5. Accessibility commitment (blocking — decide and state up front, never bolt on later)
 
@@ -137,6 +151,7 @@ Decide explicitly, with the user, before any later phase:
 - **Is this multi-language or single-language?** This is not a checkbox — it changes how the entire codebase is written from line one. Multi-language means every user-facing string is externalized through the platform's translation functions, never concatenated, never hardcoded in code or in the design. Retrofitting i18n later is a rewrite, not a tweak.
 - If multi-language: the **base language**, the **target locales**, and the platform mechanism. Pick the mechanism idiomatic to the project type: a function-wrapping model (e.g. WordPress text domain + `.pot`/`.po`/`.mo`) or a key/constant catalog model (e.g. macOS/iOS `.strings`/String Catalogs, Android `strings.xml`, a web i18n framework with keys). The base language is not just metadata: it is the source of truth for the strings — either the literal source strings written inside the translation functions, or the default values bound to the string keys in the base catalog, depending on the mechanism. Code never hardcodes user-facing text at the use site regardless of model. The user works in Spanish and the base language is often Spanish — confirm it explicitly rather than assuming English.
 - If single-language: state it explicitly and the language, so the decision is recorded and intentional (not an accident that blocks future translation).
+- **Docs language (separate decision).** Also record the working language for the `docs/` artifacts themselves — normally the language the user works in. Every doc, in every phase and every future session, is written in this one language; mixing languages across sprints is a defect. Record it in the PROGRESS.md project card.
 
 Record the decision in the discovery doc. It propagates to Phase 3 (Design must not hardcode copy; strings are translatable) and is a hard verification point in Phase 5.
 
@@ -149,6 +164,32 @@ Ask now whether the project will have its own presentation website. This is aske
 State plainly: does this have a UI a human will see and that needs visual design? 
 - Yes → Phases 3 and 4 are mandatory.
 - No (pure backend/library/MCP server with no UI) → Phases 3 and 4 are skipped; note this in the discovery doc with the reason.
+
+### 9. Design system / brand identity (if design is needed — decide BEFORE Design ever starts)
+
+Everything visual the brand ships — this app, its website, the next plugin's admin screens — must be consistent. That consistency comes from a design system (colors, logo, typography, spacing, component styles like buttons and forms), and whether one already exists is a fact to establish now, not something Design discovers or reinvents per project. Ask the user:
+
+- **Does a design system / corporate identity already exist that applies to this project?** (Brand guidelines, a token file, the `SPEC/design-tokens.md` + assets of a previous Keel project, a corporate style guide, an existing product whose look must be matched.)
+  - **If yes:** record its **source and location** (exact path, repo, URL, or document) and its format. It becomes a mandatory input to the Phase 3 brief: Design **applies** it — exact palette, logo usage, typography, component styles — and does not reinvent it. Any deviation Design wants is a question to the user, never a silent restyle.
+  - **If no:** decide with the user which of these this project is:
+    - **Founding** — this project creates the brand's canonical design system. Design is told so in the brief: the tokens, logo treatment and component styles it produces are built for reuse beyond this project. Record WHERE the canonical system will live afterwards (typically this project's `design-handoff/` `SPEC/design-tokens.md` + `artifacts/styles/` + logo assets) so every future project can point at it in its own Phase 1.
+    - **One-off** — this project's look intentionally stands alone (rare; record the reason).
+- A project may **span** cases (e.g. corporate colors exist but no component library): record what exists and is binding vs what this project will found.
+
+**Founding interview (when founding, or for the missing parts when spanning).** Design should not found a corporate identity from nothing — it needs a base to start from, and that base is the user's answers, collected NOW in one batched questionnaire (use the interactive question tool if available). Ask:
+
+- **Logo:** does one exist? If yes: where are the files, in what formats (SVG master?), and are there usage rules. If no: **should Design create it** as part of founding the system? (yes → it becomes a required brief deliverable with real files and variants — see the brief template; no → who provides it and when, recorded as a dependency).
+- **Colors:** existing corporate colors (exact values if known)? Colors the user loves or vetoes? Industry conventions to embrace or avoid?
+- **Typography:** an existing or preferred typeface? Licensing constraints (self-hosted only — the same rule Phase 8 enforces for the site)?
+- **Personality:** two or three adjectives for the brand (e.g. technical and sober / bold and conversion-focused / minimal and editorial).
+- **References:** two or three products/sites whose look the user likes or dislikes — vocabulary for what "good" means here, not something to copy.
+- **Modes:** dark mode intent? (contrast/high-contrast behavior is already mandatory per accessibility).
+- **Iconography & imagery:** line vs filled icons; photos vs illustrations vs screenshots-only.
+- **Vetoes:** anything explicitly banned (colors, styles, clichés).
+
+Record every answer in the discovery doc (template below). These answers are carried verbatim into the Phase 3 brief as the seed Design founds the identity from; whatever the user left unanswered goes to `SPEC/open-questions.md` for Design to ask — never to guess (ask-don't-invent).
+
+Record the decision in the discovery doc, `docs/decisions.md`, and the PROGRESS.md project card. If Phase 1 recorded website intent, note that the site (Phase 8) inherits this same design system by default — a different look for the site is its own recorded decision, not drift.
 
 ## `docs/01-discovery.md` structure
 
@@ -176,6 +217,8 @@ ALWAYS use this template:
 ## Honest assessment
 - [the truthful evaluation of the idea, grounded in the competitive landscape: weaknesses, prior art, scope realism — and the verdict]
 ## Constraints & non-negotiables
+## License
+- License: [e.g. GPL-3.0-or-later] (constrains dependency choices from Phase 5; verified shipping in Phase 7)
 ## Installed base / upgrade
 - Fresh v1? or iterates on production with installed users + data? [state it]
 - If installed base: migration / backward-compat / clean-uninstall required (drives Phase 5 + 7)
@@ -185,6 +228,7 @@ ALWAYS use this template:
 - Multi-language? [yes / no]
 - If yes: base language [..], target locales [..], mechanism [e.g. WP text domain + .pot, or .strings catalog]
 - If no: single language [..] (explicit, intentional)
+- Docs language: [the one language every docs/ artifact uses, across all sessions]
 ## Accessibility (non-negotiable — stated up front)
 - Target platform(s): [web / WordPress-Woo / iOS / Android / macOS / Windows / cross-platform framework — one or several]
 - Reference loaded: references/accessibility.md
@@ -194,12 +238,25 @@ ALWAYS use this template:
 - (Built in Phase 8 of this skill, later — not built here)
 ## Design needed?
 - [Yes → Phases 3–4 apply | No → reason]
+## Design system / brand identity
+- Status: [existing / founding — this project creates the canonical one / one-off / n/a — no UI]
+- If existing: source + location [exact path/repo/URL/doc, format] — binding input for the Phase 3 brief
+- If founding: where the canonical system will live for future projects [e.g. this project's design-handoff SPEC/design-tokens.md + artifacts/styles/ + logo assets]
+- If spanning (partial system exists): what is binding vs what this project founds
+- Founding interview (if founding/spanning — answers seed the Phase 3 brief):
+  - Logo: [exists → files/formats/rules | Design creates it → brief deliverable | user provides → when]
+  - Colors: [existing/preferred/vetoed]   Typography: [existing/preferred + licensing]
+  - Personality: [2–3 adjectives]   References: [liked/disliked]
+  - Modes: [dark mode intent]   Iconography & imagery: [style]   Vetoes: [banned things]
+  - Unanswered items: [→ SPEC/open-questions.md for Design to ask]
 ## Open questions for the user
 - [anything still undefined — must be resolved before Phase 2]
 ```
 
 ## Definition of done
 
+- State files initialized per `references/project-state.md` (`docs/PROGRESS.md` with the project card filled, `docs/decisions.md` with this phase's decisions recorded, `docs/lessons-learned.md` present) and PROGRESS.md reflects this phase's real status.
+- The `CLAUDE.md` lock is in place at the repo root (Keel block between delimiters), and the embed-the-skill question was asked and recorded in the project card.
 - Competitive scan completed: `docs/00-competitive-landscape.md` exists with per-competitor inventory, unified feature list, and external-demand list (each item cited). OR — if the scan was impossible from this environment — the user has been informed with the specific reason, the three options were offered, and either (a) the conversation moved to a capable environment and the scan was done there, (b) a different agent/tool produced the scan and the findings were brought back, or (c) the user explicitly chose to skip and the full warning block is recorded verbatim in `docs/01-discovery.md`.
 - The "Competitive landscape & opportunity" section of `docs/01-discovery.md` lists table-stakes, differentiator candidates, and AI/MCP layer proposals labelled as added-value or forced-filler (with forced-filler dropped).
 - The idea received an honest assessment, grounded in the competitive landscape, and the verdict is recorded (not default praise).
@@ -207,10 +264,12 @@ ALWAYS use this template:
 - v1 scope is explicit and the user agreed to it.
 - Installed-base/upgrade reality is recorded; if there's an installed base, the migration obligation is noted.
 - External dependencies are listed with exact version, source, and fail-safe behavior.
-- The multi-language vs single-language decision is made and recorded (with base/locales/mechanism if multi-language).
+- The license is decided and recorded (it gates dependency adoption in Phase 5).
+- The multi-language vs single-language decision is made and recorded (with base/locales/mechanism if multi-language), and the docs language is recorded.
 - Accessibility commitment recorded and stated to the user up front: target platform(s) captured, `references/accessibility.md` loaded, and the targeted conformance level stated (WCAG 2.2 AA floor by default; below AA only with a recorded reason).
 - Project-website intent is captured (yes/no + domain choice).
 - "Design needed?" is answered.
+- If design is needed: the design-system decision is recorded (existing with source/location, founding with future home, or one-off with reason) in the discovery doc, `decisions.md`, and the project card.
 - `docs/01-discovery.md` exists and has zero open questions left unresolved.
 
 Do not enter Phase 2 with open discovery questions — an unresolved idea-level question becomes an expensive rework later.

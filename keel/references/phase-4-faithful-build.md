@@ -20,7 +20,7 @@ State these back to the user when the phase starts.
 Input is `docs/design/design-handoff/`. Check against `references/handoff-contract.md`:
 
 - `SPEC/manifest.md` — every page resolves to a unique page or template + concrete data?
-- `SPEC/design-tokens.md` vs `artifacts/styles/` — values agree? Any token referenced but undefined?
+- `SPEC/design-tokens.md` vs `artifacts/styles/` — values agree? Any token referenced but undefined? If the project card records an **existing** design system: do the delivered tokens match its source? An unexplained divergence from the brand's canonical system is a gap (Design Request), not a creative choice.
 - `SPEC/screens/*.md` — every unique screen documents all states + breakpoints + role/plan variants?
 - `SPEC/interactions.md` — every behavior/conditional/transition specified?
 - `SPEC/assets-index.md` — every referenced asset exists in `artifacts/assets/` with size/format?
@@ -28,6 +28,7 @@ Input is `docs/design/design-handoff/`. Check against `references/handoff-contra
 - `SPEC/external-setup.md` — if external software must be configured by hand, is EVERY value present (software/version, exact path, each field, each value/toggle, order)? Anything implicit in an artifact instead of here is a gap. If "none", confirm nothing actually requires manual setup.
 - `SPEC/accessibility.md` — present and complete (contrast-verified pairs with ratios, visible focus + focus order, accessible name/role/state per component and state, heading/landmark structure, target sizes, reduced-motion variants, text-scaling/high-contrast behavior, error identification)? Is per-screen accessibility present in each `SPEC/screens/*.md`? A missing or thin accessibility spec is a gap — the build must not invent it. Per `references/accessibility.md`.
 - `SPEC/open-questions.md` — empty/resolved? Any item is a hard blocker.
+- `SPEC/screenshots.md` — only for website projects (Phase 8): every reserved product-screenshot slot declared with target screen/state, approximate size, and slot CSS (per `references/phase-8-design-direction.md`)? For non-website projects this file is not expected.
 - Any placeholder copy that would otherwise ship?
 
 Record every discrepancy as a gap (what, where expected, why it blocks faithful build).
@@ -40,6 +41,8 @@ Fill `references/build-spec-template.md` into `docs/BUILD-SPEC.md`: resolved scr
 
 If Step 1 found any gap or `open-questions.md` is unresolved: do not proceed, do not guess. Fill `references/design-request-template.md` and give it to the user as a ready-to-paste prompt for Design. It names exactly what's missing, asks Design to fill only that (asking the user where it's the user's call), keep the handoff structure, and not redesign what works. Building resumes only after Design re-delivers and Step 1 re-passes.
 
+**Register every Design Request before handing it over** (per `references/project-state.md`): save the filled template as `docs/design/design-requests/DR-NNN.md` (sequential numbering) with a `Status: sent` line at the top, and list it under "Open items" in `docs/PROGRESS.md`. When Design re-delivers and the re-audit passes, mark the DR `Status: resolved [date]` and clear it from PROGRESS.md. A fresh session must be able to see from the register alone which requests are still open — "zero unresolved Design Requests" is always verified against the register, never against memory.
+
 ## Step 4 — Build, faithfully
 
 Only when `docs/BUILD-SPEC.md` is complete and gap-free:
@@ -50,6 +53,8 @@ Only when `docs/BUILD-SPEC.md` is complete and gap-free:
 - Implement the accessibility spec exactly (`SPEC/accessibility.md`): accessible name/role/state for every component and state, keyboard/assistive-tech operability, visible focus and the specified focus order, target sizes, reduced-motion variants, and error identification. A screen isn't done until its accessibility is built and verified, per `references/accessibility.md`.
 - Where the stack forces a change, change the code strategy and log it in `BUILD-SPEC.md` integration notes — never alter the design.
 - Mid-build unspecified discovery → stop, return to Step 3 for that item.
+
+Steps 4–6 may interleave when the work requires it (e.g. an external-setup value is a build prerequisite, or an asset is needed by the slice being built): run the relevant Step 5/6 loop item at the moment the build needs it, under exactly the same rules. Interleaving changes the order, never the rules — each setup step and each asset still goes one at a time, verified, traced to the SPEC.
 
 ## Step 5 — Guide external manual setup, one verified step at a time
 
@@ -95,4 +100,4 @@ Walk the checklist in `docs/BUILD-SPEC.md`: every screen matches artifact+SPEC; 
 
 ## Definition of done
 
-`docs/BUILD-SPEC.md` complete and gap-free, build matches it, external setup verified or explicitly flagged, every external asset generated and placed or explicitly flagged, accessibility built to `SPEC/accessibility.md` and verified (automated + real assistive-tech pass), faithfulness checklist passed. Then Phase 5.
+`docs/BUILD-SPEC.md` complete and gap-free, build matches it, external setup verified or explicitly flagged, every external asset generated and placed or explicitly flagged, accessibility built to `SPEC/accessibility.md` and verified (automated + real assistive-tech pass), faithfulness checklist passed, Design Request register shows zero open DRs, and `docs/PROGRESS.md` updated. Then Phase 5.

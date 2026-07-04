@@ -1,6 +1,6 @@
 # Phase 8 — Project Website: Domain Decision
 
-A real decision tree for "dedicated domain vs subdomain of the user's existing domain", with the trade-offs that actually matter. Record the decision and its reasoning in the Phase 2 functional-spec doc; any manual DNS/registrar steps feed the Phase 4 guided one-step-at-a-time external-setup loop (never dumped as a doc).
+A real decision tree for "dedicated domain vs subdomain of the user's existing domain", with the trade-offs that actually matter. Record the decision and its reasoning in the site's functional-spec doc (same doc as the section catalogue) and in `docs/decisions.md`; any manual DNS/registrar steps feed the Phase 4 guided one-step-at-a-time external-setup loop (never dumped as a doc).
 
 ## The two options
 

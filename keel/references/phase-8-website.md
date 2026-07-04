@@ -9,6 +9,15 @@ This phase is the former standalone `keel-web` skill, absorbed into Keel so ther
 - Phase 1 `docs/01-discovery.md` recorded "project website: yes" (and own-domain vs subdomain intent).
 - Typically after Phase 7. If the user isn't ready at release, Phase 7 reminds them; resume here later.
 
+## Where the site lives (decide first — prevents artifact collisions)
+
+Decide with the user, before anything else, where the website project lives:
+
+- **Its own repository** (common for a dedicated domain): the site is a normal Keel "website" project there — its own `docs/` tree, its own state files per `references/project-state.md`. Link it from the product's `docs/PROGRESS.md` (Phase 8 row) so the product repo knows where the site lives.
+- **Inside the product repository**: ALL site artifacts go under `docs/site/`, mirroring the normal layout (`docs/site/01-discovery.md`, `docs/site/02-functional-spec.md`, `docs/site/design/DESIGN-BRIEF.md`, `docs/site/design/design-handoff/`, `docs/site/BUILD-SPEC.md`, ...). This is mandatory, not stylistic: if the product had a UI, `docs/design/design-handoff/` already contains the PRODUCT's handoff — the site's handoff must never overwrite or mix with it. The product's `docs/PROGRESS.md` tracks Phase 8 (no second PROGRESS file in the same repo).
+
+In the references below, site artifact paths follow this decision (own repo → normal paths; shared repo → the `docs/site/` prefix). `PRODUCT-BRIEF.md` lives with the site's design docs: `<site-docs>/design/PRODUCT-BRIEF.md`.
+
 ## Core stance (do not skip)
 
 - **Assess honestly first.** Before building, judge whether a separate site is even warranted: maybe the marketplace/.org listing already does the job, maybe a README is enough, maybe a one-page landing beats a multi-page site. Say so with the reasoning — same honest-assessment principle as Phase 1. Do not build a bigger site than the project needs.
@@ -22,7 +31,7 @@ This phase is the former standalone `keel-web` skill, absorbed into Keel so ther
 
 | Sub-step | Reuses Keel phase | Web reference to load |
 |----------|-------------------|-----------------------|
-| Study the product → `docs/design/PRODUCT-BRIEF.md` (what it is, what the site must show) | input to Phase 3 | `references/phase-8-site-discovery.md` (step 0) |
+| Study the product → `<site-docs>/design/PRODUCT-BRIEF.md` (what it is, what the site must show) | input to Phase 3 | `references/phase-8-site-discovery.md` (step 0) |
 | Site discovery: honest "is it warranted?", purpose/CTA, site type, site language, content strategy | Phase 1 logic | `references/phase-8-site-discovery.md` |
 | Section catalogue & sitemap; per-section spec | Phase 2 logic | `references/phase-8-section-catalogue.md` |
 | Domain decision (dedicated vs subdomain) | Phase 2 logic | `references/phase-8-domain-decision.md` |
@@ -37,7 +46,8 @@ Run order: study the product → discovery → sections/domain/SEO+AEO spec (all
 
 ## Definition of done
 
-- `docs/design/PRODUCT-BRIEF.md` produced from studying the real product and handed to Design.
+- Site location decided and recorded (own repo, or `docs/site/` inside the product repo — no artifact collision with the product's design handoff).
+- `<site-docs>/design/PRODUCT-BRIEF.md` produced from studying the real product and handed to Design.
 - Honest assessment recorded; site justified at the chosen size or a lighter alternative agreed.
 - Site type and site language decided (the latter explicit, not silently inherited).
 - Sitemap and per-section spec fixed before design; template-reuse identified.

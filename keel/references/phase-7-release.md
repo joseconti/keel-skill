@@ -24,7 +24,7 @@ Verify nothing sensitive is already tracked (if it is, it must be removed from h
 
 ### 2. `.gitattributes` with `export-ignore`
 
-Mark everything that belongs in the repo but not in the shipped package as `export-ignore`, so `git archive` produces a clean distributable. Typically: `/tests`, `/.github`, CI config, `/docs` (source docs — ship a built/user-facing subset if relevant), `/design` handoff, build/dev scripts, linter/formatter configs, `.gitattributes`/`.gitignore` themselves, example/fixture data.
+Mark everything that belongs in the repo but not in the shipped package as `export-ignore`, so `git archive` produces a clean distributable. Typically: `/tests`, `/.github`, CI config, `/docs` (source docs — ship a built/user-facing subset if relevant), `/design` handoff, build/dev scripts, linter/formatter configs, `.gitattributes`/`.gitignore` themselves, example/fixture data, and the Keel workflow files (`CLAUDE.md`, `AGENTS.md`, `/.claude/` including the embedded skill) — they govern development, never the distributable.
 
 Keep in the package: runtime code, runtime assets, the readme/license the end user needs, the user-facing docs you intend to ship.
 
@@ -33,6 +33,7 @@ State the resulting package contents to the user so the boundary is visible and 
 ### 3. Versioning & changelog
 
 - Set the version per the project's scheme.
+- **Sync every version touchpoint.** `docs/03-technical-plan.md` lists every place the version string lives (e.g. plugin main-file header, readme.txt `Stable tag`, a VERSION constant, package.json). Update ALL of them to the same value and verify they match — a mismatched touchpoint (header says 2.1.1, stable tag says 2.1.0) is a classic release defect that breaks updates.
 - Update the changelog: **oldest → newest ordering** (e.g. 2.1.0 then 2.1.1). Never invert.
 - Each entry: what changed, grouped (added/changed/fixed/security), referencing features from `docs/`.
 
@@ -50,8 +51,10 @@ Before tagging:
 
 - Tag the release.
 - Produce the distributable package and verify its contents one more time against the intended boundary.
-- Produce/refresh the end-user README and any required store/marketplace metadata.
+- **License ships correctly:** the LICENSE file is in the package, file headers carry the license where the platform convention expects it, and every bundled dependency's license is compatible and honored (the Phase 1 decision, checked per dependency in Phase 5).
+- Produce/refresh the end-user README and any required store/marketplace metadata. For WordPress.org plugins specifically: `readme.txt` valid (`Requires at least`, `Tested up to` — current WP version actually tested, `Requires PHP`, `Stable tag` = this release), plugin main-file headers in sync, and the assets the listing needs (banner, icon, screenshots with captions).
 - Note the release in `docs/` (e.g. append to changelog and a short release note).
+- Update `docs/PROGRESS.md`: Phase 7 done, and Phase 8 pending or n/a per the Phase 1 website intent.
 
 ## `docs/07-release.md`
 
@@ -70,7 +73,8 @@ Before tagging:
 
 - `.gitignore` and `.gitattributes` (export-ignore) exist, correct for the project type, and the package boundary is agreed with the user.
 - No secret is tracked in git; no dev file is in the shipped package; no runtime file is missing from it.
-- Version set, changelog updated oldest → newest.
+- Version set and **identical across every touchpoint** listed in the technical plan; changelog updated oldest → newest.
+- LICENSE file and headers ship correctly; bundled dependency licenses compatible.
 - Distributable built and its contents verified.
 - Real-environment verification passed on the actual distributable (and the real upgrade, if there's an installed base).
 - Accessibility verification passed on the actual distributable for anything with a UI (automated + real assistive-tech), meeting the Phase 1 targeted level or with the shortfall honestly recorded in `docs/accessibility.md`.

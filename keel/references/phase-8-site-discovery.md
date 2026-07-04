@@ -1,13 +1,13 @@
 # Phase 8 — Project Website: Site Discovery
 
-Run alongside Phase 1 (Discovery), treating the website as the project. This adds the web-specific decisions the generic discovery doesn't cover. Record everything in `docs/01-discovery.md` (the Phase 1 discovery doc) under a "Website" section.
+Run alongside Phase 1 (Discovery), treating the website as the project. This adds the web-specific decisions the generic discovery doesn't cover. Record everything in the **site's** discovery doc — `docs/site/01-discovery.md` when the site shares the product repo, or the site repo's own `docs/01-discovery.md` (per the "Where the site lives" decision in `references/phase-8-website.md`).
 
 ## 0. Study the product first (mandatory input for Design)
 
 Before honest assessment, sections, or any handoff, study the actual product the site is about — the plugin/app/MCP server/library itself, the real thing, not assumptions. Design cannot design the site of a plugin without knowing what the plugin does; if it doesn't have this, it invents.
 
-- Inspect the real product: what it does, its concrete features, its screens/admin pages, its public surfaces (REST routes, MCP abilities, WP-CLI, hooks), pricing/licensing, requirements/dependencies, what makes it different. If the product was built with Keel, its `docs/` already has most of this — read it; do not re-derive what's documented.
-- Produce `docs/design/PRODUCT-BRIEF.md`: a clear statement of **what the product is and therefore what the site must communicate and show** — the value proposition, the features worth a section, the screens worth a screenshot, the audience, the primary action. This is a required input to the Phase 3 design handoff: it goes to Design alongside everything else so Design knows what to build and what each section is about.
+- Inspect the real product: what it does, its concrete features, its screens/admin pages, its public surfaces (REST routes, MCP abilities, WP-CLI, hooks), pricing/licensing, requirements/dependencies, what makes it different. If the product was built with Keel, its `docs/` already has most of this — read it (start at `docs/api/INDEX.md`, `docs/architecture.md`, `docs/01-discovery.md`); do not re-derive what's documented.
+- Produce `<site-docs>/design/PRODUCT-BRIEF.md` (path per the "Where the site lives" decision): a clear statement of **what the product is and therefore what the site must communicate and show** — the value proposition, the features worth a section, the screens worth a screenshot, the audience, the primary action. This is a required input to the Phase 3 design handoff: it goes to Design alongside everything else so Design knows what to build and what each section is about.
 - Anything you cannot determine about the product is a question for the user now — never invented into the brief.
 
 ## 1. Honest assessment — is a separate site even warranted?
@@ -50,6 +50,7 @@ This is a decision in its own right, not an implicit inheritance. A project can 
 - Who writes the copy: the user provides final copy, or placeholder is used? If placeholder, it must be clearly marked so it's never shipped (same rule as the rest of Keel).
 - Tone of voice, in one or two lines, so Design and copy stay consistent.
 - Legal/compliance content needed (privacy, cookies, imprint) — flag now; it becomes required sections.
+- **Analytics & consent (decide now, not at launch).** Options, in order of preference under the vanilla rule: **none** (default — a project site often doesn't need it), **self-hosted analytics** (e.g. a self-hosted Matomo/Plausible — still a conscious addition, recorded), or **third-party analytics** (a runtime third-party script: this is an exception to the vanilla rule and requires explicit user approval, recorded). If any analytics uses cookies/identifiers and the audience includes the EU: consent management and the cookie/privacy pages become REQUIRED sections, and nothing tracks before consent. Record the decision; the launch checklist verifies it.
 
 ## 6. Constraints
 
@@ -59,12 +60,13 @@ This is a decision in its own right, not an implicit inheritance. A project can 
 
 ## Definition of done (this reference)
 
-- `docs/design/PRODUCT-BRIEF.md` produced from studying the real product — what it is and what the site must communicate/show; queued as a required input to the Phase 3 handoff.
+- Site location decided (own repo vs `docs/site/` in the product repo) per `references/phase-8-website.md`.
+- `<site-docs>/design/PRODUCT-BRIEF.md` produced from studying the real product — what it is and what the site must communicate/show; queued as a required input to the Phase 3 handoff.
 - Honest assessment recorded; site justified at the chosen size or a lighter alternative agreed.
 - Purpose and primary CTA explicit.
 - Site type chosen and justified.
 - Site language decided explicitly (multi vs single, base language if multi), sanity-checked against the project's i18n decision — not silently inherited.
-- Content strategy decided.
+- Content strategy decided, including the analytics & consent decision (none / self-hosted / third-party with explicit approval; consent + legal pages required if tracking in EU scope).
 - Constraints captured.
 
 Only then proceed to the section catalogue (`references/phase-8-section-catalogue.md`).

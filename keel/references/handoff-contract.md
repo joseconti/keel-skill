@@ -1,8 +1,8 @@
-# Handoff Contract (shared by `design-spec-handoff` and `code-faithful-build`)
+# Handoff Contract (shared by Phase 3 — Design Handoff and Phase 4 — Faithful Build)
 
-This is the single agreed structure that flows from Design to Cowork/Code. Both skills MUST reference this exact structure. If you change it here, change the expectations in both skills.
+This is the single agreed structure that flows from Design to Cowork/Code. Phases 3 and 4 MUST reference this exact structure. If you change it here, change the expectations in both phase references.
 
-The Design phase **produces** this. The Build phase **audits and consumes** this. The contract is what makes "code adapts to the design, never the reverse" enforceable.
+The Design phase **produces** this (Phase 3 brief mandates it). Phase 4 **audits and consumes** this. The contract is what makes "code adapts to the design, never the reverse" enforceable.
 
 ## Why this shape
 
@@ -36,17 +36,19 @@ design-handoff/
     └── open-questions.md      # anything undefined; MUST be empty/resolved before build starts
 ```
 
+**Website projects (Phase 8) add one file to `SPEC/`:** `screenshots.md` — every reserved product-screenshot slot (what it shows, which product screen/state, approximate size, the slot's reserved CSS container), per `references/phase-8-design-direction.md`. All the completeness rules below apply to it equally. Non-website projects do not include it.
+
 ## Rules baked into the contract
 
 1. **One template, many pages.** If pages share structure, Design builds the template once under `artifacts/templates/` and records every consumer page in `SPEC/manifest.md` with its data/variant. `artifacts/pages/` is only for genuinely unique screens. Regenerating structurally-identical pages is a contract violation.
 
 2. **Every unique screen has a SPEC file** in `SPEC/screens/` documenting all applicable states: default, hover, focus, active, disabled, loading, empty, error, success — plus responsive behavior at each required breakpoint, and any role/plan/conditional variants.
 
-3. **Tokens are exact and centralized.** `SPEC/design-tokens.md` holds canonical values; `artifacts/styles/` holds the same values as code (CSS variables or equivalent). They must agree.
+3. **Tokens are exact and centralized.** `SPEC/design-tokens.md` holds canonical values; `artifacts/styles/` holds the same values as code (CSS variables or equivalent). They must agree. The file states its **origin**: derived from an existing design system (cite the source — values must match it), or founded by this project as the brand's canonical system (future projects will inherit these values), or one-off.
 
 4. **Assets are real and indexed.** Exported SVG/PNG/etc. live in `artifacts/assets/`. `SPEC/assets-index.md` maps each file to where it is used, its intrinsic dimensions, and format. No "an icon goes here" without the actual icon.
 
-5. **Open questions block the build.** `SPEC/open-questions.md` is where Design records anything it could not specify. The Build phase MUST NOT start while this file has unresolved items — instead the Build phase generates a Design Request prompt (see `code-faithful-build`) to send back to Design.
+5. **Open questions block the build.** `SPEC/open-questions.md` is where Design records anything it could not specify. The Build phase MUST NOT start while this file has unresolved items — instead the Build phase generates a Design Request prompt (Phase 4 Step 3, `references/design-request-template.md`) to send back to Design.
 
 6. **Placeholder content is labeled.** Any non-final copy must be marked as placeholder in the SPEC so it is never shipped as-is.
 

@@ -8,28 +8,32 @@ By now `docs/` should contain the earlier artifacts. Complete it to this canonic
 
 ```
 docs/
+├── 00-competitive-landscape.md   (from Phase 1 — per-competitor inventory, unified list, external demand)
 ├── 01-discovery.md
 ├── 02-functional-spec.md
+├── 03-technical-plan.md          (stack, architecture, code map, conventions; from Phase 2)
 ├── 05-test-points.md
-├── PROGRESS.md                   (living state — to do / done / remaining; from Phase 5)
-├── lessons-learned.md            (accumulating problem→solution log; from Phase 5)
+├── PROGRESS.md                   (living state since Phase 1 — per references/project-state.md)
+├── decisions.md                  (append-only decision log since Phase 1)
+├── lessons-learned.md            (accumulating problem→solution log since Phase 1)
 ├── BUILD-SPEC.md                 (if there was UI)
 ├── sprints/                      (one file per sprint; from Phase 5)
 │   └── sprint-<N>.md
 ├── old/                          (archived per sprint at sprint close — never deleted)
 │   └── sprint-<N>/
 ├── flows/                        (journey docs from Phase 2)
-├── design/                       (DESIGN-BRIEF.md + returned design-handoff/, if UI)
+├── design/                       (DESIGN-BRIEF.md + returned design-handoff/ + design-requests/, if UI)
 ├── architecture.md               (NEW — system overview)
-├── api/                          (NEW — full API reference)
+├── api/                          (full API reference — grown since Phase 5, consolidated here)
 │   ├── README.md                 (index + conventions)
+│   ├── INDEX.md                  (one line per public surface — per references/project-state.md)
 │   ├── <module-or-endpoint>.md   (one per public surface)
 ├── usage/                        (NEW — how to use it)
 │   ├── installation.md
 │   ├── configuration.md
 │   ├── getting-started.md
 │   └── examples.md
-├── reference/                    (NEW — classes, functions, hooks)
+├── reference/                    (classes, functions, hooks — grown since Phase 5)
 │   ├── classes.md
 │   ├── functions.md
 │   └── hooks-and-extension-points.md
@@ -37,12 +41,14 @@ docs/
 └── accessibility.md              (NEW — applied a11y: standard targeted, per-platform measures, verification, known gaps)
 ```
 
+Numbering map, so no session wonders about the "gaps": `00` competitive landscape and `01` discovery are Phase 1; `02` spec and `03` technical plan are Phase 2; `04-adoption-audit.md` exists only in adopted projects (`references/adoption.md`); the design brief and BUILD-SPEC are unnumbered (they live by role: `design/`, root); `05` is the Phase 5 test-point log; `07-release.md` is added by Phase 7 (it does not exist yet at this phase). Websites (Phase 8) add their own artifacts under `docs/site/` or in the site's own repo. The repo root additionally carries the portability lock (`CLAUDE.md`, optional `AGENTS.md` and `.claude/skills/keel/`) per `references/project-state.md` — repo-only, export-ignored in Phase 7.
+
 Adapt names to the project type (e.g. for a WordPress plugin, `api/` documents REST routes, WP-CLI commands, and MCP abilities; `reference/hooks-and-extension-points.md` documents actions/filters; for an MCP server, `api/` documents tools/abilities and their schemas).
 
 ## What each new document must contain
 
 ### architecture.md
-System overview: components and how they fit, data model (from Phase 2, now as-built), data flow, external integrations, key decisions and why. A diagram (Mermaid) of the architecture. Enough that a new developer understands the shape of the system in one read.
+System overview: components and how they fit, data model (from Phase 2, now as-built), data flow, external integrations, key decisions and why — consolidated from `docs/decisions.md` and `docs/03-technical-plan.md` (as-built), never reconstructed from memory. A diagram (Mermaid) of the architecture. Enough that a new developer understands the shape of the system in one read.
 
 ### api/ (full API reference)
 For every public surface (REST endpoint, MCP tool/ability, CLI command, public method, hook):
@@ -69,6 +75,9 @@ No public surface may be undocumented. If something is intentionally internal/pr
 ### security.md
 A concrete summary of how the loaded security profile was applied in THIS project: which protections are in place, where, and how a maintainer should keep them intact. Not the generic profile — the applied result.
 
+### Repo `README.md` (the front door)
+The repository root gets a short README: what the project is (one paragraph), requirements, install in brief, quickstart, and links into `docs/usage/` and `docs/api/` for everything else. It duplicates nothing — it points. Phase 7 refreshes it for the release.
+
 ### accessibility.md
 A concrete summary of how accessibility was applied in THIS project: the standard targeted (WCAG 2.2 AA floor / AAA where reached; EN 301 549 / EAA if in scope), the per-platform measures actually implemented (semantic/native structure, keyboard/AT operability, focus management, contrast, target sizes, reduced-motion, honored user preferences), how it was verified (which automated tools and which assistive technologies were tested), how a maintainer keeps it intact, and any known gaps recorded honestly (no overlay, no false conformance claim). Not the generic reference — the applied result. See `references/accessibility.md`.
 
@@ -86,8 +95,10 @@ A concrete summary of how accessibility was applied in THIS project: the standar
 ## Definition of done
 
 - The full `docs/` layout exists and is populated.
-- Every public API/class/function/hook is documented with a runnable example.
-- architecture.md, usage/, security.md, accessibility.md complete and reconciled with the as-built code.
+- Every public API/class/function/hook is documented with a runnable example, and `docs/api/INDEX.md` matches the docs one-to-one (no orphan rows, no missing rows).
+- architecture.md (consolidating the key entries of `docs/decisions.md`), usage/, security.md, accessibility.md complete and reconciled with the as-built code.
+- Repo README.md present: short front door linking into `docs/`.
 - No undocumented public surface; no unlabeled placeholder.
+- `docs/PROGRESS.md` updated.
 
 Then Phase 7.

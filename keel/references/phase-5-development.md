@@ -5,8 +5,10 @@ Goal: implement the functional spec (and, if there was UI, the faithful build) i
 ## Inputs
 
 - `docs/02-functional-spec.md` (requirements, data model, integrations, acceptance criteria, permissions)
+- `docs/03-technical-plan.md` (stack, architecture, code map, conventions, testing, tooling commands — the build follows it; if it must change, update it and record the decision, never silently diverge)
 - `docs/flows/*.md` (journeys to implement)
 - `docs/BUILD-SPEC.md` (if there was a UI — the faithful build contract; never deviate from it)
+- `docs/decisions.md` and `docs/lessons-learned.md` (never re-litigate, never repeat)
 - The loaded security profile (`references/security/<type>.md`) — apply throughout, not at the end.
 - `references/accessibility.md` and the accessibility decision from `docs/01-discovery.md` — apply throughout, not at the end; if there was UI, also the accessibility spec in the handoff (`SPEC/accessibility.md` / `docs/BUILD-SPEC.md` §4a).
 
@@ -29,31 +31,37 @@ Goal: implement the functional spec (and, if there was UI, the faithful build) i
 
 ## Steps
 
-### 0. Plan sprints and set up tracking (before any code)
+### 0. Plan sprints and extend the tracking (before any code)
 
-Real projects don't fit in one chat. Plan the work as sprints so it survives across sessions and a fresh chat can resume faithfully.
+Real projects don't fit in one chat. Plan the work as sprints so it survives across sessions and a fresh chat can resume faithfully. The state files (`docs/PROGRESS.md`, `docs/decisions.md`, `docs/lessons-learned.md`) exist since Phase 1 (per `references/project-state.md`) — this step extends them with sprint tracking; it does not create them.
 
+- **Confirm the technical plan.** Re-read `docs/03-technical-plan.md` with the user and complete anything still open (exact tooling commands, test framework specifics). From here on it is the build's rulebook: conventions, error handling, code map.
 - **Define the sprints with the user.** Sprints are not fixed-size; decide them together based on this project (a sprint may be one slice or several, e.g. "OAuth + PKCE end to end"). Each sprint is a coherent, closeable chunk with its own acceptance.
-- **Create one file per sprint:** `docs/sprints/sprint-<N>.md` — scope of that sprint, the slices/tasks it contains, its acceptance, and its current status.
-- **Create the master tracking file:** `docs/PROGRESS.md` — the single living state of the project: everything to do, everything done, everything remaining, the current sprint and the exact point within it. This is the source of truth a new chat reads first. Update it continuously, not just at sprint end.
-- **Create `docs/lessons-learned.md`:** an accumulating log. Whenever something is tried, fails, and a working solution is found, record the problem and the solution so the same mistake is never repeated. Append-only; never trim it.
+- **Create one file per sprint:** `docs/sprints/sprint-<N>.md`, using the sprint template in `references/project-state.md` — scope, slices, acceptance, status.
+- **Extend `docs/PROGRESS.md`:** record the sprint plan in the phase-status table and set "Current position" to sprint 1's first slice. During development PROGRESS.md always names the current sprint and the exact point within it. Update it continuously, not just at sprint end.
+- **`docs/lessons-learned.md` keeps accumulating.** Whenever something is tried, fails, and a working solution is found, record the problem and the solution so the same mistake is never repeated. Append-only; never trim it.
 
 ### 1. Scaffold
 
-Create the project structure appropriate to the type, the `docs/` dir (already seeded by earlier phases), and a `tests/` location. Set up `.gitignore` and `.gitattributes` now (full rules in Phase 7) so secrets and build cruft never enter history from commit one.
+Create the project structure per the technical plan's code map, the `docs/` dir (already seeded by earlier phases), and a `tests/` location. Set up `.gitignore` and `.gitattributes` now (full rules in Phase 7) so secrets and build cruft never enter history from commit one.
+
+**Verify the toolchain end to end before slice 1:** run the exact lint / test / build commands from `docs/03-technical-plan.md` on the scaffold (with one trivial passing test). A broken toolchain discovered at slice 8 costs a day; discovered here it costs minutes. Record the verified commands back into the technical plan if they changed.
+
+**Commit discipline (from the first commit):** commit at minimum at every passed test point, with a message naming the slice; never end a working session with the repo in a broken state — if a slice is mid-flight, the exact stopping point goes in `docs/PROGRESS.md`. Git history is part of the project's resumable state.
 
 ### 2. Build in vertical slices with test points
 
 Work feature/flow by feature/flow, not layer by layer. For each slice:
 
-- **Search the existing internal API before writing new code.** Open `docs/api/` and `docs/reference/` and check whether what you need already exists. Reuse if it does. If a near-fit exists, generalize the existing function instead of forking it. Only create a new function when there is genuinely no fit. Record any reuse/generalization in the slice's notes.
+- **Search the existing internal API before writing new code.** Consult `docs/api/INDEX.md` first (one line per public surface — per `references/project-state.md`); open the full doc in `docs/api/` or `docs/reference/` only on a hit. Reuse if it exists. If a near-fit exists, generalize the existing function instead of forking it. Only create a new function when there is genuinely no fit. Record any reuse/generalization in the slice's notes.
 - Implement the slice to its functional requirements.
 - **Add extension points as you go (extensible project types).** For WordPress/WooCommerce plugins, MCP servers, and libraries: as each user-facing string, decision, query, and response is written, expose the corresponding filter/action (or platform-equivalent extension point) with the project's prefix. Default to "filterable" rather than hard-coded; opt out only with a recorded reason.
-- **Document the new public surfaces of this slice — now, not later.** For every new function, method, class, hook, action, filter, REST route, MCP ability, or CLI command introduced by this slice, write the entry in `docs/api/` and/or `docs/reference/` (signature, params, return, errors, auth, runnable example). The example must actually run.
+- **Document the new public surfaces of this slice — now, not later.** For every new function, method, class, hook, action, filter, REST route, MCP ability, or CLI command introduced by this slice, write the entry in `docs/api/` and/or `docs/reference/` (signature, params, return, errors, auth, runnable example) AND its one-line row in `docs/api/INDEX.md`. The example must actually run. An INDEX row without its doc, or a doc without its row, is a slice defect.
 - **Build the slice accessible as you write it (UI slices).** Use semantic/native controls first; expose accessible name/role/state to the platform accessibility API; ensure keyboard/assistive-tech operability, visible focus and correct focus order; meet contrast and target size; identify errors non-visually too; honor reduced motion, text scaling and high contrast. If there was a design handoff, implement to `SPEC/accessibility.md` / `BUILD-SPEC.md` §4a. Per `references/accessibility.md`.
 - **Test point:** verify the slice against its acceptance criteria from `docs/02-functional-spec.md` — success path, empty, invalid, permission failure, and the failure/recovery branch from its flow file. Write automated tests where the output is objectively verifiable; for UI, verify against `docs/BUILD-SPEC.md` state matrix. The test point also confirms: (a) no duplicated function was introduced; (b) every new public surface is documented and its example runs; (c) for extensible types, the planned extension points are present and prefixed; (d) for UI slices, accessibility is verified — an automated check plus a keyboard pass and a real assistive-tech pass — against `references/accessibility.md` and the accessibility spec.
 - Run the relevant security checks from the profile for this slice (e.g. nonce/capability for a WP admin action, scope/PKCE for an OAuth step, input sanitization, output escaping).
-- Only move to the next slice when this one passes its test point. Report the test-point result to the user before continuing on substantial slices.
+- **If the slice fixed a bug, pin it with a regression test** in the same slice, and link the test from the `docs/lessons-learned.md` entry.
+- Only move to the next slice when this one passes its test point. **Commit the passing slice** (message naming the slice) and update `docs/PROGRESS.md` and `docs/05-test-points.md` before continuing. Report the test-point result to the user on substantial slices.
 
 ### 3. Integration test points
 
@@ -67,17 +75,13 @@ Before declaring development done, run the full pass: all acceptance criteria, a
 
 When a sprint's scope is complete and its test points pass, run this close-out before starting the next sprint. Do not skip it — this is what makes the project survive across chats.
 
-1. **Update `docs/PROGRESS.md`:** mark the sprint's tasks done, record what was completed, and state exactly what the next sprint is and what remains. PROGRESS.md must always reflect reality.
-2. **Update `docs/lessons-learned.md`:** add any problem→solution discovered during the sprint. If nothing failed, note that explicitly so it's clear it wasn't skipped.
-3. **Archive what's no longer needed:** move documents that are done with and no longer live from `docs/` into `docs/old/sprint-<N>/` (move, never delete — they stay traceable). `docs/` keeps only what's still active. PROGRESS.md, lessons-learned.md, the spec, and the design handoff stay in `docs/` (they're always live).
-4. **Generate the continuation prompt.** Produce a ready-to-paste prompt the user will paste into a NEW chat to continue, because the current chat is full. It MUST be self-sufficient — a new chat has no memory of this conversation or the design. The prompt must instruct the new chat to:
-   - Load the `keel` skill and resume at Phase 5.
-   - Read, in order: `docs/PROGRESS.md` (where we are), `docs/lessons-learned.md` (mistakes not to repeat), `docs/02-functional-spec.md`, `docs/BUILD-SPEC.md` if UI, and the design handoff under `docs/design/`.
-   - Identify the next sprint from PROGRESS.md and its sprint file `docs/sprints/sprint-<N+1>.md`.
-   - Continue building **faithfully to the existing spec and design — no reinterpreting, no deviating, no inventing**; gaps go to a Design Request, exactly as in Phase 4. The new chat does not redesign or "improve" decisions already made.
-   - Run the same per-slice test points and close the next sprint the same way.
-   
-   Give this prompt to the user and stop the current sprint cleanly. The user starts the next sprint in a fresh chat with that prompt.
+1. **Leave the repo clean:** all of the sprint's tests green, everything committed. A sprint never closes with a broken or uncommitted state.
+2. **Update `docs/PROGRESS.md`:** mark the sprint's tasks done, record what was completed, and state exactly what the next sprint is and what remains. PROGRESS.md must always reflect reality. Close the sprint's file (`docs/sprints/sprint-<N>.md` status + close-out).
+3. **Update `docs/lessons-learned.md`:** add any problem→solution discovered during the sprint. If nothing failed, note that explicitly so it's clear it wasn't skipped.
+4. **Archive what's no longer needed:** move documents that are finished AND no longer consulted from `docs/` into `docs/old/sprint-<N>/` (move, never delete — they stay traceable). Follow the archiving rules in `references/project-state.md`: the state files, specs, technical plan, flows, design handoff, api/reference docs, and the current sprint file NEVER move while the project is alive.
+5. **Generate the continuation prompt** using the universal template in `references/project-state.md`, with the sprint specifics added: the next sprint's file (`docs/sprints/sprint-<N+1>.md`), the instruction to build **faithfully to the existing spec and design — no reinterpreting, no deviating, no inventing** (gaps go to a Design Request, exactly as in Phase 4), and to run the same per-slice test points and close the next sprint the same way. It MUST be self-sufficient — a new chat has no memory of this conversation or the design.
+
+   Give this prompt to the user and close the sprint cleanly. If the current chat still has capacity, development may continue here — the prompt is insurance, not an order to switch chats.
 
 ## Test point log
 
@@ -97,7 +101,9 @@ Every slice must appear with a result before Phase 6. The accessibility, reuse, 
 - Security profile checklist passed for every relevant boundary.
 - **Accessibility built into every UI slice and verified** (automated + keyboard + real assistive-tech), meeting the Phase 1 targeted level per `references/accessibility.md`, with user preferences honored; if there was UI, built to `SPEC/accessibility.md`.
 - **Internal API coherent and reused.** No near-duplicate functions/methods/classes; reuse verified per slice; the codebase has one canonical implementation per behavior.
-- **Every public surface introduced in Phase 5 is already documented** in `docs/api/` and/or `docs/reference/` with a runnable example. Phase 6 will only consolidate — there is no undocumented public surface entering Phase 6.
+- **Every public surface introduced in Phase 5 is already documented** in `docs/api/` and/or `docs/reference/` with a runnable example, **and has its row in `docs/api/INDEX.md`**. Phase 6 will only consolidate — there is no undocumented public surface entering Phase 6.
+- The build followed `docs/03-technical-plan.md` (conventions, error handling, code map current); any change to the plan was recorded as a decision, never silent.
+- Every fixed bug has its regression test; every passed test point has its commit; the repo is clean and green.
 - **For extensible project types (WP/Woo plugins, MCP servers, libraries):** every meaningful user-facing string passes through a filter, every meaningful decision exposes an action before/after, every query/response is filterable, and every public class supports a documented replace/extend mechanism. All extension points are prefixed and documented in `docs/reference/hooks-and-extension-points.md` with at least one runnable example each.
 - If multi-language: zero hardcoded/concatenated user-facing strings; every string externalized via the platform's idiomatic i18n mechanism (function-wrapping or key/constant catalog); base language is the Phase 1 base language; base catalog/locale resource generated from it and current.
 - If installed base: upgrade tested from the real previous version (not just clean install); existing data preserved/migrated; backward compat held or breaking change gated and documented; clean uninstall verified.

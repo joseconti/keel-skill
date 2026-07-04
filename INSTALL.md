@@ -88,7 +88,7 @@ Once installed:
 
 1. Restart or reload your Claude client so it rescans the skills directory.
 2. Start a new conversation and ask: *"What version of Keel do I have?"*
-3. If installed correctly, Claude responds: *"You're using Keel v1.0.0."* (or whatever version is in `keel/SKILL.md` frontmatter).
+3. If installed correctly, Claude responds with the version in `keel/SKILL.md` frontmatter, e.g. *"You're using Keel vX.Y.Z."*
 4. Try a real trigger phrase such as *"I have an idea for a new WordPress plugin, let's plan it"* — Keel should announce Phase 1 (Discovery) and begin asking discovery questions.
 
 If the skill does not trigger:

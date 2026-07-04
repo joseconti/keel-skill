@@ -7,11 +7,14 @@ This phase absorbs the former `design-spec-handoff` skill. Read `references/hand
 ## Inputs from earlier phases
 
 - `docs/02-functional-spec.md` → the "Design split" (screens that need design, template-reuse candidates, external-setup items).
+- `docs/03-technical-plan.md` → the target stack and host constraints. The brief's "Where the final code will live" comes from here — Design must know the real target (e.g. WP admin page vs static site vs SPA), never guess it.
+- `docs/01-discovery.md` (design-system decision, Phase 1 step 9) → whether a design system already governs this brand. **If existing:** its tokens, logo usage, typography and component styles go INTO the brief as the canonical Section 2 values, with their source cited — Design applies them and proposes any deviation as a question, never restyles silently. **If founding:** the brief tells Design it is creating the brand's canonical design system, built for reuse beyond this project, and carries the Phase 1 **founding-interview answers** verbatim (logo status — including whether Design creates it, colors, typography + licensing, personality, references, modes, imagery, vetoes) as the seed Design starts from. **If one-off:** state it, so Design knows the scope of what it defines.
 - `docs/01-discovery.md` → project type, constraints, the loaded security profile (Design must respect host/security constraints, e.g. WP admin scheme, no external font CDNs), and the **internationalization decision**. If multi-language: the brief must tell Design that all copy is translatable — no baked-in text that can't be swapped per locale, mark every string as content (not decoration), account for text expansion/RTL if relevant — so the build can externalize strings without redesigning. Carry the base language and target locales into the brief.
 - `docs/01-discovery.md` (accessibility commitment, target platform, targeted level) and `docs/02-functional-spec.md` (per-screen accessibility requirements) → the **accessibility decision**. The brief must require Design to *specify* accessibility, never leave it to the build: contrast-verified color pairs, the visible focus style, focus order, accessible name/role/state per component and per state, heading/landmark structure, target sizes, reduced-motion variants, behavior under text scaling and high-contrast, and error identification. Carry the targeted level (WCAG 2.2 AA floor / AAA where feasible; EN 301 549 / EAA if in scope) into the brief. Per `references/accessibility.md`.
 
 ## Core principles to encode into the brief
 
+- **The design system is inherited or founded — never parallel.** If a design system exists (Phase 1 step 9), Design works inside it: exact palette, logo rules, typography, component styles. If none exists and this project founds it, Design builds tokens and components deliberately for brand-wide reuse. What must never happen is a third thing: a new, slightly-different look created per project, which is how a brand's surfaces drift apart.
 - **Build once, reuse by manifest.** Structurally-identical pages are built ONCE as a template; every consumer page is recorded in `SPEC/manifest.md` with its data/variant. Regenerating near-identical pages is the failure mode to prevent.
 - **Deliver real artifacts AND a governing SPEC.** Design already emits working files (HTML/CSS/JS/SVG/images/components); keep that, but every artifact is governed by the SPEC so nothing is ambiguous.
 - **Nothing in the air.** Every screen, every state (default, hover, focus, active, disabled, loading, empty, error, success), every breakpoint, every conditional behavior gets exact values.
@@ -32,6 +35,7 @@ If the design split in `docs/02-functional-spec.md` is vague, resolve it with th
 Fill `references/design-brief-template.md` completely — no unfilled brackets. A value that is genuinely the user's call and unknown goes to the user as a question now, not to Design as a guess. Save the filled brief as `docs/design/DESIGN-BRIEF.md`.
 
 The brief must:
+- State the design-system status (existing → canonical values + source in Section 2, apply without reinventing; founding → building the brand's canonical system for reuse; one-off → explicit).
 - State build-once-reuse-by-manifest and give Design the screen list split into unique vs reuses-template-X.
 - Require the exact `design-handoff/` structure from `references/handoff-contract.md` (real artifacts + `SPEC/`).
 - Include the question protocol: Design stops and asks the user for any undefined detail; collects them in `SPEC/open-questions.md`.
@@ -52,6 +56,7 @@ A `design-handoff/` folder per `references/handoff-contract.md`: real artifacts 
 ## Definition of done
 
 - `docs/design/DESIGN-BRIEF.md` exists, fully filled, with no unresolved user questions.
+- The design-system status is stated in the brief; if a system exists, Section 2's values come from it with the source cited (nothing left for Design to reinvent).
 - The brief mandates the exact handoff contract including `external-setup.md`, `external-assets.md`, and `accessibility.md`.
 - The brief requires Design to specify accessibility per screen (`SPEC/accessibility.md` + per-screen notes), per `references/accessibility.md`.
 - The user has what they need to run Design.

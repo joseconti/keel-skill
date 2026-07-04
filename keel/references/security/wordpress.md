@@ -33,6 +33,14 @@ Load this when the project type is a WordPress plugin or WooCommerce extension. 
 - No arbitrary file read/write/include from input. Validate paths; use WP filesystem API.
 - Uploads: validate type and use `wp_handle_upload`; never trust the client MIME.
 - No `eval`, no dynamic `include` of input-derived paths.
+- Every PHP file starts with a direct-access guard (`defined( 'ABSPATH' ) || exit;`) so it does nothing when requested directly.
+
+## Common WP pitfalls (verify explicitly)
+
+- Redirects from input go through `wp_safe_redirect()` (+ `exit`), never `wp_redirect()` with an unvalidated URL — open-redirect risk.
+- `LIKE` queries escape the term with `$wpdb->esc_like()` *before* `$wpdb->prepare()`.
+- Every `register_setting()` has a real `sanitize_callback`; settings are re-sanitized on save, not only on render.
+- Cron/background handlers and `admin-post`/`admin-ajax` endpoints re-check capability and nonce — being "not linked in the UI" is not protection.
 
 ## Plugin-platform specifics
 
@@ -49,4 +57,5 @@ Load this when the project type is a WordPress plugin or WooCommerce extension. 
 - Every output: escaped at output.
 - Every query: prepared.
 - MCP/OAuth: token validation + PKCE + per-ability authz confirmed; no secret logged.
+- ABSPATH guard present in every PHP file; redirects via `wp_safe_redirect`; LIKE terms escaped; settings have sanitize callbacks.
 - Uninstall path leaves no sensitive residue (unless opted in).

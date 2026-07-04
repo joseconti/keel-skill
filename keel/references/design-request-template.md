@@ -1,10 +1,14 @@
 # Design Request Template
 
-When the audit (Step 1) finds gaps, or `open-questions.md` is unresolved, do not build and do not guess. Fill this template and give it to the user as a ready-to-paste prompt for Claude Design. Keep it surgical: name exactly what is missing, ask Design to fill only that, and to re-deliver into the same handoff structure.
+When the audit (Phase 4 Step 1) finds gaps, or `open-questions.md` is unresolved, do not build and do not guess. Fill this template and give it to the user as a ready-to-paste prompt for Claude Design. Keep it surgical: name exactly what is missing, ask Design to fill only that, and to re-deliver into the same handoff structure.
+
+Before handing it over, register it (per `references/project-state.md`): save the filled version as `docs/design/design-requests/DR-NNN.md` (sequential), set the `Status:` line to `sent`, and list it in `docs/PROGRESS.md` "Open items". Mark it `resolved [date]` only when the re-audit passes.
 
 ---
 
-# Design Request: complete the handoff for [PROJECT NAME]
+# Design Request DR-[NNN]: complete the handoff for [PROJECT NAME]
+
+Status: [sent / resolved YYYY-MM-DD]
 
 The build cannot start because the handoff has gaps. Do **not** redesign anything that already works. Only specify the items listed below, then re-deliver the updated `design-handoff/` in the same structure (artifacts/ + SPEC/).
 

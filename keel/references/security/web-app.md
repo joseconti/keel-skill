@@ -7,6 +7,8 @@ Load this for SPAs, API backends, or hosted services (e.g. on Fly.io). Apply fro
 - Validate every input against a strict schema (type, range, length, format). Reject by default; allow-list, don't block-list.
 - Encode/escape output for its sink (HTML, attribute, URL, JSON, SQL). Prevent XSS in the client; never `innerHTML` untrusted data.
 - Parameterized queries / ORM bindings only — never string-built SQL.
+- **SSRF:** if the server fetches user-supplied URLs (webhooks, imports, previews), allow-list destinations and block internal ranges/metadata endpoints (169.254.169.254, localhost, RFC 1918) — never fetch a raw user URL.
+- Uploads: validate type/size server-side, store outside the web root or with non-executable permissions, serve with a safe content type.
 - Set a strict Content-Security-Policy and the standard security headers (HSTS, X-Content-Type-Options, Referrer-Policy, frame-ancestors).
 
 ## AuthN / AuthZ

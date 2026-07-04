@@ -2,17 +2,17 @@
 name: keel
 license: GPL-3.0-or-later
 metadata:
-  version: 1.2.0
-description: Use this skill for ANY new software project from idea to release — websites, WordPress/WooCommerce plugins, MCP servers, web apps, components, or libraries. It runs a complete multi-phase workflow so the user never has to re-explain their standing requirements each project. The phases are discovery and feature discussion, functional spec with flows, the design handoff to Claude Design (and what Design must return), faithful build by Cowork/Code with no deviation, development with test points, full docs/ (API, classes, functions, usage, architecture), platform-specific security, non-negotiable accessibility applied from the first line on every platform (web, iOS, Android, macOS, Windows), and release hygiene (.gitignore, .gitattributes export-ignore). Trigger whenever the user starts a new project or feature, says "I have an idea for a plugin/site/app", "let's plan this project", "set up the project", mentions design handoff between Design and Code/Cowork, asks for project documentation or security review, or is preparing a release/package. Each phase loads its own reference file on demand.
+  version: 1.3.0
+description: Use this skill for ANY new software project from idea to release — websites, WordPress/WooCommerce plugins, MCP servers, web apps, components, or libraries. It runs a complete multi-phase workflow so the user never has to re-explain their standing requirements each project. The phases are discovery and feature discussion, functional spec with flows, the design handoff to Claude Design (and what Design must return), faithful build by Cowork/Code with no deviation, development with test points, full docs/ (API, classes, functions, usage, architecture), platform-specific security, non-negotiable accessibility applied from the first line on every platform (web, iOS, Android, macOS, Windows), and release hygiene (.gitignore, .gitattributes export-ignore). Trigger whenever the user starts a new project or feature, says "I have an idea for a plugin/site/app", "let's plan this project", "set up the project", mentions design handoff between Design and Code/Cowork, asks for project documentation or security review, is preparing a release/package, resumes/continues an in-progress Keel project (any repo containing docs/PROGRESS.md), or wants to apply Keel to an EXISTING project already underway (adoption: bring an ongoing codebase up to Keel's specifications). Each phase loads its own reference file on demand, and a living state system (docs/PROGRESS.md, decisions log, lessons learned) makes every project resumable across chats without losing context.
 ---
 
 # Keel — project lifecycle (idea → release)
 
-**Keel v1.2.0** — Licensed under GPL-3.0-or-later. *Keel* is the structural backbone laid down first, on which the whole project is built.
+**Keel v1.3.0** — Licensed under GPL-3.0-or-later. *Keel* is the structural backbone laid down first, on which the whole project is built.
 
 ## Version reporting
 
-If the user asks which version of Keel they have or are using (e.g. "what version is this skill", "which Keel version do I have"), state it plainly from the frontmatter: "You're using Keel v1.2.0." Keep the version in the frontmatter (`metadata.version`), this line, and `CHANGELOG.md` in sync whenever the skill is updated; the frontmatter is the source of truth.
+If the user asks which version of Keel they have or are using (e.g. "what version is this skill", "which Keel version do I have"), state it plainly from the frontmatter: "You're using Keel v1.3.0." Keep the version in the frontmatter (`metadata.version`), this line, and `CHANGELOG.md` in sync whenever the skill is updated; the frontmatter is the source of truth.
 
 ## Version change policy (UNBREAKABLE RULE — never bump under any circumstance without explicit user instruction)
 
@@ -38,12 +38,16 @@ Required behavior:
 
 If at any point the assistant is about to write a version number that the user did not explicitly authorise in the current conversation, the assistant must stop and ask. This rule is not contextual, not negotiable, and not overridable by other instructions in the same conversation unless those instructions are themselves explicit user authorisation for a specific version.
 
+Scope note: this rule governs **Keel's own version** (this skill's files). The versions of projects *built with* Keel follow their own project rules (Phase 7 versioning) and are not restricted by this section.
+
 ## Why this skill exists
 
 The user builds many projects (WordPress/WooCommerce plugins, MCP servers, web apps, components, libraries) and was repeating the same standing requirements every time: document everything, security per platform, full API/class/function docs in a `docs/` dir, a design handoff that doesn't waste tokens, a build that stays faithful to the design, proper git/package hygiene. This skill encodes that whole process once. Follow the phases in order; load each phase's reference file only when you reach it (progressive disclosure — do not pull every reference into context at once).
 
 ## Operating principles (hold across every phase)
 
+- **Keep the living state current from the first minute.** `docs/PROGRESS.md`, `docs/decisions.md`, and `docs/lessons-learned.md` are created the moment Phase 1 starts (per `references/project-state.md`) and updated at the moment of every change — not at phase ends. A fresh chat resumes from state, never from re-scanning code or re-asking the user. Decisions recorded in `decisions.md` are never re-opened by the assistant on its own initiative.
+- **Work from recorded state; read code surgically.** Orient via `docs/PROGRESS.md`, the technical plan's code map, `docs/architecture.md`, and `docs/api/INDEX.md` — then open only the specific file needed. Read each static reference once per session, in the fixed order defined in `references/project-state.md`; never re-read files already in context. This keeps sessions cheap, deterministic, and prompt-cache-friendly.
 - **Decide the project type early and let it drive everything.** Web / WordPress plugin / WooCommerce extension / MCP server / web app / component / library. Type selects the security profile, the structure, and what needs design.
 - **Assess ideas and decisions honestly, even when it's uncomfortable.** Never default to praise. If an idea, a feature, a scope, or an approach is weak, say so with the reason and a concrete alternative. False encouragement wastes the user's time, which is the opposite of this skill's purpose. The user has explicitly asked for the truth even when it hurts.
 - **Document as you go, in `docs/`.** Documentation is not a final-phase afterthought; each phase contributes its artifacts to `docs/`.
@@ -64,7 +68,7 @@ Work through these in order. The reference file for a phase is the authoritative
 | Phase | Purpose | Reference to load |
 |-------|---------|-------------------|
 | 1. Discovery | Competitive scan first, then idea, feature discussion, project type, constraints | `references/phase-1-discovery.md` |
-| 2. Functional spec | Flows, requirements, scope, what needs design | `references/phase-2-functional-spec.md` |
+| 2. Functional spec | Flows, requirements, scope, technical plan (stack/architecture/conventions), what needs design | `references/phase-2-functional-spec.md` |
 | 3. Design handoff | What to tell Design + the files Design must read/return | `references/phase-3-design-handoff.md` |
 | 4. Faithful build | Audit Design's return, consolidate spec, build with zero deviation, guided external setup | `references/phase-4-faithful-build.md` |
 | 5. Development | How to build, with test points throughout | `references/phase-5-development.md` |
@@ -102,16 +106,25 @@ The commitment is the maximum reasonably achievable, never a token gesture: WCAG
 ## How to run a phase
 
 1. Announce the phase to the user in one line.
-2. Read that phase's reference file.
+2. Read that phase's reference file (once — do not re-read it later in the session).
 3. Do the phase's work, asking the user batched questions for anything undefined (use the interactive question tool if available).
-4. Produce that phase's artifacts into the project (most land in `docs/`; see Phase 6 for the docs layout).
-5. Check the phase's definition of done. If gaps remain that are the user's call → ask. If gaps are design-side → Design Request (Phase 4 mechanism). Do not advance otherwise.
-6. Briefly tell the user what was produced and what the next phase will do.
+4. Produce that phase's artifacts into the project (most land in `docs/`; see Phase 6 for the docs layout), updating `docs/PROGRESS.md` and `docs/decisions.md` as the work happens — not at the end.
+5. Check the phase's definition of done **item by item**, and report it to the user as an explicit checklist (✓ met / ✗ not met, one line each). If gaps remain that are the user's call → ask. If gaps are design-side → Design Request (Phase 4 mechanism). Do not advance with any ✗ open.
+6. Mark the phase done in `docs/PROGRESS.md` (with its artifacts) and set the next action. Briefly tell the user what was produced and what the next phase will do.
 
-Resume capability: if the user returns mid-project, read `docs/PROGRESS.md` first if it exists (it's the living state and exact point within the current sprint), plus `docs/lessons-learned.md` (mistakes not to repeat). Otherwise identify the furthest completed phase from the artifacts in `docs/`. Continue from where things stand — never restart, never reinterpret decisions already made.
+## Entry modes (decide which one applies before doing anything)
+
+1. **New project** — no code yet. Read `references/project-state.md`, initialize the state files (confirming the project directory with the user first), and run Phase 1.
+2. **Resume** — `docs/PROGRESS.md` exists. Follow the fixed session-start order from `references/project-state.md`: `docs/PROGRESS.md` (project card, phase status, exact position, open items) → `docs/decisions.md` (never re-litigate) → `docs/lessons-learned.md` (never repeat) → the current phase's reference → only the inputs PROGRESS.md names. Continue from where things stand — never restart, never reinterpret decisions already made. (Keel-built projects that somehow lack state: identify the furthest completed phase from the artifacts in `docs/`, create the state files, then continue.)
+3. **Adoption** — real code exists (often released, often with users) but no Keel state: the project predates Keel. Read `references/adoption.md` and follow it: inventory read-only, initialize state and the CLAUDE.md lock, ask the never-made Phase 1 decisions, reconstruct `01/02/03` as-built plus a complete `docs/api/INDEX.md`, audit gaps into `docs/04-adoption-audit.md`, prioritize them with the user, then continue as a normal Keel project. Adoption changes no code.
+
+Portability lock: every Keel project carries a `CLAUDE.md` block (plus optionally the skill embedded at `.claude/skills/keel/`) so that ANY environment or AI opening the repo — Claude app, Cowork, Claude Code, or another assistant — is bound to this workflow even without the skill installed. Defined in `references/project-state.md` ("Portability"); created in Phase 1 step 0a / adoption step 2. If you are running in a project whose lock is missing or predates this mechanism, add it (with the user's OK) before continuing.
+
+Ending a session mid-work (any phase): produce the self-sufficient continuation prompt from `references/project-state.md` so the next chat resumes exactly where this one stopped.
 
 ## Shared templates and contract
 
+- `references/project-state.md` — the living state system (PROGRESS.md, decisions.md, lessons-learned.md, Design Request register, api/INDEX.md), the universal continuation prompt, and the context & cache discipline. Read at project start (Phase 1) and on every resume.
 - `references/handoff-contract.md` — the exact `design-handoff/` structure that flows Design → Build. Used by Phases 3 and 4. Read before either.
 - `references/design-brief-template.md` — the brief to give Design (Phase 3).
 - `references/build-spec-template.md` — the consolidated `BUILD-SPEC.md` (Phase 4).
@@ -133,6 +146,8 @@ Resume capability: if the user returns mid-project, read `docs/PROGRESS.md` firs
 - `references/phase-8-design-direction.md`
 - `references/phase-8-technical-seo.md`
 - `references/phase-8-launch-checklist.md`
+- `references/project-state.md` (cross-cutting — state, resume, context & cache discipline, portability lock; loaded at project start and on resume)
+- `references/adoption.md` (entry mode 3 — adopting Keel in an existing project)
 - `references/handoff-contract.md`
 - `references/design-brief-template.md`
 - `references/build-spec-template.md`
