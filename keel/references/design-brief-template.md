@@ -28,6 +28,7 @@ You are producing a **reusable design system + real built artifacts + a governin
 ## 2. Brand & tokens (the canonical values)
 
 - **Design system status:** [existing — the values below COME FROM it (source: <path/repo/URL/doc>); apply them as-is and raise any deviation you want as a question, never restyle silently / founding — no system exists; YOU are creating the brand's canonical design system with this project, so build tokens, logo treatment and component styles for reuse beyond this project / one-off — this look intentionally stands alone]
+- **Target surfaces/platforms this system must cover:** [list every one — e.g. web/HTML, WordPress-Woo admin, PrestaShop back office, iOS/iPadOS, watchOS, macOS, tvOS, Android, Windows, cross-platform framework, email, print — marking which ship in THIS project vs which are anticipated for brand reuse]. For each surface deliver the native/idiomatic tokens and component specs (CSS variables + HTML components for web; Dynamic Type, SF Symbols and HIG-aligned components for iOS/macOS; Material for Android; Fluent for Windows; WP admin colour scheme + `.wrap` for WordPress; Bootstrap back office for PrestaShop) and document how the ONE canonical token set maps onto each surface, so the brand is identical across all of them. Define anticipated surfaces now even if this project ships only one. If a single surface, state it so the scope is explicit.
 - **Color palette:** [exact hex list with semantic roles: bg, surface, text, primary, danger, etc. — or "UNDEFINED → ask user"]
 - **Typography:** [font families, weights, sizes/scale, line-heights — or ask]
 - **Spacing scale:** [e.g. 4/8/12/16/24/32 — or ask]
@@ -126,7 +127,7 @@ design-handoff/
 │   ├── components/
 │   ├── pages/          # ONLY genuinely unique pages
 │   ├── assets/         # real svg/png/img/fonts
-│   └── styles/         # tokens as code (CSS variables) + global styles
+│   └── styles/         # tokens as code (CSS variables) + global styles; per target surface, its native token mapping
 └── SPEC/
     ├── manifest.md         # every page → template + data, or "unique"
     ├── design-tokens.md    # exact canonical values
@@ -139,7 +140,7 @@ design-handoff/
     └── open-questions.md   # anything undefined — ask the user, list it here
 ```
 
-`SPEC/design-tokens.md` and `artifacts/styles/` must contain the same values.
+`SPEC/design-tokens.md` and `artifacts/styles/` must contain the same values. When the system covers more than one surface, `SPEC/design-tokens.md` records the one canonical token set plus its mapping to each target surface's native equivalents, and `artifacts/styles/` carries that mapping as code per surface — the brand values are identical across surfaces, only their expression differs.
 
 ## 7. Definition of done
 
@@ -147,6 +148,7 @@ Do not consider the handoff finished until:
 
 - Every page in `manifest.md` resolves to a unique page OR a template + concrete data.
 - Every unique screen SPEC documents all states + breakpoints with exact tokens.
+- Every target surface named in Section 2 has its native tokens + component specs and the canonical-token-to-surface mapping; no anticipated surface left undefined.
 - Every asset referenced anywhere exists in `artifacts/assets/` and is in `assets-index.md`, OR is declared in `external-assets.md` with full generation detail.
 - Every asset you cannot produce yourself is in `external-assets.md` (or it explicitly says "none"); none left as a silent gap or unlabeled placeholder.
 - Every external-software configuration value is captured in `external-setup.md` (or it explicitly says "none"); nothing needed is left implicit in an artifact.

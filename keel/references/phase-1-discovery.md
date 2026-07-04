@@ -176,6 +176,13 @@ Everything visual the brand ships — this app, its website, the next plugin's a
     - **One-off** — this project's look intentionally stands alone (rare; record the reason).
 - A project may **span** cases (e.g. corporate colors exist but no component library): record what exists and is binding vs what this project will found.
 
+**Which surfaces/platforms must the design system cover? (ask before founding or extending).** A design system is not platform-neutral in practice: tokens, components, the type scale, spacing, iconography and interaction patterns are expressed differently per surface — web/HTML, WordPress or WooCommerce admin, PrestaShop back office, iOS/iPadOS, watchOS, macOS, tvOS, Android, Windows, a cross-platform framework (Flutter, React Native, MAUI, Electron/Tauri), email, print. Ask the user which surfaces this system must serve and record two things:
+
+- The surface(s) **this project** ships on (usually the target platform already fixed in step 5).
+- Any **additional surfaces the design system must anticipate** because it is founded for brand-wide reuse (e.g. the brand is web today but an iOS app is planned) — so the system defines platform-appropriate values now instead of forcing a reinvention later.
+
+This applies to existing systems too: if this project targets a surface the existing system does not yet cover, Design **extends** the system to that surface (mapping the canonical tokens to the native equivalents) — it does not reinvent it. Record the full surface list; it drives what the Phase 3 brief asks Design to deliver: for each surface, the native/idiomatic tokens and component specs (CSS variables + HTML components for web; Dynamic Type, SF Symbols and HIG-aligned components for iOS/macOS; Material and `strings`-friendly components for Android; Fluent conventions for Windows; the WP admin colour scheme and `.wrap` constraints for WordPress; PrestaShop's Bootstrap-based back office for PrestaShop), plus how one canonical token set maps onto each surface so the brand stays identical across all of them. If only one surface is named, state it so the scope is explicit and intentional.
+
 **Founding interview (when founding, or for the missing parts when spanning).** Design should not found a corporate identity from nothing — it needs a base to start from, and that base is the user's answers, collected NOW in one batched questionnaire (use the interactive question tool if available). Ask:
 
 - **Logo:** does one exist? If yes: where are the files, in what formats (SVG master?), and are there usage rules. If no: **should Design create it** as part of founding the system? (yes → it becomes a required brief deliverable with real files and variants — see the brief template; no → who provides it and when, recorded as a dependency).
@@ -243,6 +250,7 @@ ALWAYS use this template:
 - If existing: source + location [exact path/repo/URL/doc, format] — binding input for the Phase 3 brief
 - If founding: where the canonical system will live for future projects [e.g. this project's design-handoff SPEC/design-tokens.md + artifacts/styles/ + logo assets]
 - If spanning (partial system exists): what is binding vs what this project founds
+- Target surfaces/platforms the system must cover: [web / WordPress-Woo admin / PrestaShop / iOS / iPadOS / watchOS / macOS / tvOS / Android / Windows / cross-platform framework / email / print — one or several], marking which ship in THIS project vs which the system anticipates for future reuse
 - Founding interview (if founding/spanning — answers seed the Phase 3 brief):
   - Logo: [exists → files/formats/rules | Design creates it → brief deliverable | user provides → when]
   - Colors: [existing/preferred/vetoed]   Typography: [existing/preferred + licensing]
@@ -269,7 +277,7 @@ ALWAYS use this template:
 - Accessibility commitment recorded and stated to the user up front: target platform(s) captured, `references/accessibility.md` loaded, and the targeted conformance level stated (WCAG 2.2 AA floor by default; below AA only with a recorded reason).
 - Project-website intent is captured (yes/no + domain choice).
 - "Design needed?" is answered.
-- If design is needed: the design-system decision is recorded (existing with source/location, founding with future home, or one-off with reason) in the discovery doc, `decisions.md`, and the project card.
+- If design is needed: the design-system decision is recorded (existing with source/location, founding with future home, or one-off with reason) in the discovery doc, `decisions.md`, and the project card — including the target surfaces/platforms the system must cover (marking which ship in this project vs which it anticipates for reuse).
 - `docs/01-discovery.md` exists and has zero open questions left unresolved.
 
 Do not enter Phase 2 with open discovery questions — an unresolved idea-level question becomes an expensive rework later.
