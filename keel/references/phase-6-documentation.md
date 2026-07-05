@@ -17,6 +17,7 @@ docs/
 ├── decisions.md                  (append-only decision log since Phase 1)
 ├── lessons-learned.md            (accumulating problem→solution log since Phase 1)
 ├── BUILD-SPEC.md                 (if there was UI)
+├── playground.md                 (if the project can be run — from Phase 5: verification playground; start/stop, access details, try-it instructions)
 ├── sprints/                      (one file per sprint; from Phase 5)
 │   └── sprint-<N>.md
 ├── old/                          (archived per sprint at sprint close — never deleted)
@@ -41,7 +42,7 @@ docs/
 └── accessibility.md              (NEW — applied a11y: standard targeted, per-platform measures, verification, known gaps)
 ```
 
-Numbering map, so no session wonders about the "gaps": `00` competitive landscape and `01` discovery are Phase 1; `02` spec and `03` technical plan are Phase 2; `04-adoption-audit.md` exists only in adopted projects (`references/adoption.md`); the design brief and BUILD-SPEC are unnumbered (they live by role: `design/`, root); `05` is the Phase 5 test-point log; `07-release.md` is added by Phase 7 (it does not exist yet at this phase). Websites (Phase 8) add their own artifacts under `docs/site/` or in the site's own repo. The repo root additionally carries the portability lock (`CLAUDE.md`, optional `AGENTS.md` and `.claude/skills/keel/`) per `references/project-state.md` — repo-only, export-ignored in Phase 7.
+Numbering map, so no session wonders about the "gaps": `00` competitive landscape and `01` discovery are Phase 1; `02` spec and `03` technical plan are Phase 2; `04-adoption-audit.md` exists only in adopted projects (`references/adoption.md`); the design brief, BUILD-SPEC and playground.md are unnumbered (they live by role: `design/`, root); `05` is the Phase 5 test-point log; `07-release.md` is added by Phase 7 (it does not exist yet at this phase). Websites (Phase 8) add their own artifacts under `docs/site/` or in the site's own repo. The repo root additionally carries the portability lock (`CLAUDE.md`, optional `AGENTS.md` and `.claude/skills/keel/`) per `references/project-state.md` — repo-only, export-ignored in Phase 7.
 
 Adapt names to the project type (e.g. for a WordPress plugin, `api/` documents REST routes, WP-CLI commands, and MCP abilities; `reference/hooks-and-extension-points.md` documents actions/filters; for an MCP server, `api/` documents tools/abilities and their schemas).
 

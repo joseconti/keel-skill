@@ -57,6 +57,7 @@ ALWAYS use this template for `docs/03-technical-plan.md`:
 - Logging: [mechanism + levels; never log secrets — per the security profile]
 ## Testing
 - Framework(s) + exact run commands; what gets unit vs integration vs end-to-end coverage
+- Verification playground (whenever the project can be run): how the software will be exercised for REAL beyond the automated suite — Docker/docker-compose, wp-env, a playground script, a disposable sandbox, whatever fits the stack — with exact start/stop commands. Stood up at the Phase 5 scaffold; access details + step-by-step try-it instructions for the user live in docs/playground.md
 - Regression rule: every bug fixed gets a test pinning the fix (linked from lessons-learned)
 ## Tooling commands
 - lint / test / build / package: the exact commands (verified end-to-end at Phase 5 scaffold)

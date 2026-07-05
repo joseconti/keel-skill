@@ -108,3 +108,14 @@ Initial public release (GPL-3.0-or-later).
 - Resume no longer depends on a file that did not exist before Phase 5: `docs/PROGRESS.md` exists from Phase 1 on every Keel project, so a chat dying in Phases 1–4 resumes deterministically.
 - Phase 6's canonical layout no longer omits artifacts earlier phases create (competitive landscape, state files), which could have led a literal session to archive or distrust them.
 - README repository layout lists `INSTALL.md` and `references/project-state.md`; INSTALL.md's verification example no longer hardcodes an outdated version number.
+
+## 1.4.0
+
+### Added
+- Real functional verification as a cross-cutting principle: whenever the project can be run, a runnable **verification playground** (Docker/docker-compose, wp-env, a playground script, a disposable sandbox — whatever fits the stack) exists alongside the automated test suite, so the assistant exercises the software for real — full flows end to end, the CLI if one was built, real API calls. Automated tests prove the parts; the playground proves the product. The user gets to try it too: access details when needed (URL/host, user, password — local, throwaway credentials only, never production secrets) plus step-by-step try-it instructions, maintained in `docs/playground.md`.
+  - SKILL.md: new operating principle.
+  - Phase 2: the technical plan's Testing section defines the playground and its exact start/stop commands.
+  - Phase 5: new principle; the playground is stood up at the scaffold (software verified to load in it) and `docs/playground.md` created there; every test point exercises the slice in it for real (new confirmation (e)); the cross-cutting verification runs the full pass in the playground and invites the user to try the flows; new "Real run in playground" column in `docs/05-test-points.md`; Definition of done extended.
+  - Phase 6: `docs/playground.md` added to the canonical `docs/` layout and the numbering map.
+  - Phase 7: the real-environment verification gate may reuse the Phase 5 playground when it is of the correct type — installing the exact distributable, never the dev tree — with `docs/playground.md` as the user's guide for their own final pass.
+  - README.md updated (phase table and operating principles).

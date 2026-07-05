@@ -2,17 +2,17 @@
 name: keel
 license: GPL-3.0-or-later
 metadata:
-  version: 1.3.0
+  version: 1.4.0
 description: Use this skill for ANY new software project from idea to release — websites, WordPress/WooCommerce plugins, MCP servers, web apps, components, or libraries. It runs a complete multi-phase workflow so the user never has to re-explain their standing requirements each project. The phases are discovery and feature discussion, functional spec with flows, the design handoff to Claude Design (and what Design must return), faithful build by Cowork/Code with no deviation, development with test points, full docs/ (API, classes, functions, usage, architecture), platform-specific security, non-negotiable accessibility applied from the first line on every platform (web, iOS, Android, macOS, Windows), and release hygiene (.gitignore, .gitattributes export-ignore). Trigger whenever the user starts a new project or feature, says "I have an idea for a plugin/site/app", "let's plan this project", "set up the project", mentions design handoff between Design and Code/Cowork, asks for project documentation or security review, is preparing a release/package, resumes/continues an in-progress Keel project (any repo containing docs/PROGRESS.md), or wants to apply Keel to an EXISTING project already underway (adoption: bring an ongoing codebase up to Keel's specifications). Each phase loads its own reference file on demand, and a living state system (docs/PROGRESS.md, decisions log, lessons learned) makes every project resumable across chats without losing context.
 ---
 
 # Keel — project lifecycle (idea → release)
 
-**Keel v1.3.0** — Licensed under GPL-3.0-or-later. *Keel* is the structural backbone laid down first, on which the whole project is built.
+**Keel v1.4.0** — Licensed under GPL-3.0-or-later. *Keel* is the structural backbone laid down first, on which the whole project is built.
 
 ## Version reporting
 
-If the user asks which version of Keel they have or are using (e.g. "what version is this skill", "which Keel version do I have"), state it plainly from the frontmatter: "You're using Keel v1.3.0." Keep the version in the frontmatter (`metadata.version`), this line, and `CHANGELOG.md` in sync whenever the skill is updated; the frontmatter is the source of truth.
+If the user asks which version of Keel they have or are using (e.g. "what version is this skill", "which Keel version do I have"), state it plainly from the frontmatter: "You're using Keel v1.4.0." Keep the version in the frontmatter (`metadata.version`), this line, and `CHANGELOG.md` in sync whenever the skill is updated; the frontmatter is the source of truth.
 
 ## Version change policy (UNBREAKABLE RULE — never bump under any circumstance without explicit user instruction)
 
@@ -59,6 +59,7 @@ The user builds many projects (WordPress/WooCommerce plugins, MCP servers, web a
 - **Reuse internal API; never duplicate code.** Before writing any new function, method, or class, search the project's existing internal API. If a suitable function already exists, reuse it. If one is *close* but not exact, generalize it (parameterize) rather than fork it. Write a new function only when there is no existing fit. Duplication is treated as a defect, the same as a security issue: it gets refactored, not left behind. The internal API grows deliberately and is documented as it grows (see next).
 - **Document every public surface at the moment it is created, not retrospectively.** Every new function, method, class, hook, action, filter, REST route, MCP ability, CLI command, or other public surface is documented in `docs/api/` and/or `docs/reference/` at the same test point where it is built. The slice does not pass its Phase 5 test point until its docs are written and its example actually runs. Phase 6 *consolidates* documentation; it does not create it from scratch.
 - **Maximum extensibility for extensible project types.** For project types meant to be extended (WordPress/WooCommerce plugins, MCP servers, libraries/components), expose the maximum reasonable set of extension points so third parties can modify texts, behaviors, queries, and responses from outside without forking the code. Concretely: every meaningful user-facing string passes through a filter, every meaningful decision exposes a hook before/after, every query and every response is filterable. This is decided at spec time and built into the slice, not bolted on later.
+- **Real functional verification, whenever possible — not only automated tests.** If the project can be run, it gets a runnable verification environment (a *playground*: Docker/docker-compose, wp-env, a playground script, a disposable sandbox — whatever fits the stack), defined in the technical plan (Phase 2), stood up at the Phase 5 scaffold, and kept current. The assistant uses it at test points to exercise the software for real — full flows end to end, the CLI if one was built, real API calls — because automated tests prove the parts and the playground proves the product. The user gets to try it too: hand over the access details when needed (URL/host, user, password — local, throwaway credentials only, never production secrets) together with step-by-step try-it instructions, maintained in `docs/playground.md`.
 - **Confirm before advancing a phase.** Each phase has a definition of done; do not slide into the next phase with the current one's gaps open.
 
 ## Phase map

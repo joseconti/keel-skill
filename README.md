@@ -4,7 +4,7 @@
 
 Use it for any new project — WordPress/WooCommerce plugins, MCP servers, web apps, components, libraries, or websites. Keel runs a complete multi-phase workflow so you never have to re-explain your standing requirements every time you start something new.
 
-- **Version:** 1.3.0
+- **Version:** 1.4.0
 - **License:** GPL-3.0-or-later
 - **Author:** [José Conti](https://plugins.joseconti.com/en)
 
@@ -18,7 +18,7 @@ Keel encodes a full project lifecycle as a single skill. When you start a new pr
 | 2. Functional spec | Flows, data model, integrations, permissions, technical plan (stack, architecture, conventions), design split, acceptance criteria |
 | 3. Design handoff | What to tell Claude Design and the files Design must read and return |
 | 4. Faithful build | Audit Design's return, consolidate the build spec, build with zero deviation, guided external setup |
-| 5. Development | Sprint planning, vertical slices with test points, living progress tracker, lessons learned |
+| 5. Development | Sprint planning, vertical slices with test points, verification playground for real functional testing, living progress tracker, lessons learned |
 | 6. Documentation | Full `docs/` layout: API, classes, functions, usage, architecture, security |
 | 7. Release | `.gitignore` vs `.gitattributes` export-ignore, versioning, real-environment verification, release artifacts |
 | 8. Project website (conditional) | Product study, site type, sections, domain, design direction, vanilla build, self-hosted fonts, SEO and AEO, launch |
@@ -45,6 +45,7 @@ Every Keel project also carries a **portability lock**: a `CLAUDE.md` block (opt
 - Security is per-platform and non-optional.
 - Accessibility is non-negotiable, on every platform, and designed in from the first line — never retrofitted.
 - Build once, reuse by manifest. Never regenerate structurally-identical pages or screens.
+- Real functional verification whenever possible, not only automated tests: a runnable playground (Docker, wp-env, sandbox) where real flows, CLI, and API calls are exercised — and the user gets access details plus try-it instructions (`docs/playground.md`).
 - Confirm before advancing a phase. Each phase has a definition of done.
 
 ## Installation
