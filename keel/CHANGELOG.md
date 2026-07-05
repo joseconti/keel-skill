@@ -119,3 +119,6 @@ Initial public release (GPL-3.0-or-later).
   - Phase 6: `docs/playground.md` added to the canonical `docs/` layout and the numbering map.
   - Phase 7: the real-environment verification gate may reuse the Phase 5 playground when it is of the correct type — installing the exact distributable, never the dev tree — with `docs/playground.md` as the user's guide for their own final pass.
   - README.md updated (phase table and operating principles).
+
+### Changed
+- SKILL.md frontmatter description shortened to 999 characters to fit the 1024-character limit enforced by skill installers; all trigger phrases preserved.
