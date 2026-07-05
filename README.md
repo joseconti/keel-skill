@@ -19,7 +19,7 @@ Keel encodes a full project lifecycle as a single skill. When you start a new pr
 | 3. Design handoff | What to tell Claude Design and the files Design must read and return |
 | 4. Faithful build | Audit Design's return, consolidate the build spec, build with zero deviation, guided external setup |
 | 5. Development | Sprint planning, vertical slices with test points, verification playground for real functional testing, living progress tracker, lessons learned |
-| 6. Documentation | Full `docs/` layout: API, classes, functions, usage, architecture, security |
+| 6. Documentation | Full `docs/` layout: API, classes, functions, usage, architecture, security, accessibility, playground |
 | 7. Release | `.gitignore` vs `.gitattributes` export-ignore, versioning, real-environment verification, release artifacts |
 | 8. Project website (conditional) | Product study, site type, sections, domain, design direction, vanilla build, self-hosted fonts, SEO and AEO, launch |
 
@@ -27,7 +27,7 @@ Security is cross-cutting. As soon as Phase 1 fixes the project type, Keel loads
 
 Accessibility is cross-cutting too, and non-negotiable. As soon as Phase 1 fixes the project type and target platform(s), Keel loads `references/accessibility.md` and applies it — from the first line, on every platform (web, iOS, Android, macOS, Windows) — through every later phase, targeting WCAG 2.2 AA (AAA where feasible), EN 301 549 and the European Accessibility Act where they apply, and each platform's native accessibility API. It is stated up front, never retrofitted at the end.
 
-Project state is cross-cutting as well. From the first minute of Phase 1, Keel maintains a living state system (`docs/PROGRESS.md` with the project card and exact position, `docs/decisions.md` as an append-only decision log, `docs/lessons-learned.md` as a problem-to-solution log) defined in `references/project-state.md`. Any fresh chat resumes from these files — in a fixed, cache-friendly reading order — instead of re-scanning code or re-asking questions, and decisions already made are never re-litigated.
+Project state is cross-cutting as well. From the first minute of Phase 1, Keel maintains a living state system (`docs/PROGRESS.md` with the project card and exact position, `docs/decisions.md` as an append-only decision log, `docs/lessons-learned.md` as a problem-to-solution log, the Design Request register, and `docs/api/INDEX.md` with one line per public surface) defined in `references/project-state.md`. Any fresh chat resumes from these files — in a fixed, cache-friendly reading order — instead of re-scanning code or re-asking questions, and decisions already made are never re-litigated.
 
 Keel has three entry modes: a new project (Phase 1 from zero), resuming an in-progress Keel project (from `docs/PROGRESS.md`), and **adoption** — applying Keel to a project already underway (`references/adoption.md`): read-only inventory, the never-made Phase 1 decisions asked, artifacts reconstructed as-built, and a gap audit against Keel's standards prioritized with the user, changing no code.
 
@@ -45,6 +45,9 @@ Every Keel project also carries a **portability lock**: a `CLAUDE.md` block (opt
 - Security is per-platform and non-optional.
 - Accessibility is non-negotiable, on every platform, and designed in from the first line — never retrofitted.
 - Build once, reuse by manifest. Never regenerate structurally-identical pages or screens.
+- Reuse the internal API; never duplicate code. Search the existing API before writing anything new; generalize a close fit instead of forking it. Duplication is a defect.
+- Document every public surface at the moment it is created — functions, classes, hooks, routes, MCP abilities, CLI commands — with a runnable example. Phase 6 consolidates documentation; it never writes it from zero.
+- Maximum extensibility for extensible project types: filterable user-facing strings, before/after hooks on decisions, filterable queries and responses, replaceable public classes.
 - Real functional verification whenever possible, not only automated tests: a runnable playground (Docker, wp-env, sandbox) where real flows, CLI, and API calls are exercised — and the user gets access details plus try-it instructions (`docs/playground.md`).
 - Confirm before advancing a phase. Each phase has a definition of done.
 
@@ -53,6 +56,8 @@ Every Keel project also carries a **portability lock**: a `CLAUDE.md` block (opt
 Keel is a skill for Claude (Claude Code, Cowork mode, or any Claude environment that supports skills). See [`INSTALL.md`](INSTALL.md) for the full installation guide, including personal install, plugin install, team install, verification, updating, and troubleshooting.
 
 Quick version: clone the repository and copy the `keel/` directory into your Claude client's skills folder.
+
+Keel is also listed on the author's skills marketplace: [skills.joseconti.com/plugin/keel.html](https://skills.joseconti.com/plugin/keel.html).
 
 Once installed, the skill is invoked automatically whenever you start a new project, say things like "I have an idea for a plugin", "let's plan this project", or ask Claude to handle the handoff between Design and Build.
 
