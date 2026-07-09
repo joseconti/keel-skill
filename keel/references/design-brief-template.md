@@ -35,7 +35,7 @@ You are producing a **reusable design system + real built artifacts + a governin
 - **Radius / shadows / borders:** [exact — or ask]
 - **Motion:** [durations + easing for transitions — or ask]
 - **Logo:** [provided — files listed below / **you (Design) create it** as part of founding this system / pending from the user — a dependency, not yours to invent]
-  - If you create it: deliver real files, not a description — a master **SVG**, variants (horizontal / stacked / icon-only), on-light and on-dark versions, a monochrome version, minimum sizes and clear-space rules. Everything indexed in `SPEC/assets-index.md` and usable to derive favicons/app icons later. Iterate with the user before finalizing — the logo is their call.
+  - If you create it: deliver real files, not a description — a master **SVG** *and* exported **PNG** versions, variants (horizontal / stacked / icon-only), on-light and on-dark versions, a monochrome version, minimum sizes and clear-space rules. Deliver the PNGs at the sizes/densities the target needs (e.g. @1x/@2x/@3x, favicon/app-icon sizes). Everything indexed in `SPEC/assets-index.md` and usable to derive favicons/app icons later. Iterate with the user before finalizing — the logo is their call.
 - **Brand assets provided:** [list — or "none"]
 - **Founding seed (only when founding):** [the Phase 1 founding-interview answers, carried verbatim: colors loved/vetoed, typeface preference + licensing, personality adjectives, references liked/disliked, dark-mode intent, iconography/imagery style, vetoes. This is your starting base — found the identity FROM it; anything unanswered goes to `SPEC/open-questions.md`, never guessed.]
 
@@ -57,7 +57,7 @@ If you discover more reuse opportunities while designing, collapse them into tem
 
 ## 4. States & behavior to specify per screen
 
-For every unique screen, design AND document every applicable state:
+For every unique screen, first state **what the screen does** — its purpose and the concrete functionalities/actions available on it (from the functional spec) — so you build the right screen, not just a layout. Then design AND document every applicable state:
 
 - default, hover, focus, active, disabled
 - loading, empty, error, success
@@ -69,7 +69,8 @@ Document each in `SPEC/screens/<screen>.md`. Document cross-screen behavior and 
 ## 5. Content & assets
 
 - **Copy:** [final copy provided / use placeholder]. If placeholder, mark it clearly as placeholder in the SPEC so it is never shipped.
-- **Icons/illustrations:** export real SVG/PNG into `artifacts/assets/`. Index every asset in `SPEC/assets-index.md` (filename → where used → intrinsic size → format).
+- **Icons/illustrations:** export real files into `artifacts/assets/`. **Every logo and every icon ships in BOTH SVG and PNG** — the SVG optimized with a `viewBox` and no editor cruft, the PNG at the intrinsic size plus the densities/sizes the target needs (@1x/@2x/@3x, favicon/app-icon sizes). Index every asset in `SPEC/assets-index.md` (filename → where used → intrinsic size → every delivered format).
+- **Build-ready formats (no transformation by the build).** Deliver every asset in the format the target stack drops in directly, so the build never has to convert, re-export, trace, recolor, rasterize, or resize it: web → optimized SVG + PNG at the exact container size (WebP only if the brief asks), fonts self-hosted in web-native formats (never a CDN link); iOS/macOS → PDF/SVG vectors or an asset catalog with @1x/2x/3x (SF Symbols where used); Android → vector drawables + density buckets; WordPress admin → whatever the admin page consumes directly. If one asset serves consumers that need different formats, deliver all of them. An asset that would force the build to transform it is an incomplete handoff, not a valid delivery.
 - **i18n:** [locales needed, e.g. en + es — or none]. If strings need externalizing, note it in the SPEC.
 - **Accessibility target:** WCAG 2.2 AA floor (AAA where feasible); EN 301 549 / EAA if in EU scope; the target platform's native a11y API. This is specified per screen in Section 5d — not a one-line target.
 
@@ -150,6 +151,7 @@ Do not consider the handoff finished until:
 - Every unique screen SPEC documents all states + breakpoints with exact tokens.
 - Every target surface named in Section 2 has its native tokens + component specs and the canonical-token-to-surface mapping; no anticipated surface left undefined.
 - Every asset referenced anywhere exists in `artifacts/assets/` and is in `assets-index.md`, OR is declared in `external-assets.md` with full generation detail.
+- Every logo and icon is present in **both SVG and PNG**, and every asset is in a format the build uses directly (no build-side conversion); `assets-index.md` lists every delivered format per asset.
 - Every asset you cannot produce yourself is in `external-assets.md` (or it explicitly says "none"); none left as a silent gap or unlabeled placeholder.
 - Every external-software configuration value is captured in `external-setup.md` (or it explicitly says "none"); nothing needed is left implicit in an artifact.
 - `SPEC/accessibility.md` and per-screen accessibility are complete (contrast-verified pairs, focus style/order, name/role/state per state, heading/landmark structure, target sizes, reduced-motion, text-scaling/high-contrast behavior, error identification) per `references/accessibility.md` — none left for the build to invent.

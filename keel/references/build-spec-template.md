@@ -72,11 +72,11 @@ From `SPEC/interactions.md`. Every behavior, conditional render, gating rule, tr
 
 ## 6. Asset map
 
-From `SPEC/assets-index.md`. Every asset must exist in `artifacts/assets/`.
+From `SPEC/assets-index.md`. Every asset must exist in `artifacts/assets/`, in a format the build uses directly — no build-side conversion, resize, recolor, rasterize, or re-export. Every logo and icon must be present in **both SVG and PNG**. An asset that would force a transformation, or a logo/icon missing one of the two formats, is a gap → Design Request, not a build-side fix.
 
-| Asset file | Used in | Intrinsic size | Format | Exists |
-|------------|---------|----------------|--------|--------|
-| ... | ... | ... | ... | ☐ |
+| Asset file | Used in | Intrinsic size | Format(s) delivered | Logo/icon: SVG+PNG both? | Build-ready (no transform)? | Exists |
+|------------|---------|----------------|---------------------|--------------------------|-----------------------------|--------|
+| ... | ... | ... | ... | [yes / n/a] | [yes / gap→DR] | ☐ |
 
 ## 7. External manual setup (driven one step at a time)
 
@@ -119,6 +119,8 @@ How the real artifacts are ported into [target stack]. This is the ONLY place co
 - ☐ No invented values; every value traces to the token table or a SPEC reference.
 - ☐ No interpreted behavior; every behavior traces to the interaction table.
 - ☐ Reuse preserved — templates stayed single sources, no unjustified duplication.
+- ☐ If an existing design system governs, every token, logo, and component matches its canonical source exactly; any divergence was raised as a Design Request, never a build-side creative choice.
+- ☐ Every logo and icon present in both SVG and PNG; every asset used directly with no build-side transformation (any that would have required one was raised as a Design Request, not converted in the build).
 - ☐ No placeholder copy shipped unless explicitly intended.
 - ☐ Every external-setup step guided one at a time, every value traced to §7/SPEC, each verifiable step screenshot-confirmed before advancing; unverified steps flagged.
 - ☐ Every externally generated asset built from its §8/SPEC entry, saved at the exact path/name/format, confirmed on-system; unverified assets flagged; no invented visual detail.

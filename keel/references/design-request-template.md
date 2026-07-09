@@ -31,8 +31,9 @@ For each item: what is missing, where it was expected, and what is needed.
 - **Deliver into:** [updated artifact + `SPEC/screens/listing.md`]
 
 ### [Category — e.g. Assets]
-- **Missing:** [e.g. `icon-export.svg` referenced in assets-index but not present in `artifacts/assets/`]
-- **Needed:** [export the real asset; add it to `assets-index.md` with intrinsic size + format]
+- **Missing:** [e.g. `icon-export.svg` referenced in assets-index but not present in `artifacts/assets/`; OR the logo/icons shipped only as SVG (or only as PNG); OR an asset delivered in a format the build would have to convert/resize/recolor to use]
+- **Needed:** [export the real asset; deliver every logo and icon in BOTH SVG and PNG (PNG at intrinsic size + the platform's required densities/sizes); deliver every asset in a format the build uses directly with no transformation; add each to `assets-index.md` with intrinsic size + every delivered format + exact use]
+- **Deliver into:** [`artifacts/assets/` + `SPEC/assets-index.md`]
 
 ### [Category — e.g. Behavior / logic]
 - **Missing:** [e.g. plan-based gating mentioned but the free vs premium difference per screen is unspecified]

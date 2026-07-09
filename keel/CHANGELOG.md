@@ -122,3 +122,22 @@ Initial public release (GPL-3.0-or-later).
 
 ### Changed
 - SKILL.md frontmatter description shortened to 999 characters to fit the 1024-character limit enforced by skill installers; all trigger phrases preserved.
+
+## 1.5.0
+
+### Added
+- **Output language & internationalization contract (English by default, always).** New cross-cutting section in SKILL.md plus two operating principles: the base/output language of everything built (source strings, UI copy, identifiers, commit messages) defaults to **English** in every project, never Spanish. At the start of every project the i18n questions are asked explicitly (multi- vs single-language, which output locales, is English the base). WordPress/WooCommerce is a fixed rule — base language always English and always built multi-language-ready — never Spanish-base. The docs language stays the user's working language (normally Spanish), a separate decision.
+  - Phase 1 Discovery Step 6 rewritten from "internationalization decision" to "internationalization & output language", with the three explicit questions, the WordPress/WooCommerce fixed rule, the English-by-default base, and the discovery-doc template + definition of done updated.
+  - Phase 5 Development: the i18n build rule now states the base language is English by default (always English for WordPress/WooCommerce), and the definition of done verifies an English `.pot` regardless of conversation language.
+- **Writing quality — perfect orthography (unbreakable).** New cross-cutting section in SKILL.md plus an operating principle: everything written, in any language and on any surface, must be orthographically and grammatically perfect. Spanish specifically must carry every accent/tilde, every ñ and the opening ¿/¡, with zero spelling or grammatical errors — treated like a code bug, never shipped.
+- **Design assets are delivered build-ready — the build never transforms them.** New rule across the handoff chain: every logo and icon ships in **both SVG and PNG** (PNG at intrinsic size plus the platform's required densities/sizes), and every asset is delivered in a format the target build uses directly, so Code never has to convert, resize, recolor, rasterize, or re-export. An asset that would force a build-side transformation is an incomplete handoff (a Design Request).
+  - `handoff-contract.md` rule 4 expanded; folder-structure note and "what complete means" updated.
+  - Phase 3: new core principles (build-ready assets; every screen defined by what it DOES, not just how it looks), brief requirements and definition of done updated.
+  - Phase 4: Step 1 reframed as the completeness gate run FIRST (verify Design delivered everything without exception; anything missing becomes a registered Design Request, never a build-side workaround); asset-format audit check added; faithfulness verification extended.
+  - `design-brief-template.md`: logo in SVG+PNG, icons in SVG+PNG, build-ready formats requirement, per-screen "what it does", definition of done updated.
+  - `build-spec-template.md`: asset map gains SVG+PNG and build-ready columns; faithfulness checklist gains design-system fidelity and asset-format items.
+  - `design-request-template.md`: assets category covers missing formats (SVG/PNG) and non-directly-usable formats.
+- **Complete skill copy (portability lock).** `project-state.md` embedded-skill rules hardened: copy the whole skill (every file), verify against the source manifest, retry on any gap, verify again, and if it still fails STOP and tell the user exactly which files did not arrive so they can move them — never leave a half-copied skill as if it worked. Version sync follows the same verify → retry → tell-user protocol.
+
+### Changed
+- SKILL.md operating principle "Code adapts to the design, never the design to the code" expanded to state the build follows the design to the letter and the code strategy changes (logged), never the design intent — enforced through the handoff contract.

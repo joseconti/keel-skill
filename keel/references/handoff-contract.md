@@ -20,7 +20,7 @@ design-handoff/
 │   │   └── ...
 │   ├── components/            # reusable components (buttons, cards, nav, modals…)
 │   ├── pages/                 # ONLY pages that are genuinely unique (not template clones)
-│   ├── assets/                # svg/, img/, fonts/ (real exported files)
+│   ├── assets/                # svg/ + png/, img/, fonts/ (real exported files; logos & icons in BOTH svg and png, build-ready formats)
 │   └── styles/                # global css / tokens as code (variables file)
 └── SPEC/
     ├── manifest.md            # the reuse map: every page → which template + what data/variant
@@ -46,7 +46,10 @@ design-handoff/
 
 3. **Tokens are exact and centralized.** `SPEC/design-tokens.md` holds canonical values; `artifacts/styles/` holds the same values as code (CSS variables or equivalent). They must agree. The file states its **origin**: derived from an existing design system (cite the source — values must match it), or founded by this project as the brand's canonical system (future projects will inherit these values), or one-off. It also states the **target surfaces** the system covers (web, WordPress/WooCommerce admin, PrestaShop, iOS/iPadOS, watchOS, macOS, tvOS, Android, Windows, cross-platform framework, email, print) and, for each, the mapping from the one canonical token set onto that surface's native equivalents plus the surface's component specs — so the brand is identical across surfaces and no build has to reinterpret a single-surface artifact for another platform. Surfaces the system anticipates for reuse are defined even if this project ships only one.
 
-4. **Assets are real and indexed.** Exported SVG/PNG/etc. live in `artifacts/assets/`. `SPEC/assets-index.md` maps each file to where it is used, its intrinsic dimensions, and format. No "an icon goes here" without the actual icon.
+4. **Assets are real, indexed, and delivered ready for the build to use directly — never something the build must transform.** Exported files live in `artifacts/assets/`. `SPEC/assets-index.md` maps each file to where it is used, its intrinsic dimensions, and format. No "an icon goes here" without the actual icon. On top of that, two hard delivery rules:
+
+   - **Every logo and every icon ships in BOTH SVG and PNG.** The SVG is the scalable master — optimized, `viewBox` present, no editor cruft or stray metadata. The PNG is a raster version at the intrinsic display size, plus the standard densities/sizes the target platform needs (e.g. @1x/@2x/@3x for the web and native apps, or the exact favicon/app-icon sizes). A logo or icon delivered in only one of the two formats is an incomplete handoff.
+   - **Every asset is delivered in the format the target build drops in as-is.** Design chooses, per asset and per target surface/stack, the format the build can use directly — so the build never has to convert, re-export, trace, recolor, rasterize, or resize an asset to use it (web: optimized SVG + PNG at the exact container size, or WebP where the brief calls for it, fonts self-hosted in the web-native formats and never a CDN link; iOS/macOS: PDF/SVG vectors or an asset catalog with @1x/2x/3x, SF Symbols where used; Android: vector drawables + density buckets; WordPress admin: whatever the admin page consumes directly). If one asset serves several consumers that need different formats, Design delivers all of them. `SPEC/assets-index.md` records, per asset, every delivered format and the exact place and size the build uses it. This is the asset-side of "code adapts to the design": the build must never be forced to transform an asset because Design shipped it in an inconvenient format — an asset that would force a build-side conversion is an incomplete handoff, i.e. a Design Request.
 
 5. **Open questions block the build.** `SPEC/open-questions.md` is where Design records anything it could not specify. The Build phase MUST NOT start while this file has unresolved items — instead the Build phase generates a Design Request prompt (Phase 4 Step 3, `references/design-request-template.md`) to send back to Design.
 
@@ -65,6 +68,7 @@ The handoff is complete when:
 - Every page in `SPEC/manifest.md` resolves to either a unique page artifact or a template + concrete data.
 - Every unique screen SPEC file covers all states and breakpoints with exact tokens.
 - Every asset referenced in any SPEC exists in `artifacts/assets/` and appears in `assets-index.md`, OR is declared in `SPEC/external-assets.md` with full generation detail.
+- Every logo and icon is present in **both SVG and PNG** (PNG at the intrinsic size + the platform's required densities/sizes), and every asset is in a format the target build uses directly — nothing that would force a build-side conversion. `assets-index.md` lists every delivered format per asset with its exact use and size.
 - Every external-software configuration the user must perform by hand has every value captured in `SPEC/external-setup.md` (no implicit values left inside artifact files).
 - `SPEC/accessibility.md` and every unique screen's accessibility are complete per `references/accessibility.md` (contrast pairs, focus order, name/role/state, heading/landmark structure, target sizes, reduced-motion, error identification) — nothing left for the build to invent.
 - `open-questions.md` has zero unresolved items.

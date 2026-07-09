@@ -15,15 +15,17 @@ Read `references/handoff-contract.md`, `references/build-spec-template.md`, and 
 
 State these back to the user when the phase starts.
 
-## Step 1 — Audit the handoff (no code yet)
+## Step 1 — Audit the handoff (no code yet) — the completeness gate, run FIRST
+
+The very first thing done when Design's handoff arrives — before any consolidation and long before any code — is to verify Design delivered **everything, without exception**. Nothing downstream is trusted until this gate passes. If anything at all is missing or incomplete, it is not filled in on the build side and it is not worked around: it is written up as a Design Request (Step 3) — a registered file plus a ready-to-paste prompt — so Design finishes and re-delivers the missing pieces. The build never compensates for an incomplete handoff.
 
 Input is `docs/design/design-handoff/`. Check against `references/handoff-contract.md`:
 
 - `SPEC/manifest.md` — every page resolves to a unique page or template + concrete data?
-- `SPEC/design-tokens.md` vs `artifacts/styles/` — values agree? Any token referenced but undefined? If the project card records an **existing** design system: do the delivered tokens match its source? An unexplained divergence from the brand's canonical system is a gap (Design Request), not a creative choice.
-- `SPEC/screens/*.md` — every unique screen documents all states + breakpoints + role/plan variants?
+- `SPEC/design-tokens.md` vs `artifacts/styles/` — values agree? Any token referenced but undefined? If the project card records an **existing** design system: do the delivered tokens, logo usage, and component styles match its canonical source exactly? Any unexplained divergence from the brand's canonical system is a gap (Design Request), not a creative choice — the build never "improves" or reinterprets the design system.
+- `SPEC/screens/*.md` — every unique screen documents its purpose/functionalities (what it does, not just how it looks) and all states + breakpoints + role/plan variants?
 - `SPEC/interactions.md` — every behavior/conditional/transition specified?
-- `SPEC/assets-index.md` — every referenced asset exists in `artifacts/assets/` with size/format?
+- `SPEC/assets-index.md` — every referenced asset exists in `artifacts/assets/` with size/format? **Every logo and icon present in BOTH SVG and PNG?** Is every asset in a format the build uses directly — nothing that would force a build-side conversion, resize, recolor, rasterize, or re-export? An asset shipped in an inconvenient format, or a logo/icon missing one of the two formats, is a gap (Design Request), not a build-side fix. Per `references/handoff-contract.md` rule 4.
 - `SPEC/external-assets.md` — for any asset Design couldn't produce, is there full generation detail (role, location, filename, format, dimensions, visual description, palette/style from tokens)? Any asset that's a silent gap or unlabeled placeholder instead of declared here is a gap. If "none", confirm no such assets are actually needed.
 - `SPEC/external-setup.md` — if external software must be configured by hand, is EVERY value present (software/version, exact path, each field, each value/toggle, order)? Anything implicit in an artifact instead of here is a gap. If "none", confirm nothing actually requires manual setup.
 - `SPEC/accessibility.md` — present and complete (contrast-verified pairs with ratios, visible focus + focus order, accessible name/role/state per component and state, heading/landmark structure, target sizes, reduced-motion variants, text-scaling/high-contrast behavior, error identification)? Is per-screen accessibility present in each `SPEC/screens/*.md`? A missing or thin accessibility spec is a gap — the build must not invent it. Per `references/accessibility.md`.
@@ -96,7 +98,7 @@ Once an asset is confirmed and saved at its target path/name, treat it as a real
 
 ## Step 7 — Verify against the faithfulness checklist
 
-Walk the checklist in `docs/BUILD-SPEC.md`: every screen matches artifact+SPEC; every state exists and is reachable; no invented values/behavior; no unintended placeholder copy; reuse preserved; every external-setup step guided one at a time with traced values and screenshot confirmation (unverified flagged); every external asset generated from the SPEC, saved at its exact path/name/format, and confirmed (unverified flagged); accessibility built to `SPEC/accessibility.md` and verified (automated checks plus a real assistive-tech pass); every code-side adaptation logged with design intent intact; zero unresolved Design Requests. Report results. A failure is a build defect (fix code) or a genuine gap (Design Request) — never a reason to relax the design.
+Walk the checklist in `docs/BUILD-SPEC.md`: every screen matches artifact+SPEC; every state exists and is reachable; no invented values/behavior; no unintended placeholder copy; reuse preserved; if an existing design system governs, every token/logo/component matches its canonical source (any divergence was a Design Request, never a build-side choice); every logo/icon present in both SVG and PNG and every asset used directly with no build-side transformation; every external-setup step guided one at a time with traced values and screenshot confirmation (unverified flagged); every external asset generated from the SPEC, saved at its exact path/name/format, and confirmed (unverified flagged); accessibility built to `SPEC/accessibility.md` and verified (automated checks plus a real assistive-tech pass); every code-side adaptation logged with design intent intact; zero unresolved Design Requests. Report results. A failure is a build defect (fix code) or a genuine gap (Design Request) — never a reason to relax the design.
 
 ## Definition of done
 

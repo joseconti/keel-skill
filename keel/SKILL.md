@@ -2,17 +2,17 @@
 name: keel
 license: GPL-3.0-or-later
 metadata:
-  version: 1.4.0
+  version: 1.5.0
 description: Use this skill for ANY new software project from idea to release — websites, WordPress/WooCommerce plugins, MCP servers, web apps, components, or libraries. Complete multi-phase workflow: discovery with competitive scan, functional spec with flows, design handoff to Claude Design, faithful build with zero deviation, development with test points and a real-testing playground, full docs/, platform-specific security, non-negotiable accessibility, and release hygiene. Trigger when the user starts a new project or feature, says "I have an idea for a plugin/site/app", "let's plan this project", "set up the project", mentions a design handoff, asks for project documentation or security review, prepares a release/package, resumes an in-progress Keel project (any repo with docs/PROGRESS.md), or applies Keel to an EXISTING project (adoption). Each phase loads its reference file on demand; a living state system (docs/PROGRESS.md, decisions, lessons learned) makes projects resumable across chats.
 ---
 
 # Keel — project lifecycle (idea → release)
 
-**Keel v1.4.0** — Licensed under GPL-3.0-or-later. *Keel* is the structural backbone laid down first, on which the whole project is built.
+**Keel v1.5.0** — Licensed under GPL-3.0-or-later. *Keel* is the structural backbone laid down first, on which the whole project is built.
 
 ## Version reporting
 
-If the user asks which version of Keel they have or are using (e.g. "what version is this skill", "which Keel version do I have"), state it plainly from the frontmatter: "You're using Keel v1.4.0." Keep the version in the frontmatter (`metadata.version`), this line, and `CHANGELOG.md` in sync whenever the skill is updated; the frontmatter is the source of truth.
+If the user asks which version of Keel they have or are using (e.g. "what version is this skill", "which Keel version do I have"), state it plainly from the frontmatter: "You're using Keel v1.5.0." Keep the version in the frontmatter (`metadata.version`), this line, and `CHANGELOG.md` in sync whenever the skill is updated; the frontmatter is the source of truth.
 
 ## Version change policy (UNBREAKABLE RULE — never bump under any circumstance without explicit user instruction)
 
@@ -52,9 +52,12 @@ The user builds many projects (WordPress/WooCommerce plugins, MCP servers, web a
 - **Assess ideas and decisions honestly, even when it's uncomfortable.** Never default to praise. If an idea, a feature, a scope, or an approach is weak, say so with the reason and a concrete alternative. False encouragement wastes the user's time, which is the opposite of this skill's purpose. The user has explicitly asked for the truth even when it hurts.
 - **Document as you go, in `docs/`.** Documentation is not a final-phase afterthought; each phase contributes its artifacts to `docs/`.
 - **Never invent or interpret silently.** When something is undefined, ask the user. When a design detail is missing downstream, request it from Design — don't guess.
-- **Code adapts to the design, never the design to the code.**
+- **Code adapts to the design, never the design to the code.** The build follows the design to the letter; where the stack forces a change, the code strategy changes (and is logged), never the design intent. This is enforced through the handoff contract (Phases 3–4).
+- **Design delivers build-ready assets; the build never transforms them.** Every screen handed to Design is defined by what it *does* (its functionalities), not just how it looks. Design applies the existing design system exactly (divergence is a Design Request, never a creative choice) and delivers every logo and icon in **both SVG and PNG**, plus every asset in a format the build drops in directly — so Code never has to convert, resize, recolor, or re-export. When the handoff arrives, the first action is a completeness gate: verify Design delivered everything without exception; anything missing becomes a registered Design Request (a file + a ready-to-paste prompt) for Design to finish, never a build-side workaround. See Phases 3–4 and `references/handoff-contract.md`.
 - **Security is per-platform and non-optional.** The relevant profile is consulted from Phase 1 onward, not bolted on at the end.
 - **Accessibility is non-negotiable, on every platform, and designed in from the first line — never retrofitted.** Whatever is built — HTML, iOS, Android, macOS, Windows, or a cross-platform framework — is usable with assistive technology from the first slice, using every accessibility tool the platform offers. It is stated up front in Phase 1 (like the internationalization decision) precisely because building accessibly from the start and "making it accessible" at the end are not the same work — the second is a rewrite. The target is the maximum reasonably achievable: WCAG 2.2 AA as the floor (AAA where feasible), EN 301 549 and the European Accessibility Act where they apply, and the native accessibility API on every other platform. See "Accessibility" below and `references/accessibility.md`.
+- **Output language is English by default — always, and never Spanish.** The primary language of everything *built* (source strings, UI copy, code identifiers, error messages, commit messages, API responses) defaults to English in every project, regardless of the language the user and the assistant converse in. Spanish is never assumed as the base language of the product. For WordPress/WooCommerce the base language is *always* English and the project is *always* prepared to be multi-language — non-negotiable. The multi-language questions are asked explicitly at project start (see "Output language & internationalization" below and Phase 1 §6). This is separate from the docs language, which stays whatever the user works in (usually Spanish).
+- **Perfect orthography in every language — Spanish especially (UNBREAKABLE).** Everything the assistant writes for the user — chat, `docs/`, code comments, UI copy, commit messages — is spelled and punctuated perfectly. In Spanish this means every ñ, every accent/tilde (á é í ó ú ü) and every opening ¿/¡ is present and correct, with zero spelling or grammatical errors. This is a hard contract, not a preference: dropping accents or the ñ, or writing "espanol"/"anadir"/"informacion", is a defect to be fixed like any other. See "Writing quality — perfect orthography" below.
 - **Build once, reuse by manifest.** Never regenerate structurally-identical pages/screens.
 - **Reuse internal API; never duplicate code.** Before writing any new function, method, or class, search the project's existing internal API. If a suitable function already exists, reuse it. If one is *close* but not exact, generalize it (parameterize) rather than fork it. Write a new function only when there is no existing fit. Duplication is treated as a defect, the same as a security issue: it gets refactored, not left behind. The internal API grows deliberately and is documented as it grows (see next).
 - **Document every public surface at the moment it is created, not retrospectively.** Every new function, method, class, hook, action, filter, REST route, MCP ability, CLI command, or other public surface is documented in `docs/api/` and/or `docs/reference/` at the same test point where it is built. The slice does not pass its Phase 5 test point until its docs are written and its example actually runs. Phase 6 *consolidates* documentation; it does not create it from scratch.
@@ -103,6 +106,31 @@ Accessibility is not a project type or a phase — it applies to everything buil
 Load `references/accessibility.md` once the platform is known. It has a universal core (applies everywhere) plus a section per platform — Web/HTML, WordPress/WooCommerce, iOS/iPadOS, Android, macOS, Windows, and cross-platform frameworks. Apply the universal core plus the section(s) matching the project's target platform(s). If the project spans platforms, apply every matching section.
 
 The commitment is the maximum reasonably achievable, never a token gesture: WCAG 2.2 AA as the floor with AAA where feasible, EN 301 549 and the European Accessibility Act where they apply (they apply to the user's EU market), and the platform's native accessibility API and assistive technologies fully supported — screen readers (VoiceOver, TalkBack, Narrator, NVDA/JAWS), Switch Control / Switch Access, Voice Control / Voice Access, Dynamic Type / system text scaling, and the reduced-motion and high-contrast preferences. "Use every accessibility tool the platform offers" is the standing rule.
+
+## Output language & internationalization (cross-cutting contract)
+
+The language the assistant and the user *talk in* (often Spanish) and the language the product is *built in* are two different things, decided separately. Getting this wrong has been a recurring defect, so it is fixed here as a contract.
+
+- **The base/output language of everything built is English by default, in every project.** Source strings, UI copy, code identifiers, error messages, the code's own README, commit messages — English. Spanish is never assumed as the base language of the product. The only thing that follows the user's working language is the `docs/` artifacts (the separate docs-language decision in Phase 1 §6 — normally Spanish).
+- **At the start of every new project, ask the internationalization questions explicitly** (batched, in Phase 1 §6) — never assume, never skip:
+  1. Will it be multi-language or single-language?
+  2. Which output locales must it ship (the target languages for the built product)?
+  3. Is English the base/principal language? (Default **yes**; moving off English is a conscious decision with a recorded reason.)
+- **WordPress / WooCommerce projects are a fixed rule, not a matter of taste:** the base language is **always English**, and the project is **always built multi-language-ready** from line one — every user-facing string wrapped in the platform i18n functions with the correct text domain, and a `.pot` generated from the English source. A Spanish-hardcoded (or Spanish-base) WordPress/WooCommerce project is a defect, not a valid outcome. This is recorded in `decisions.md` at Phase 1 and verified in Phase 5.
+- Retrofitting i18n, or switching the base language after the fact, is a rewrite — not a tweak. That is exactly why the decision is fixed in Phase 1 and never left implicit.
+
+## Writing quality — perfect orthography (cross-cutting, UNBREAKABLE)
+
+Everything the assistant writes, in any language and on any surface (chat replies, `docs/`, code comments, UI copy, commit messages, release notes), must be orthographically and grammatically perfect. This is a standing contract with no exceptions and is not overridable by speed, informality, or context.
+
+For **Spanish** specifically — because this is where mistakes have repeatedly slipped through — the rule is absolute:
+
+- Every accent/tilde is written: á, é, í, ó, ú, ü. Never "informacion", "espanol", "anadir", "codigo", "articulo", "prestamo" — always "información", "español", "añadir", "código", "artículo", "préstamo".
+- Every ñ is written as ñ, never plain "n" (año, not "ano"; señal, not "senal"; diseño, not "diseno").
+- Opening marks are always present: ¿…? and ¡…!.
+- Agreement (gender/number), verb tenses, and prepositions are correct.
+
+Treat a spelling or grammar mistake exactly like a code bug: it is caught and fixed, never shipped. If unsure of a spelling, verify it instead of guessing. The same standard of correctness applies to every other language the project is written in.
 
 ## How to run a phase
 

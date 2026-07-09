@@ -23,6 +23,8 @@ This phase absorbs the former `design-spec-handoff` skill. Read `references/hand
 - **Exact values only.** Hex, px/rem, font names+weights, ms durations, easing, z-index.
 - **External setup is fully extracted.** Every value the user must set by hand in external software goes into `SPEC/external-setup.md` — never left implicit in an artifact (it will be guided one verified step at a time in Phase 4).
 - **Assets Design can't produce are declared, not faked.** Any photo/complex illustration/3D render Design cannot generate goes into `SPEC/external-assets.md` with full generation detail (role, location, filename, format, dimensions, visual description, palette/style from tokens) — never a silent gap or unlabeled placeholder (it will be generated one asset at a time with the user's chosen generator in Phase 4).
+- **Assets are delivered build-ready — the build never transforms them.** Every logo and icon is delivered in **both SVG and PNG** (PNG at the intrinsic size plus the platform's required densities/sizes), and every asset is exported in the format the target stack drops in directly, so Code uses it as-is without converting, re-exporting, tracing, recoloring, or resizing. `SPEC/assets-index.md` records every delivered format per asset with its exact use and size. An asset that would force a build-side conversion is an incomplete handoff (a Design Request), per `references/handoff-contract.md` rule 4.
+- **Every screen is defined by what it DOES, not just how it looks.** For each screen the brief carries its purpose and the concrete functionalities/actions available on it (from `docs/02-functional-spec.md`), so Design builds the right screen — not just a nice-looking layout. Behavior, conditional logic and gating live in `SPEC/interactions.md`; each screen's job is stated in its `SPEC/screens/*.md`.
 - **Accessibility is specified, never deferred.** Every screen's accessibility is designed and documented by Design: contrast-verified color pairs (with measured ratios), the visible focus indicator, focus order, accessible name/role/state per component and per state (including error/empty/loading/disabled), heading/landmark structure, target sizes, reduced-motion variants, behavior under text scaling and high-contrast/forced-colors, and error identification (never color-only). A screen without its accessibility spec is incomplete — the build must not invent it. Per `references/accessibility.md`.
 
 ## Steps
@@ -41,7 +43,8 @@ The brief must:
 - State build-once-reuse-by-manifest and give Design the screen list split into unique vs reuses-template-X.
 - Require the exact `design-handoff/` structure from `references/handoff-contract.md` (real artifacts + `SPEC/`).
 - Include the question protocol: Design stops and asks the user for any undefined detail; collects them in `SPEC/open-questions.md`.
-- Enumerate, per screen, every required state and breakpoint.
+- Enumerate, per screen, every required state and breakpoint — and, per screen, what it DOES (its purpose and the functionalities/actions on it, from the functional spec), so Design builds the right screen, not just a layout.
+- Require every logo and icon in **both SVG and PNG**, and every asset in a format the target stack uses directly (no build-side conversion), all recorded in `SPEC/assets-index.md` with format(s), exact use, and size — per `references/handoff-contract.md` rule 4.
 - Require `SPEC/external-setup.md` with every external-software config value (or explicit "none").
 - Require `SPEC/external-assets.md` with every asset Design can't produce, fully detailed (or explicit "none").
 - Require `SPEC/accessibility.md` plus per-screen accessibility notes (contrast-verified pairs, focus style/order, name/role/state per component and state, heading/landmark structure, target sizes, reduced-motion variants, text-scaling/high-contrast behavior, error identification), per `references/accessibility.md`.
@@ -61,6 +64,7 @@ A `design-handoff/` folder per `references/handoff-contract.md`: real artifacts 
 - The design-system status is stated in the brief; if a system exists, Section 2's values come from it with the source cited (nothing left for Design to reinvent).
 - The brief names every target surface/platform the system must cover and requires per-surface native tokens + component specs and the canonical-token mapping onto each surface.
 - The brief mandates the exact handoff contract including `external-setup.md`, `external-assets.md`, and `accessibility.md`.
+- The brief requires logos and icons in both SVG and PNG and every asset in a directly-usable format (no build-side transformation), and requires each screen's purpose/functionalities to be stated, not just its visuals.
 - The brief requires Design to specify accessibility per screen (`SPEC/accessibility.md` + per-screen notes), per `references/accessibility.md`.
 - The user has what they need to run Design.
 

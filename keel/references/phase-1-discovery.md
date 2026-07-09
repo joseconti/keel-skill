@@ -144,16 +144,19 @@ State plainly to the user, now, that everything with a UI will be built accessib
 
 Record the decision in the discovery doc.
 
-### 6. Internationalization decision (blocking — decide now, never later)
+### 6. Internationalization & output language (blocking — decide now, never later)
 
-Decide explicitly, with the user, before any later phase:
+The language the user and assistant *converse in* (often Spanish) and the language the product is *built in* are different decisions. Decide both explicitly, with the user, before any later phase. Ask these as batched questions — never assume, never skip:
 
 - **Is this multi-language or single-language?** This is not a checkbox — it changes how the entire codebase is written from line one. Multi-language means every user-facing string is externalized through the platform's translation functions, never concatenated, never hardcoded in code or in the design. Retrofitting i18n later is a rewrite, not a tweak.
-- If multi-language: the **base language**, the **target locales**, and the platform mechanism. Pick the mechanism idiomatic to the project type: a function-wrapping model (e.g. WordPress text domain + `.pot`/`.po`/`.mo`) or a key/constant catalog model (e.g. macOS/iOS `.strings`/String Catalogs, Android `strings.xml`, a web i18n framework with keys). The base language is not just metadata: it is the source of truth for the strings — either the literal source strings written inside the translation functions, or the default values bound to the string keys in the base catalog, depending on the mechanism. Code never hardcodes user-facing text at the use site regardless of model. The user works in Spanish and the base language is often Spanish — confirm it explicitly rather than assuming English.
-- If single-language: state it explicitly and the language, so the decision is recorded and intentional (not an accident that blocks future translation).
-- **Docs language (separate decision).** Also record the working language for the `docs/` artifacts themselves — normally the language the user works in. Every doc, in every phase and every future session, is written in this one language; mixing languages across sprints is a defect. Record it in the PROGRESS.md project card.
+- **Which output locales must it ship?** The target languages for the built product (not the conversation language). Capture the full list.
+- **Is English the base/principal language?** The base/output language of everything built defaults to **English** — always, in every project — regardless of the language this conversation happens in. Spanish is never the assumed base language of the product. Moving off English is a conscious decision with a recorded reason; the default answer is yes.
+- **WordPress / WooCommerce is a fixed rule, not a question:** the base language is **always English** and the project is **always prepared to be multi-language** from line one (strings wrapped in the platform i18n functions with the correct text domain, `.pot` generated from the English source). Do not offer Spanish-base or single-language-Spanish as an option for these types — it is a defect. For these projects, confirm the target locales, not the base.
+- If multi-language: record the **base language** (English by default), the **target locales**, and the platform mechanism. Pick the mechanism idiomatic to the project type: a function-wrapping model (e.g. WordPress text domain + `.pot`/`.po`/`.mo`) or a key/constant catalog model (e.g. macOS/iOS `.strings`/String Catalogs, Android `strings.xml`, a web i18n framework with keys). The base language is not just metadata: it is the source of truth for the strings — either the literal source strings written inside the translation functions, or the default values bound to the string keys in the base catalog, depending on the mechanism. Code never hardcodes user-facing text at the use site regardless of model.
+- If single-language: state it explicitly and the language (English by default) so the decision is recorded and intentional (not an accident that blocks future translation). Single-language Spanish is not a valid outcome for a WordPress/WooCommerce project (see the fixed rule above).
+- **Docs language (separate decision).** Also record the working language for the `docs/` artifacts themselves — normally the language the user works in (Spanish for this user). This is independent of the product's output language: the code ships in English while the docs may be written in Spanish. Every doc, in every phase and every future session, is written in this one language; mixing languages across sprints is a defect. Whatever language the docs use, it is written with perfect orthography — every accent, tilde and ñ correct, zero spelling or grammatical errors (SKILL.md "Writing quality — perfect orthography"). Record the docs language in the PROGRESS.md project card.
 
-Record the decision in the discovery doc. It propagates to Phase 3 (Design must not hardcode copy; strings are translatable) and is a hard verification point in Phase 5.
+Record the decision in the discovery doc and `decisions.md`. It propagates to Phase 3 (Design must not hardcode copy; strings are translatable) and is a hard verification point in Phase 5.
 
 ### 7. Project website intent (global picture only — execution is a separate skill)
 
@@ -231,11 +234,13 @@ ALWAYS use this template:
 - If installed base: migration / backward-compat / clean-uninstall required (drives Phase 5 + 7)
 ## External dependencies (fixed versions)
 | Dependency | Exact version | Source | Behavior if absent/incompatible (must be fail-safe) |
-## Internationalization
+## Internationalization & output language
 - Multi-language? [yes / no]
-- If yes: base language [..], target locales [..], mechanism [e.g. WP text domain + .pot, or .strings catalog]
-- If no: single language [..] (explicit, intentional)
-- Docs language: [the one language every docs/ artifact uses, across all sessions]
+- Base/output language of the built product: [English by default — always English for WordPress/WooCommerce; off-English only with a recorded reason]
+- Target output locales: [the languages the product ships]
+- If multi-language: mechanism [e.g. WP text domain + .pot, or .strings catalog]
+- If single-language: the one language [English by default] (explicit, intentional; never Spanish-base for WordPress/WooCommerce)
+- Docs language (separate from output language): [the one language every docs/ artifact uses, across all sessions — normally Spanish for this user, written with perfect orthography]
 ## Accessibility (non-negotiable — stated up front)
 - Target platform(s): [web / WordPress-Woo / iOS / Android / macOS / Windows / cross-platform framework — one or several]
 - Reference loaded: references/accessibility.md
@@ -273,7 +278,7 @@ ALWAYS use this template:
 - Installed-base/upgrade reality is recorded; if there's an installed base, the migration obligation is noted.
 - External dependencies are listed with exact version, source, and fail-safe behavior.
 - The license is decided and recorded (it gates dependency adoption in Phase 5).
-- The multi-language vs single-language decision is made and recorded (with base/locales/mechanism if multi-language), and the docs language is recorded.
+- The multi-language vs single-language decision is made and recorded, with the target output locales and mechanism; the base/output language is recorded (English by default — always English for WordPress/WooCommerce, off-English only with a recorded reason); and the docs language (separate from the output language) is recorded.
 - Accessibility commitment recorded and stated to the user up front: target platform(s) captured, `references/accessibility.md` loaded, and the targeted conformance level stated (WCAG 2.2 AA floor by default; below AA only with a recorded reason).
 - Project-website intent is captured (yes/no + domain choice).
 - "Design needed?" is answered.
