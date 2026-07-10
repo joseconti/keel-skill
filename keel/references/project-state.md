@@ -34,7 +34,7 @@ Keep it to roughly one page. Detail lives in the linked files, never accumulated
 - Project type: [primary] / [secondary or none]
 - Stack & target platform(s): [from docs/03-technical-plan.md once it exists]
 - License: [e.g. GPL-3.0-or-later]
-- Docs language: [the language all docs/ artifacts are written in]
+- Docs language: [the language all docs/ artifacts are written in — English by default (token economy)]
 - Security profile: references/security/[file]
 - Accessibility: [targeted level] (references/accessibility.md)
 - i18n: [multi — base X, locales Y, mechanism Z / single — language X]
@@ -150,7 +150,7 @@ Load the `keel` skill and resume [PROJECT NAME] at Phase [N] ([phase name]), [st
 4. Continue EXACTLY from "Next action". Do not restart the phase, do not reinterpret or "improve" earlier decisions, do not redesign. Gaps go to the user or to a Design Request, per the skill.
 ```
 
-The prompt must be self-sufficient: assume the new session knows nothing except what these files contain. Producing it does not force a chat switch — if the current chat still has capacity, continue in it; the prompt is insurance.
+The prompt must be self-sufficient: assume the new session knows nothing except what these files contain. Producing it does not force a chat switch — if the current chat still has capacity, continue in it; the prompt is insurance. Like everything Keel creates, the continuation prompt is written in English (SKILL.md "Token economy"), regardless of the conversation language.
 
 ## Context & cache discipline (how every session works)
 

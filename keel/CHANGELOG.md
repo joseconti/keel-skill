@@ -141,3 +141,14 @@ Initial public release (GPL-3.0-or-later).
 
 ### Changed
 - SKILL.md operating principle "Code adapts to the design, never the design to the code" expanded to state the build follows the design to the letter and the code strategy changes (logged), never the design intent — enforced through the handoff contract.
+
+## 1.6.0
+
+### Added
+- **Token economy — everything Keel creates defaults to English (READ FIRST).** New section at the very top of SKILL.md: every artifact Keel creates — the whole `docs/` set (discovery, specs, progress, decisions, lessons learned, architecture, API reference, playground instructions), continuation prompts for new chats, prompts and briefs handed to Claude Code or Claude Design, template instances, reports, commit messages, code comments — is written in **English by default**, because English is the most token-efficient language for an LLM and the living state is re-read in every session, so the saving compounds for the life of the project. The default is announced to the user in one line at the start of every project (and adoption); any other language is available on request, with the increased token consumption — and therefore cost — made explicit and the choice recorded in the project card and `decisions.md`. On resume/adoption of a project whose docs already exist in another language, the user is asked once whether to translate everything to English; the answer is recorded and never re-asked. The policy does not change the conversation language (the assistant keeps talking in whatever language the user writes) and never drops the product's shipping locales.
+
+### Changed
+- SKILL.md: the output-language operating principle and the "Output language & internationalization" contract no longer default the docs to the user's working language — docs and every other created artifact default to English (token economy); the Phase 1 §6 question batch gains question 4 (docs language — confirm English or record an explicit off-English choice with the trade-off acknowledged).
+- Phase 1 Discovery §6: the docs-language decision rewritten to English-by-default with the one-line trade-off statement when asking; discovery-doc template and definition of done updated accordingly.
+- `project-state.md`: the project card's docs-language line carries the English default, and the continuation prompt is written in English regardless of the conversation language.
+- `adoption.md`: the docs-language question now states the English default and includes the one-time offer to translate existing non-English docs to English.
