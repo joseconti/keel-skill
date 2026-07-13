@@ -4,7 +4,7 @@
 
 Use it for any new project — WordPress/WooCommerce plugins, MCP servers, web apps, components, libraries, or websites. Keel runs a complete multi-phase workflow so you never have to re-explain your standing requirements every time you start something new.
 
-- **Version:** 1.4.0
+- **Version:** 1.7.0
 - **License:** GPL-3.0-or-later
 - **Author:** [José Conti](https://plugins.joseconti.com/en)
 
@@ -14,8 +14,8 @@ Keel encodes a full project lifecycle as a single skill. When you start a new pr
 
 | Phase | Purpose |
 |-------|---------|
-| 1. Discovery | Competitive scan, idea assessment, project type, constraints, license, accessibility commitment, language model, design system (existing or founded), website intent |
-| 2. Functional spec | Flows, data model, integrations, permissions, technical plan (stack, architecture, conventions), design split, acceptance criteria |
+| 1. Discovery | Competitive scan, idea assessment, project type, constraints, license, accessibility commitment, language model, design system (existing or founded), website intent, preliminary AI-time estimate |
+| 2. Functional spec | Flows, data model, integrations, permissions, technical plan (stack, architecture, conventions), design split, acceptance criteria, firm estimate and client budget |
 | 3. Design handoff | What to tell Claude Design and the files Design must read and return |
 | 4. Faithful build | Audit Design's return, consolidate the build spec, build with zero deviation, guided external setup |
 | 5. Development | Sprint planning, vertical slices with test points, verification playground for real functional testing, living progress tracker, lessons learned |
@@ -28,6 +28,10 @@ Security is cross-cutting. As soon as Phase 1 fixes the project type, Keel loads
 Accessibility is cross-cutting too, and non-negotiable. As soon as Phase 1 fixes the project type and target platform(s), Keel loads `references/accessibility.md` and applies it — from the first line, on every platform (web, iOS, Android, macOS, Windows) — through every later phase, targeting WCAG 2.2 AA (AAA where feasible), EN 301 549 and the European Accessibility Act where they apply, and each platform's native accessibility API. It is stated up front, never retrofitted at the end.
 
 Project state is cross-cutting as well. From the first minute of Phase 1, Keel maintains a living state system (`docs/PROGRESS.md` with the project card and exact position, `docs/decisions.md` as an append-only decision log, `docs/lessons-learned.md` as a problem-to-solution log, the Design Request register, and `docs/api/INDEX.md` with one line per public surface) defined in `references/project-state.md`. Any fresh chat resumes from these files — in a fixed, cache-friendly reading order — instead of re-scanning code or re-asking questions, and decisions already made are never re-litigated.
+
+Estimation and budgeting are built in, and AI-time based. At the close of Phase 1 Keel produces a preliminary estimate, and at the close of Phase 2 a firm one plus a client-ready budget (`docs/estimate.md` and `docs/budget.md`): itemized segments with hours for both the AI's working time and the developer's supervision time (answering questions, deciding, real-world testing, uploading code), the developer's hours priced at their rate, the AI's token cost computed per model and payment mode, both blocks kept separate, and everything adjusted with the user before it is final — never based on what a traditional human team would take. Actual token usage is recorded per session in `docs/token-ledger.md`, and the release closes with a reconciliation: totals by model, cost at verified prices, and the deviation against the estimate.
+
+Forge issues get their own living log. Whenever issues on the project's Git forge (GitHub, GitLab, Gitea, Bitbucket, or any other) are accessed or worked, `docs/issues.md` tracks the inventory, what was resolved and exactly how (diagnosis, resolution, commits, verification), and what remains pending — full traceability if a problem surfaces later.
 
 Keel has three entry modes: a new project (Phase 1 from zero), resuming an in-progress Keel project (from `docs/PROGRESS.md`), and **adoption** — applying Keel to a project already underway (`references/adoption.md`): read-only inventory, the never-made Phase 1 decisions asked, artifacts reconstructed as-built, and a gap audit against Keel's standards prioritized with the user, changing no code.
 
@@ -49,6 +53,8 @@ Every Keel project also carries a **portability lock**: a `CLAUDE.md` block (opt
 - Document every public surface at the moment it is created — functions, classes, hooks, routes, MCP abilities, CLI commands — with a runnable example. Phase 6 consolidates documentation; it never writes it from zero.
 - Maximum extensibility for extensible project types: filterable user-facing strings, before/after hooks on decisions, filterable queries and responses, replaceable public classes.
 - Real functional verification whenever possible, not only automated tests: a runnable playground (Docker, wp-env, sandbox) where real flows, CLI, and API calls are exercised — and the user gets access details plus try-it instructions (`docs/playground.md`).
+- Budgets are AI-time based, never human-time based: the AI's hours plus the vibe coder's supervision hours, itemized per segment, with the AI's token cost separate — and the actuals reconciled against the estimate at release.
+- Forge issues are tracked in a living log (`docs/issues.md`): everything there is, everything resolved and exactly how, everything still pending.
 - Confirm before advancing a phase. Each phase has a definition of done.
 
 ## Installation
@@ -77,6 +83,7 @@ keel-skill/
     └── references/        # Phase reference files, loaded on demand
         ├── project-state.md
         ├── adoption.md
+        ├── estimation-budget.md
         ├── phase-1-discovery.md
         ├── phase-2-functional-spec.md
         ├── phase-3-design-handoff.md

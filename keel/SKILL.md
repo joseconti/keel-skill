@@ -2,13 +2,13 @@
 name: keel
 license: GPL-3.0-or-later
 metadata:
-  version: 1.6.0
-description: Use this skill for ANY new software project from idea to release — websites, WordPress/WooCommerce plugins, MCP servers, web apps, components, or libraries. Complete multi-phase workflow: discovery with competitive scan, functional spec with flows, design handoff to Claude Design, faithful build with zero deviation, development with test points and a real-testing playground, full docs/, platform-specific security, non-negotiable accessibility, and release hygiene. Trigger when the user starts a new project or feature, says "I have an idea for a plugin/site/app", "let's plan this project", "set up the project", mentions a design handoff, asks for project documentation or security review, prepares a release/package, resumes an in-progress Keel project (any repo with docs/PROGRESS.md), or applies Keel to an EXISTING project (adoption). Each phase loads its reference file on demand; a living state system (docs/PROGRESS.md, decisions, lessons learned) makes projects resumable across chats.
+  version: 1.7.0
+description: Use this skill for ANY new software project from idea to release — websites, WordPress/WooCommerce plugins, MCP servers, web apps, components, or libraries. Multi-phase workflow: discovery with competitive scan, functional spec with flows, design handoff to Claude Design, faithful build with zero deviation, development with test points and a real-testing playground, full docs/, per-platform security, non-negotiable accessibility, release hygiene, AI-time estimates with client budgets, and a forge issue log. Trigger when the user starts a new project or feature, says "I have an idea for a plugin/site/app", "let's plan this project", mentions a design handoff, asks for docs or security review, asks what a project will cost or take (quote/budget), works forge issues (GitHub/GitLab/...), prepares a release, resumes an in-progress Keel project (any repo with docs/PROGRESS.md), or applies Keel to an EXISTING project (adoption). Phases load references on demand; living state makes projects resumable across chats.
 ---
 
 # Keel — project lifecycle (idea → release)
 
-**Keel v1.6.0** — Licensed under GPL-3.0-or-later. *Keel* is the structural backbone laid down first, on which the whole project is built.
+**Keel v1.7.0** — Licensed under GPL-3.0-or-later. *Keel* is the structural backbone laid down first, on which the whole project is built.
 
 ## Token economy — everything is created in English by default (READ FIRST)
 
@@ -24,7 +24,7 @@ Therefore **everything Keel creates is written in English by default** — every
 
 ## Version reporting
 
-If the user asks which version of Keel they have or are using (e.g. "what version is this skill", "which Keel version do I have"), state it plainly from the frontmatter: "You're using Keel v1.6.0." Keep the version in the frontmatter (`metadata.version`), this line, and `CHANGELOG.md` in sync whenever the skill is updated; the frontmatter is the source of truth.
+If the user asks which version of Keel they have or are using (e.g. "what version is this skill", "which Keel version do I have"), state it plainly from the frontmatter: "You're using Keel v1.7.0." Keep the version in the frontmatter (`metadata.version`), this line, and `CHANGELOG.md` in sync whenever the skill is updated; the frontmatter is the source of truth.
 
 ## Version change policy (UNBREAKABLE RULE — never bump under any circumstance without explicit user instruction)
 
@@ -75,6 +75,8 @@ The user builds many projects (WordPress/WooCommerce plugins, MCP servers, web a
 - **Document every public surface at the moment it is created, not retrospectively.** Every new function, method, class, hook, action, filter, REST route, MCP ability, CLI command, or other public surface is documented in `docs/api/` and/or `docs/reference/` at the same test point where it is built. The slice does not pass its Phase 5 test point until its docs are written and its example actually runs. Phase 6 *consolidates* documentation; it does not create it from scratch.
 - **Maximum extensibility for extensible project types.** For project types meant to be extended (WordPress/WooCommerce plugins, MCP servers, libraries/components), expose the maximum reasonable set of extension points so third parties can modify texts, behaviors, queries, and responses from outside without forking the code. Concretely: every meaningful user-facing string passes through a filter, every meaningful decision exposes a hook before/after, every query and every response is filterable. This is decided at spec time and built into the slice, not bolted on later.
 - **Real functional verification, whenever possible — not only automated tests.** If the project can be run, it gets a runnable verification environment (a *playground*: Docker/docker-compose, wp-env, a playground script, a disposable sandbox — whatever fits the stack), defined in the technical plan (Phase 2), stood up at the Phase 5 scaffold, and kept current. The assistant uses it at test points to exercise the software for real — full flows end to end, the CLI if one was built, real API calls — because automated tests prove the parts and the playground proves the product. The user gets to try it too: hand over the access details when needed (URL/host, user, password — local, throwaway credentials only, never production secrets) together with step-by-step try-it instructions, maintained in `docs/playground.md`.
+- **Budgets are AI-time based, never human-time based.** When the user needs to quote the project (or a feature) to a client, the estimate is built from the AI's working hours plus the vibe coder's supervision hours (answering questions, making decisions, real-world testing the AI cannot do, uploading code) — never from what a traditional human team would take (months). Everything is itemized into segments with hours; the developer's hours are priced at their asked rate, the AI's token cost is computed per model and payment mode (≈ 0 marginal on subscription), the two blocks stay SEPARATE, and the budget is adjusted with the user before it is final. Preliminary estimate at Phase 1 close, firm estimate and client budget at Phase 2 close, recomputed on scope changes. See "Estimation & budget" below and `references/estimation-budget.md`.
+- **Forge issues are tracked in a living log.** Whenever the project's issues on its Git forge — GitHub, GitLab, Gitea, Bitbucket, or any other — are accessed or worked, `docs/issues.md` records the full picture at the moment it changes: the inventory of what exists, what was resolved and exactly HOW (diagnosis, resolution, commits, verification), and what remains pending. If a problem surfaces later, what was done is on record — never reconstructed from memory. Template and rules in `references/project-state.md`.
 - **Confirm before advancing a phase.** Each phase has a definition of done; do not slide into the next phase with the current one's gaps open.
 
 ## Phase map
@@ -83,8 +85,8 @@ Work through these in order. The reference file for a phase is the authoritative
 
 | Phase | Purpose | Reference to load |
 |-------|---------|-------------------|
-| 1. Discovery | Competitive scan first, then idea, feature discussion, project type, constraints | `references/phase-1-discovery.md` |
-| 2. Functional spec | Flows, requirements, scope, technical plan (stack/architecture/conventions), what needs design | `references/phase-2-functional-spec.md` |
+| 1. Discovery | Competitive scan first, then idea, feature discussion, project type, constraints, preliminary estimate | `references/phase-1-discovery.md` |
+| 2. Functional spec | Flows, requirements, scope, technical plan (stack/architecture/conventions), what needs design, firm estimate & client budget | `references/phase-2-functional-spec.md` |
 | 3. Design handoff | What to tell Design + the files Design must read/return | `references/phase-3-design-handoff.md` |
 | 4. Faithful build | Audit Design's return, consolidate spec, build with zero deviation, guided external setup | `references/phase-4-faithful-build.md` |
 | 5. Development | How to build, with test points throughout | `references/phase-5-development.md` |
@@ -118,6 +120,15 @@ Accessibility is not a project type or a phase — it applies to everything buil
 Load `references/accessibility.md` once the platform is known. It has a universal core (applies everywhere) plus a section per platform — Web/HTML, WordPress/WooCommerce, iOS/iPadOS, Android, macOS, Windows, and cross-platform frameworks. Apply the universal core plus the section(s) matching the project's target platform(s). If the project spans platforms, apply every matching section.
 
 The commitment is the maximum reasonably achievable, never a token gesture: WCAG 2.2 AA as the floor with AAA where feasible, EN 301 549 and the European Accessibility Act where they apply (they apply to the user's EU market), and the platform's native accessibility API and assistive technologies fully supported — screen readers (VoiceOver, TalkBack, Narrator, NVDA/JAWS), Switch Control / Switch Access, Voice Control / Voice Access, Dynamic Type / system text scaling, and the reduced-motion and high-contrast preferences. "Use every accessibility tool the platform offers" is the standing rule.
+
+## Estimation & budget (cross-cutting)
+
+When the user needs to price the project for a client — the normal case when someone asks them for a quote — Keel produces a realistic, itemized estimate and a client-ready budget, computed from how the work is ACTUALLY delivered: the AI's working hours plus the developer's (vibe coder's) supervision hours — never from traditional human development time. The full procedure lives in `references/estimation-budget.md`; load it at each of these moments:
+
+- **Close of Phase 1:** preliminary estimate (wide ranges, stated as such) in `docs/estimate.md`, so the user can answer a client early.
+- **Close of Phase 2:** firm estimate plus the client-facing `docs/budget.md` — itemized segments with hours, the developer's hours at their rate (asked, with currency), the AI cost per model and payment mode (API per-token prices verified online; ≈ 0 marginal cost on subscription), the two blocks SEPARATE, the budget written in the client's language (asked), and an explicit present → adjust → approve loop with the user (e.g. choosing not to bill the AI cost because a subscription makes it a non-expense).
+- **After any scope change:** recompute, new budget version, re-approve.
+- **Actuals as the project runs:** `docs/token-ledger.md` (created with Estimate v1) gets one row per working session — measured where the environment exposes usage, honestly estimated where it does not. At release, Phase 7 closes it with the final reconciliation: total tokens by model, cost at verified prices, and the deviation vs the estimate, reported to the user — every finished project calibrates the next estimate.
 
 ## Output language & internationalization (cross-cutting contract)
 
@@ -167,6 +178,7 @@ Ending a session mid-work (any phase): produce the self-sufficient continuation 
 ## Shared templates and contract
 
 - `references/project-state.md` — the living state system (PROGRESS.md, decisions.md, lessons-learned.md, Design Request register, api/INDEX.md), the universal continuation prompt, and the context & cache discipline. Read at project start (Phase 1) and on every resume.
+- `references/estimation-budget.md` — the AI-time estimation & client-budget procedure (preliminary at Phase 1 close, firm at Phase 2 close, recomputed on scope changes).
 - `references/handoff-contract.md` — the exact `design-handoff/` structure that flows Design → Build. Used by Phases 3 and 4. Read before either.
 - `references/design-brief-template.md` — the brief to give Design (Phase 3).
 - `references/build-spec-template.md` — the consolidated `BUILD-SPEC.md` (Phase 4).
@@ -190,6 +202,7 @@ Ending a session mid-work (any phase): produce the self-sufficient continuation 
 - `references/phase-8-launch-checklist.md`
 - `references/project-state.md` (cross-cutting — state, resume, context & cache discipline, portability lock; loaded at project start and on resume)
 - `references/adoption.md` (entry mode 3 — adopting Keel in an existing project)
+- `references/estimation-budget.md` (cross-cutting — AI-time estimation & client budget; loaded at Phase 1 close, Phase 2 close, and on scope changes)
 - `references/handoff-contract.md`
 - `references/design-brief-template.md`
 - `references/build-spec-template.md`

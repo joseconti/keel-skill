@@ -15,6 +15,8 @@ Created the moment Phase 1 starts producing artifacts — NOT in Phase 5. Before
 | `docs/lessons-learned.md` | Append-only problem → solution log (so no session repeats a mistake) | Phase 1, first action | Whenever something failed and a fix was found |
 | `docs/design/design-requests/DR-NNN.md` | One file per Design Request, numbered, with status | Phase 4, when the first gap appears | When a DR is sent / resolved |
 | `docs/api/INDEX.md` | One line per public surface — the cheap lookup layer for the reuse rule | Phase 5, first slice | Same slice that adds/changes a surface |
+| `docs/issues.md` | Living log of forge issues: inventory + one entry per issue worked (diagnosis, resolution, commits, what remains) | First time forge issues are triaged or worked (any phase) | The moment an issue is triaged, worked, or closed |
+| `docs/token-ledger.md` | Actual token usage: one row per working session; final reconciliation (cost + deviation vs estimate) at release | With Estimate v1 (Phase 1 close), per `references/estimation-budget.md` | At the end of every working session; verified at phase/sprint closes |
 | `CLAUDE.md` (repo root) | The portability lock: binds ANY assistant/environment opening the repo to the Keel workflow | Phase 1, first action (or adoption) | When Keel's protocol block changes (between its delimiters only) |
 | `.claude/skills/keel/` | Embedded copy of the skill (optional, recommended) — makes the repo self-sufficient | Phase 1, first action (with user approval) | Version-synced from the installed skill, one direction |
 
@@ -46,8 +48,8 @@ Keep it to roughly one page. Detail lives in the linked files, never accumulated
 ## Phase status
 | Phase | Status | Key artifacts |
 |-------|--------|---------------|
-| 1 Discovery | [pending/in progress/done] | docs/00-competitive-landscape.md, docs/01-discovery.md |
-| 2 Functional spec | ... | docs/02-functional-spec.md, docs/03-technical-plan.md, docs/flows/ |
+| 1 Discovery | [pending/in progress/done] | docs/00-competitive-landscape.md, docs/01-discovery.md, docs/estimate.md (v1 preliminary) |
+| 2 Functional spec | ... | docs/02-functional-spec.md, docs/03-technical-plan.md, docs/flows/, docs/estimate.md (firm), docs/budget.md |
 | 3 Design handoff | ... | docs/design/DESIGN-BRIEF.md |
 | 4 Faithful build | ... | docs/BUILD-SPEC.md |
 | 5 Development | ... | docs/sprints/, docs/05-test-points.md |
@@ -63,6 +65,7 @@ Keep it to roughly one page. Detail lives in the linked files, never accumulated
 - Unresolved user questions: [list or "none"]
 - Open Design Requests: [DR-001 — sent/resolved | "none"]
 - Unverified external steps/assets: [from Phase 4 loops | "none"]
+- Forge issues in progress: [see docs/issues.md | "none"]
 
 Last updated: [date — phase/step]
 ```
@@ -109,6 +112,44 @@ If a lesson came from a code bug, the fix gets a regression test in the same sli
 ## Design Request register (Phase 4)
 
 Every Design Request is numbered and saved before it is given to the user: `docs/design/design-requests/DR-001.md`, `DR-002.md`, ... (the filled design-request-template, plus a `Status: sent / resolved [date]` line at the top). PROGRESS.md "Open items" lists every DR and its status. The Phase 4 faithfulness checklist item "zero unresolved Design Requests" is verified against this register, not against memory — a fresh session must be able to see that DR-002 is still open.
+
+## `docs/issues.md` — the forge issue log (any phase)
+
+Whenever the project's forge issues are accessed — GitHub, GitLab, Gitea, Bitbucket, or any other Git forge — the work is tracked in `docs/issues.md`. The purpose is total traceability: at any moment, and from any future session, it must be possible to see everything there is, everything that was done and exactly HOW, and everything still pending — so when a problem surfaces later, what was changed and why is on record, never reconstructed from memory.
+
+Created the first time issues are triaged or worked (any phase — development, post-release maintenance, adoption). Updated **at the moment** an issue is triaged, worked, or closed — like every state file, never "later".
+
+```
+# Issues — [Project name]
+
+> Living log of forge issues ([forge + repo URL]). Inventory first, one entry per issue worked.
+> Updated the moment an issue is triaged, worked, or closed.
+
+## Inventory
+| # | Title | Type | Priority | Status | Entry |
+|---|-------|------|----------|--------|-------|
+| 123 | Checkout fails on empty cart | bug | high | resolved | E-001 |
+| 124 | Support WebP product images | feature | low | open | — |
+
+## Entries (one per issue worked)
+
+### E-001 — #123 Checkout fails on empty cart
+- Link: [forge issue URL]   Status: resolved [date] / in progress / won't fix (reason)
+- Diagnosis: [what was actually wrong — root cause, not the symptom]
+- Resolution: [what was done and why — the approach taken]
+- Changes: [commits/PR, files touched, the version that ships the fix]
+- Verification: [regression test added (Phase 5 rule), test point, playground check]
+- Lesson: [L-NNN in docs/lessons-learned.md if one was recorded | none]
+- Pending: [anything left on this issue | none]
+```
+
+Rules:
+
+- **Inventory covers what is known; entries cover what was worked.** On first contact with the forge, fill the inventory with at least the open issues (closed history is optional). Every issue actually worked gets its E-entry — an issue closed without its entry is a state defect.
+- **Status values:** open / triaged / in progress / resolved / won't fix (reason recorded). The inventory row and its entry must agree.
+- **An entry must answer "what did we do here?" months later:** diagnosis, approach, commits, verification — enough to reopen the work cold if the problem resurfaces. If the fix produced a lesson, record it in `docs/lessons-learned.md` and link it; the regression test lives with the fix (Phase 5 rule).
+- **Both directions:** issues can drive work (a bug report becomes a slice) or record it (work done reveals something to file upstream). Either way the log stays current.
+- **Growth:** if the file grows large, old **resolved** entries may move to `docs/old/issues-archive.md` (move, never delete); the inventory always stays complete, with archived entries still referenced from their rows.
 
 ## `docs/api/INDEX.md` — the cheap reuse lookup (Phase 5)
 
@@ -222,7 +263,7 @@ Project card line: `Keel portability: [lock only / lock + embedded vX.Y.Z]`.
 
 At each sprint close (Phase 5) move to `docs/old/sprint-<N>/` only documents that are finished AND no longer consulted: closed sprint files, resolved one-off scratch documents, superseded drafts. Move — never delete.
 
-These NEVER move while the project is alive: `PROGRESS.md`, `decisions.md`, `lessons-learned.md`, `00-competitive-landscape.md`, `01-discovery.md`, `02-functional-spec.md`, `03-technical-plan.md`, `05-test-points.md`, `BUILD-SPEC.md`, `flows/`, `design/` (brief, handoff, DR register), `api/`, `reference/`, the current sprint file.
+These NEVER move while the project is alive: `PROGRESS.md`, `decisions.md`, `lessons-learned.md`, `issues.md` (old resolved entries may move to `docs/old/issues-archive.md`, the file itself never), `estimate.md`, `budget.md`, `00-competitive-landscape.md`, `01-discovery.md`, `02-functional-spec.md`, `03-technical-plan.md`, `05-test-points.md`, `BUILD-SPEC.md`, `flows/`, `design/` (brief, handoff, DR register), `api/`, `reference/`, the current sprint file.
 
 ## Definition of done (this reference)
 
@@ -230,5 +271,6 @@ These NEVER move while the project is alive: `PROGRESS.md`, `decisions.md`, `les
 - PROGRESS.md reflects reality at all times: correct phase status, executable "Next action", complete open items.
 - Every decision that shapes the project has a D-entry; every solved failure has an L-entry.
 - Every Design Request exists as a numbered file with current status.
+- If forge issues were ever accessed: `docs/issues.md` exists, its inventory reflects the forge, and every worked issue has its entry (diagnosis, resolution, changes, verification, pending).
 - From Phase 5: `docs/api/INDEX.md` exists and matches the docs; sprint files follow the template.
 - Any session ending mid-work produced a continuation prompt.

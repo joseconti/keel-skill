@@ -54,6 +54,7 @@ Before tagging:
 - **License ships correctly:** the LICENSE file is in the package, file headers carry the license where the platform convention expects it, and every bundled dependency's license is compatible and honored (the Phase 1 decision, checked per dependency in Phase 5).
 - Produce/refresh the end-user README and any required store/marketplace metadata. For WordPress.org plugins specifically: `readme.txt` valid (`Requires at least`, `Tested up to` — current WP version actually tested, `Requires PHP`, `Stable tag` = this release), plugin main-file headers in sync, and the assets the listing needs (banner, icon, screenshots with captions).
 - Note the release in `docs/` (e.g. append to changelog and a short release note).
+- **Close the loop on issues and cost.** If a forge issue log exists (`docs/issues.md`): mark the issues this release closes — entries complete, shipping version recorded — and reference them in the changelog entry where useful. Then run the **final token reconciliation** in `docs/token-ledger.md` (per `references/estimation-budget.md`): total tokens by model, cost at verified current prices, and the deviation vs the estimate — report it to the user plainly, and record the calibration lesson for future estimates in `docs/lessons-learned.md` if significant.
 - Update `docs/PROGRESS.md`: Phase 7 done, and Phase 8 pending or n/a per the Phase 1 website intent.
 
 ## `docs/07-release.md`
@@ -66,6 +67,8 @@ Before tagging:
 ## Changelog entry (oldest → newest)
 ## Pre-release verification results
 ## Accessibility verification results (automated + real assistive-tech, on the distributable)
+## Issues closed by this release (from docs/issues.md — if the log exists)
+## Token reconciliation (totals by model, cost at verified prices, deviation vs estimate)
 ## Release artifacts
 ```
 
@@ -78,6 +81,8 @@ Before tagging:
 - Distributable built and its contents verified.
 - Real-environment verification passed on the actual distributable (and the real upgrade, if there's an installed base).
 - Accessibility verification passed on the actual distributable for anything with a UI (automated + real assistive-tech), meeting the Phase 1 targeted level or with the shortfall honestly recorded in `docs/accessibility.md`.
+- If `docs/issues.md` exists: the issues this release closes are marked resolved with complete entries and the shipping version recorded.
+- Final token reconciliation done in `docs/token-ledger.md` (totals by model, cost at verified prices, deviation vs estimate) and reported to the user.
 - `docs/07-release.md` complete.
 
 This is the final phase of the build lifecycle. Report the release summary to the user.

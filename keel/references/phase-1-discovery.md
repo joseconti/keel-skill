@@ -21,6 +21,7 @@ This is constructive honesty, not destructive criticism: every objection comes w
 - The project state files, initialized FIRST (see step 0a): `docs/PROGRESS.md`, `docs/decisions.md`, `docs/lessons-learned.md`.
 - `docs/00-competitive-landscape.md` (step 0).
 - `docs/01-discovery.md` containing the sections below.
+- `docs/estimate.md` — Estimate v1 (preliminary) — and `docs/token-ledger.md`, at the close of this phase (step 10, per `references/estimation-budget.md`).
 
 ## Steps
 
@@ -201,6 +202,10 @@ Record every answer in the discovery doc (template below). These answers are car
 
 Record the decision in the discovery doc, `docs/decisions.md`, and the PROGRESS.md project card. If Phase 1 recorded website intent, note that the site (Phase 8) inherits this same design system by default — a different look for the site is its own recorded decision, not drift.
 
+### 10. Preliminary estimate (close of discovery — AI-time based)
+
+With the v1 scope agreed, produce the preliminary estimate so the user can answer whoever asked for a quote. Load `references/estimation-budget.md` and follow it: itemized AI working hours (per phase, session wall-clock ranges), itemized vibe coder hours (segments — what the developer does + hours), contingency, and the AI cost mode (subscription ≈ 0 marginal cost / API with verified per-token prices). Record it as **Estimate v1 (preliminary)** in `docs/estimate.md`, with wide ranges and stated assumptions, and create `docs/token-ledger.md` (template in that reference) so actual token usage is recorded from here on. NEVER estimate from traditional human development time — the estimate is AI time + supervision time, full stop. If the user needs a client-facing preliminary budget now, produce it per the same reference, clearly marked preliminary; the firm budget comes at Phase 2 close.
+
 ## `docs/01-discovery.md` structure
 
 ALWAYS use this template:
@@ -262,6 +267,9 @@ ALWAYS use this template:
   - Personality: [2–3 adjectives]   References: [liked/disliked]
   - Modes: [dark mode intent]   Iconography & imagery: [style]   Vetoes: [banned things]
   - Unanswered items: [→ SPEC/open-questions.md for Design to ask]
+## Preliminary estimate (AI-time based)
+- Estimate v1 (preliminary) recorded in docs/estimate.md: AI hours [X–Y], vibe coder hours [X–Y], contingency [+N%], AI cost mode [subscription / API]
+- Token ledger created: docs/token-ledger.md (actuals recorded from here on)
 ## Open questions for the user
 - [anything still undefined — must be resolved before Phase 2]
 ```
@@ -283,6 +291,7 @@ ALWAYS use this template:
 - Project-website intent is captured (yes/no + domain choice).
 - "Design needed?" is answered.
 - If design is needed: the design-system decision is recorded (existing with source/location, founding with future home, or one-off with reason) in the discovery doc, `decisions.md`, and the project card — including the target surfaces/platforms the system must cover (marking which ship in this project vs which it anticipates for reuse).
+- Preliminary estimate produced per `references/estimation-budget.md`: `docs/estimate.md` (Estimate v1 — itemized AI hours and vibe coder hours, contingency, AI cost mode, assumptions stated, wide ranges marked as such) and `docs/token-ledger.md` created. No number is based on traditional human development time.
 - `docs/01-discovery.md` exists and has zero open questions left unresolved.
 
 Do not enter Phase 2 with open discovery questions — an unresolved idea-level question becomes an expensive rework later.

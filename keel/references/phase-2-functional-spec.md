@@ -7,6 +7,7 @@ Goal: turn the agreed v1 scope into a precise functional specification with flow
 - `docs/02-functional-spec.md` — the functional contract.
 - `docs/flows/` — one flow per significant user/system journey (markdown with step lists; include a Mermaid diagram where it clarifies branching).
 - `docs/03-technical-plan.md` — the technical foundation: stack, architecture, code map, conventions (step 4). Without it, every later session invents its own conventions and the codebase drifts.
+- `docs/estimate.md` (firm version appended) and `docs/budget.md` — the client-facing budget (step 7, per `references/estimation-budget.md`).
 
 ## Steps
 
@@ -86,6 +87,10 @@ Define, per feature, the conditions under which it's considered done. These feed
 
 Every feature with a UI includes **accessibility conditions** in its acceptance criteria — operable by keyboard and assistive technology, accessible name/role/state exposed, contrast met, visible focus, error identification (not color-only), adequate target size, and honored user preferences (reduced motion, text scaling). Accessibility is a done condition of the feature, not a separate later pass (see `references/accessibility.md`).
 
+### 7. Firm estimate & client budget (close of spec — AI-time based)
+
+With the real scope now fixed (requirements, flows, screens, slices implied by the technical plan, integrations, external-setup items), close the numbers. Follow `references/estimation-budget.md` end to end: recompute the itemized AI hours and vibe coder hours from the actual spec; ask the batched budget questions (rate + currency, AI mode and model(s), contingency, the budget's language — it is a client-facing deliverable — taxes note, availability for the calendar estimate); compute the AI cost (verified per-token prices if API; ≈ 0 marginal on subscription); append **Estimate v[N] (firm)** to `docs/estimate.md`; and produce `docs/budget.md` in the client's language — itemized segments priced line by line, the developer block and the AI block SEPARATE, totals, estimated calendar delivery, and terms. Then run the mandatory present → adjust → approve loop with the user (e.g. choosing not to bill the AI cost on subscription) and record the approval and its choices in `docs/decisions.md`. Any scope change after this budget → new version, re-approved (same reference). NEVER price from traditional human development time.
+
 ## `docs/02-functional-spec.md` structure
 
 ALWAYS use this template:
@@ -107,6 +112,8 @@ ALWAYS use this template:
 - No design: [...]
 - External manual setup: [...]
 ## Acceptance criteria (per feature — include accessibility conditions for every UI feature)
+## Estimate & budget
+- see docs/estimate.md (Estimate v[N] firm) and docs/budget.md (client-facing, approved — D-entry in docs/decisions.md)
 ## Open questions for the user
 ```
 
@@ -119,6 +126,7 @@ ALWAYS use this template:
 - `docs/03-technical-plan.md` complete per its template: stack with exact versions, support matrix, architecture, code map, conventions (prefix, naming, error handling, logging), testing approach with run commands, version touchpoints, license-compatibility rule. Significant choices recorded in `docs/decisions.md`.
 - The design split is explicit, including external-setup items.
 - Zero unresolved open questions.
+- Firm estimate appended to `docs/estimate.md` and `docs/budget.md` produced in the client's language (itemized per segment, developer and AI blocks separate, totals and terms) per `references/estimation-budget.md`, explicitly approved by the user with the approval recorded in `docs/decisions.md`. Client acceptance itself is the user's business — it does not gate Phase 3.
 - `docs/PROGRESS.md` updated (phase status, artifacts, next action).
 
 If the project needs design, proceed to Phase 3. If Phase 1 said no design and Phase 2 confirms no UI, skip to Phase 5.

@@ -32,6 +32,7 @@ Walk the project once and record what actually exists:
 - Public surfaces: every function/class/hook/filter/REST route/CLI command/MCP ability intended for external use.
 - Git/package hygiene: `.gitignore`/`.gitattributes` present? Anything sensitive tracked? (A tracked secret is the one finding that interrupts adoption for immediate, user-approved remediation.)
 - UI surfaces, if any, and whether any design source exists (tokens, styles, a design file).
+- Forge issues: does the repo's forge (GitHub, GitLab, Gitea, Bitbucket, any other) have open/closed issues? Count, state, recurring themes — they feed the gap audit and the roadmap.
 
 ### 2. Initialize the state and the portability lock
 
@@ -51,6 +52,7 @@ Create the Keel artifacts describing what exists — filling everything inferabl
 - `docs/02-functional-spec.md` — the REAL features, main flows, data model, integrations, permissions. Depth rule: enough to work safely now; deepen per area when that area is next touched (**progressive backfill**), rather than halting the project for weeks of retro-documentation. Unverified inferences labeled.
 - `docs/03-technical-plan.md` — the real stack and versions, the real code map (every path, one line), the **observed** conventions, the real test/build/lint commands (verified by running them in step 1), the real version touchpoints, the license-compatibility rule applied to the existing dependency list.
 - `docs/api/INDEX.md` — **complete**, one line per existing public surface. This one is not progressive: it is cheap, and the Phase 5 reuse rule depends on it. Full per-surface docs (`docs/api/`, `docs/reference/`) are backfilled progressively — each surface gets its complete doc the first time a slice touches it — unless the user explicitly wants a documentation sprint now.
+- `docs/issues.md` — if the forge has issues: the initial inventory (open issues at least; closed history optional), per `references/project-state.md`. Entries are added as issues are actually worked, from here on.
 - If there is a pre-existing UI with no design handoff: do NOT invent a retroactive BUILD-SPEC. Record in PROGRESS.md that the UI predates Keel and has no design contract; the current look is the baseline. From the next UI change on, the normal rules apply (a redesign goes through Phases 3–4; small changes respect the baseline and the design-system decision from step 3).
 
 ### 5. Gap audit → `docs/04-adoption-audit.md`
@@ -69,7 +71,7 @@ For each gap: what, where, severity, and the standard it fails. Then **prioritiz
 
 ### 6. Continue as a normal Keel project
 
-Mark Phases 1–2 as **"adopted (as-built)"** in PROGRESS.md's phase table, set the next action, and proceed with the standard machinery: remediation and new work planned as Phase 5 sprints (with test points, commits, INDEX upkeep); new features get their slice of discovery/spec first; UI changes respect the design-system decision; the **next release runs the full Phase 7** — which is where the remaining hygiene bucket naturally closes.
+Mark Phases 1–2 as **"adopted (as-built)"** in PROGRESS.md's phase table, set the next action, and proceed with the standard machinery: remediation and new work planned as Phase 5 sprints (with test points, commits, INDEX upkeep); new features get their slice of discovery/spec first; UI changes respect the design-system decision; the **next release runs the full Phase 7** — which is where the remaining hygiene bucket naturally closes. If the user needs to quote any of this planned work to a client, run `references/estimation-budget.md` on that scope — AI hours plus vibe coder hours, never traditional human development time — creating its token ledger from that point on.
 
 ## Definition of done (adoption)
 
@@ -79,5 +81,6 @@ Mark Phases 1–2 as **"adopted (as-built)"** in PROGRESS.md's phase table, set 
 - `docs/01-discovery.md`, `docs/02-functional-spec.md`, `docs/03-technical-plan.md` exist as-built, with every unverified inference labeled.
 - `docs/api/INDEX.md` complete for every existing public surface; progressive backfill rule recorded for full per-surface docs.
 - `docs/04-adoption-audit.md` complete, every gap prioritized with the user (now / when touched / accepted), mirrored in PROGRESS.md.
+- If the forge has issues: `docs/issues.md` exists with the initial inventory.
 - No code was changed (except a user-approved critical remediation, recorded).
 - PROGRESS.md shows Phases 1–2 "adopted (as-built)", the current position, and an executable next action.
