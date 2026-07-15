@@ -4,7 +4,7 @@
 
 Use it for any new project — WordPress/WooCommerce plugins, MCP servers, web apps, components, libraries, or websites. Keel runs a complete multi-phase workflow so you never have to re-explain your standing requirements every time you start something new.
 
-- **Version:** 1.7.0
+- **Version:** 1.8.0
 - **License:** GPL-3.0-or-later
 - **Author:** [José Conti](https://plugins.joseconti.com/en)
 
@@ -36,6 +36,8 @@ Forge issues get their own living log. Whenever issues on the project's Git forg
 Keel has three entry modes: a new project (Phase 1 from zero), resuming an in-progress Keel project (from `docs/PROGRESS.md`), and **adoption** — applying Keel to a project already underway (`references/adoption.md`): read-only inventory, the never-made Phase 1 decisions asked, artifacts reconstructed as-built, and a gap audit against Keel's standards prioritized with the user, changing no code.
 
 Every Keel project also carries a **portability lock**: a `CLAUDE.md` block (optionally plus the skill embedded at `.claude/skills/keel/`) that binds any environment or AI opening the repo — Claude app, Cowork, Claude Code in VS Code, or another assistant — to the Keel workflow, even where the skill is not installed. Workflow files never ship in the distributable (Phase 7 export-ignore).
+
+Keel also keeps itself current. At the start of every session it checks this repository for a newer release (`git ls-remote --tags`, with API fallbacks). Every copy is checked separately — an up-to-date app install does not hide an outdated embedded copy in the opened project. It updates every copy it can durably write — the user-level install and, always when present, the project's embedded `.claude/skills/keel/` — with a verified full-tree replacement, summarizing the improvements; for a copy it cannot write (app-managed skill storage, as in the Claude app / Cowork), it tells you a newer version exists, what it brings, and how to update. The check is best-effort and never blocks work.
 
 ## Operating principles
 
