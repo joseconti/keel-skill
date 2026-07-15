@@ -70,6 +70,10 @@ ALWAYS use this template for `docs/03-technical-plan.md`:
 
 The code map and conventions are what keep multi-chat development coherent: a fresh session reads this file instead of exploring the codebase. Keeping the code map current when the layout changes is part of the change, not optional.
 
+### 4a. Materialize the Claude config rules and agents (if accepted at step 0a)
+
+If the project card records `Claude config:` with rules and/or agents accepted, this is the moment to generate them — their sources (the §Conventions above and the loaded security profile) are now fixed. Load `references/claude-config.md` and produce `.claude/rules/` (path-scoped to the code map's source globs) and `.claude/agents/` per its templates; record a D-entry in `docs/decisions.md`. Settings, the pre-commit gate, and `.mcp.json` wait for the Phase 5 scaffold.
+
 ### 5. Decide precisely what needs design
 
 This is the bridge to Phase 3. Produce a clear split:
@@ -124,6 +128,7 @@ ALWAYS use this template:
 - Every multi-step/branching journey has a flow file.
 - Data model, integrations, and permissions are specified.
 - `docs/03-technical-plan.md` complete per its template: stack with exact versions, support matrix, architecture, code map, conventions (prefix, naming, error handling, logging), testing approach with run commands, version touchpoints, license-compatibility rule. Significant choices recorded in `docs/decisions.md`.
+- If the project card accepted Claude config rules/agents: `.claude/rules/` and `.claude/agents/` generated per `references/claude-config.md`, path-scoped, recorded in `docs/decisions.md`.
 - The design split is explicit, including external-setup items.
 - Zero unresolved open questions.
 - Firm estimate appended to `docs/estimate.md` and `docs/budget.md` produced in the client's language (itemized per segment, developer and AI blocks separate, totals and terms) per `references/estimation-budget.md`, explicitly approved by the user with the approval recorded in `docs/decisions.md`. Client acceptance itself is the user's business — it does not gate Phase 3.

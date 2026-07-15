@@ -36,9 +36,9 @@ Walk the project once and record what actually exists:
 
 ### 2. Initialize the state and the portability lock
 
-Per `references/project-state.md`, in the existing repo: `docs/PROGRESS.md` (project card filled with the inventory; unknowns marked), `docs/decisions.md`, `docs/lessons-learned.md`. Record the de facto decisions already embodied in the code as D-entries marked **"adopted as-is"** (stack, conventions, license if declared…) so future sessions treat them with the same respect as explicit decisions.
+Per `references/project-state.md`, in the existing repo: `docs/PROGRESS.md` (project card filled with the inventory; unknowns marked), `docs/decisions.md`, `docs/lessons-learned.md`. Record the de facto decisions already embodied in the code as D-entries marked **"adopted as-is"** (stack, conventions, license if declared…) so future sessions treat them with the same respect as explicit decisions. Stamp the card's `Keel baseline:` with the running Keel version.
 
-Same as Phase 1 step 0a: create the **`CLAUDE.md` lock** at the repo root (insert the Keel block between its delimiters if a `CLAUDE.md` already exists — do not touch the rest), and **offer to embed the skill** at `.claude/skills/keel/` so the project stays governed by Keel from any environment (app, Cowork, Claude Code, another AI). Record the choice in the project card.
+Same as Phase 1 step 0a: create the **`CLAUDE.md` lock** at the repo root (insert the Keel block between its delimiters if a `CLAUDE.md` already exists — do not touch the rest), and **offer to embed the skill** at `.claude/skills/keel/` so the project stays governed by Keel from any environment (app, Cowork, Claude Code, another AI). Record the choice in the project card. In the same batch, offer the **native Claude Code config package** (`references/claude-config.md`): the `.gitignore` entries and the confidential-data pre-commit gate can be installed now with approval — they protect from the first commit and touch no code — while rules and agents wait for step 4, because they encode the OBSERVED conventions from the as-built technical plan. If the repo already carries `.claude/` config, inventory and keep it — reconcile, never overwrite. Record `Claude config:` in the project card.
 
 ### 3. Ask the user (batched — the Phase 1 decisions that were never made)
 
@@ -54,6 +54,8 @@ Create the Keel artifacts describing what exists — filling everything inferabl
 - `docs/api/INDEX.md` — **complete**, one line per existing public surface. This one is not progressive: it is cheap, and the Phase 5 reuse rule depends on it. Full per-surface docs (`docs/api/`, `docs/reference/`) are backfilled progressively — each surface gets its complete doc the first time a slice touches it — unless the user explicitly wants a documentation sprint now.
 - `docs/issues.md` — if the forge has issues: the initial inventory (open issues at least; closed history optional), per `references/project-state.md`. Entries are added as issues are actually worked, from here on.
 - If there is a pre-existing UI with no design handoff: do NOT invent a retroactive BUILD-SPEC. Record in PROGRESS.md that the UI predates Keel and has no design contract; the current look is the baseline. From the next UI change on, the normal rules apply (a redesign goes through Phases 3–4; small changes respect the baseline and the design-system decision from step 3).
+
+With the as-built technical plan written, materialize any accepted Claude config rules/agents from the OBSERVED conventions (per `references/claude-config.md`, "Adoption specifics").
 
 ### 5. Gap audit → `docs/04-adoption-audit.md`
 
@@ -76,7 +78,7 @@ Mark Phases 1–2 as **"adopted (as-built)"** in PROGRESS.md's phase table, set 
 ## Definition of done (adoption)
 
 - State files exist and reflect the inventory; de facto decisions recorded as "adopted as-is".
-- The `CLAUDE.md` lock is in place (and the embed choice recorded in the project card), so every future environment/AI opening this repo is bound to the workflow.
+- The `CLAUDE.md` lock is in place (with the embed and Claude-config choices recorded in the project card), so every future environment/AI opening this repo is bound to the workflow.
 - The step 3 questions are answered (or recorded as unknown), including project type + loaded security profile and accessibility reference, license, i18n, docs language, design system, website intent.
 - `docs/01-discovery.md`, `docs/02-functional-spec.md`, `docs/03-technical-plan.md` exist as-built, with every unverified inference labeled.
 - `docs/api/INDEX.md` complete for every existing public surface; progressive backfill rule recorded for full per-surface docs.

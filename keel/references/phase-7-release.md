@@ -15,7 +15,7 @@ Confusing these is a common defect: a dev file ends up shipped, or a needed runt
 
 ### 1. `.gitignore`
 
-Generate per project type. Always exclude: secrets/credentials, `.env*`, local config with tokens, dependency dirs (`vendor/`, `node_modules/`), build artifacts, logs, OS files (`.DS_Store`), editor dirs (`.idea/`, `.vscode/` unless intentionally shared). Add type-specific entries:
+Generate per project type. Always exclude: secrets/credentials, `.env*`, local config with tokens, dependency dirs (`vendor/`, `node_modules/`), build artifacts, logs, OS files (`.DS_Store`), editor dirs (`.idea/`, `.vscode/` unless intentionally shared), personal assistant config (`CLAUDE.local.md`, `.claude/settings.local.json`). Add type-specific entries:
 - WordPress plugin: build dirs, `vendor/` if committing only built deps, local WP test env.
 - MCP server / web app (e.g. Fly.io): `.env`, deploy secrets, local data volumes.
 - Library/component: build output, coverage, packaging artifacts.
@@ -24,7 +24,7 @@ Verify nothing sensitive is already tracked, running the full confidential-data 
 
 ### 2. `.gitattributes` with `export-ignore`
 
-Mark everything that belongs in the repo but not in the shipped package as `export-ignore`, so `git archive` produces a clean distributable. Typically: `/tests`, `/.github`, CI config, `/docs` (source docs — ship a built/user-facing subset if relevant), `/design` handoff, build/dev scripts, linter/formatter configs, `.gitattributes`/`.gitignore` themselves, example/fixture data, and the Keel workflow files (`CLAUDE.md`, `AGENTS.md`, `/.claude/` including the embedded skill) — they govern development, never the distributable.
+Mark everything that belongs in the repo but not in the shipped package as `export-ignore`, so `git archive` produces a clean distributable. Typically: `/tests`, `/.github`, CI config, `/docs` (source docs — ship a built/user-facing subset if relevant), `/design` handoff, build/dev scripts, linter/formatter configs, `.gitattributes`/`.gitignore` themselves, example/fixture data, and the Keel workflow files (`CLAUDE.md`, `AGENTS.md`, `/.claude/` including the embedded skill and any generated Claude config, `/.githooks`, `/.mcp.json`) — they govern development, never the distributable.
 
 Keep in the package: runtime code, runtime assets, the readme/license the end user needs, the user-facing docs you intend to ship.
 
@@ -42,6 +42,7 @@ State the resulting package contents to the user so the boundary is visible and 
 Before tagging:
 - Phase 5 test points all pass; Phase 6 docs complete.
 - Security profile checklist passed (link `docs/security.md`).
+- If the Claude config package exists (`references/claude-config.md`): rules/agents still match the recorded conventions and security profile, the `settings.json` allow-list still matches the plan's commands, and the pre-commit gate still blocks a synthetic secret.
 - **Accessibility verification (gate — no tag without it for anything with a UI).** Automated checks pass, and a manual pass with the platform's **real assistive technology** — screen reader, keyboard/switch, largest text size, reduced-motion and high-contrast on — succeeds on the **actual distributable** in a real environment, not just in dev. It meets the Phase 1 targeted level (WCAG 2.2 AA floor / AAA where feasible; EN 301 549 / EAA where in scope) or the shortfall is honestly recorded in `docs/accessibility.md` (no overlay, no false conformance claim). Link `docs/accessibility.md`. Per `references/accessibility.md`.
 - Build the distributable the way the user actually ships it (e.g. `git archive` / the plugin packaging step) and inspect the output: no secrets, no dev files, all runtime files present, correct version.
 - **Real-environment verification (hard gate — no tag without it).** "Tests pass" is not "it works when installed". Take the exact distributable a user receives and install/deploy it in a real environment of the correct type — a real WordPress site for a plugin, the actual Fly.io app for a service, a clean target install for a library — then exercise the critical path there. If there's an installed base, also run the real upgrade from the previous shipped version on that environment. The Phase 5 playground can serve as this environment when it is of the correct type — but what gets installed in it is the exact distributable, never the dev tree — and `docs/playground.md` (access details, try-it instructions) is what the user follows for their own final pass. A failure here blocks the release; it is never waved through because unit tests were green.
@@ -76,6 +77,7 @@ Before tagging:
 
 - `.gitignore` and `.gitattributes` (export-ignore) exist, correct for the project type, and the package boundary is agreed with the user.
 - No secret is tracked in git; no dev file is in the shipped package; no runtime file is missing from it.
+- If the Claude config package exists: verified current against the recorded decisions, and none of it (`.claude/`, `.githooks/`, `.mcp.json`) ships.
 - Version set and **identical across every touchpoint** listed in the technical plan; changelog updated oldest → newest.
 - LICENSE file and headers ship correctly; bundled dependency licenses compatible.
 - Distributable built and its contents verified.

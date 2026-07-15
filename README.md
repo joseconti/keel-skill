@@ -4,7 +4,7 @@
 
 Use it for any new project — WordPress/WooCommerce plugins, MCP servers, web apps, components, libraries, or websites. Keel runs a complete multi-phase workflow so you never have to re-explain your standing requirements every time you start something new.
 
-- **Version:** 1.9.0
+- **Version:** 1.10.0
 - **License:** GPL-3.0-or-later
 - **Author:** [José Conti](https://plugins.joseconti.com/en)
 
@@ -37,7 +37,9 @@ Keel has three entry modes: a new project (Phase 1 from zero), resuming an in-pr
 
 Every Keel project also carries a **portability lock**: a `CLAUDE.md` block (optionally plus the skill embedded at `.claude/skills/keel/`) that binds any environment or AI opening the repo — Claude app, Cowork, Claude Code in VS Code, or another assistant — to the Keel workflow, even where the skill is not installed. Workflow files never ship in the distributable (Phase 7 export-ignore).
 
-Keel also keeps itself current. At the start of every session it checks this repository for a newer release (`git ls-remote --tags`, with API fallbacks). Every copy is checked separately — an up-to-date app install does not hide an outdated embedded copy in the opened project. It updates every copy it can durably write — the user-level install and, always when present, the project's embedded `.claude/skills/keel/` — with a verified full-tree replacement, summarizing the improvements; for a copy it cannot write (app-managed skill storage, as in the Claude app / Cowork), it tells you a newer version exists, what it brings, and how to update. The check is best-effort and never blocks work.
+Projects can also opt into **native Claude Code configuration**, generated from their own recorded decisions (`references/claude-config.md`): path-scoped `.claude/rules/` distilled from the technical plan's conventions and the security profile, `.claude/agents/` reviewer subagents (code review, security audit, docs verification), a confirmed minimal permission allow-list in `.claude/settings.json`, a confidential-data git pre-commit gate that blocks secrets from any environment or editor, and `.mcp.json` for development MCP servers. The `CLAUDE.md` lock remains the universal mechanism — this package is Claude Code ergonomics on top, offered once per project, always recorded in the project card, and never shipped.
+
+Keel also keeps itself current. At the start of every session it checks this repository for a newer release (`git ls-remote --tags`, with API fallbacks). Every copy is checked separately — an up-to-date app install does not hide an outdated embedded copy in the opened project. It updates every copy it can durably write — the user-level install and, always when present, the project's embedded `.claude/skills/keel/` — with a verified full-tree replacement, summarizing the improvements; for a copy it cannot write (app-managed skill storage, as in the Claude app / Cowork), it tells you a newer version exists, what it brings, and how to update. The check is best-effort and never blocks work. After an update, a **post-update reconciliation** brings the open project itself up to date with what the new version introduces — new required files or directories, new project-card lines, lock-block refreshes, never-asked questions — tracked by the project card's `Keel baseline:` line and recorded like any other decision.
 
 ## Operating principles
 
@@ -86,6 +88,7 @@ keel-skill/
     └── references/        # Phase reference files, loaded on demand
         ├── project-state.md
         ├── adoption.md
+        ├── claude-config.md
         ├── estimation-budget.md
         ├── phase-1-discovery.md
         ├── phase-2-functional-spec.md
