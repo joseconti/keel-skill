@@ -4,7 +4,7 @@
 
 Use it for any new project — WordPress/WooCommerce plugins, MCP servers, web apps, components, libraries, or websites. Keel runs a complete multi-phase workflow so you never have to re-explain your standing requirements every time you start something new.
 
-- **Version:** 1.8.0
+- **Version:** 1.9.0
 - **License:** GPL-3.0-or-later
 - **Author:** [José Conti](https://plugins.joseconti.com/en)
 
@@ -49,6 +49,7 @@ Keel also keeps itself current. At the start of every session it checks this rep
 - Never invent or interpret silently. Ask the user. If a design detail is missing downstream, request it from Design.
 - Code adapts to the design, never the design to the code.
 - Security is per-platform and non-optional.
+- Nothing confidential ever reaches Git: every commit is preceded by a confidential-data check on what is about to enter the repository; findings stop the commit, are reported as the security risk they are, and are excluded via `.gitignore` (history-purged and rotated if they were ever pushed).
 - Accessibility is non-negotiable, on every platform, and designed in from the first line — never retrofitted.
 - Build once, reuse by manifest. Never regenerate structurally-identical pages or screens.
 - Reuse the internal API; never duplicate code. Search the existing API before writing anything new; generalize a close fit instead of forking it. Duplication is a defect.

@@ -2,13 +2,13 @@
 name: keel
 license: GPL-3.0-or-later
 metadata:
-  version: 1.8.0
+  version: 1.9.0
 description: Use this skill for ANY new software project from idea to release — websites, WordPress/WooCommerce plugins, MCP servers, web apps, components, or libraries. Multi-phase workflow: discovery with competitive scan, functional spec with flows, design handoff to Claude Design, faithful build with zero deviation, development with test points and a real-testing playground, full docs/, per-platform security, non-negotiable accessibility, release hygiene, AI-time estimates with client budgets, and a forge issue log. Trigger when the user starts a new project or feature, says "I have an idea for a plugin/site/app", "let's plan this project", mentions a design handoff, asks for docs or security review, asks what a project will cost or take (quote/budget), works forge issues (GitHub/GitLab/...), prepares a release, resumes an in-progress Keel project (any repo with docs/PROGRESS.md), or applies Keel to an EXISTING project (adoption). Phases load references on demand; living state makes projects resumable across chats.
 ---
 
 # Keel — project lifecycle (idea → release)
 
-**Keel v1.8.0** — Licensed under GPL-3.0-or-later. *Keel* is the structural backbone laid down first, on which the whole project is built.
+**Keel v1.9.0** — Licensed under GPL-3.0-or-later. *Keel* is the structural backbone laid down first, on which the whole project is built.
 
 ## Token economy — everything is created in English by default (READ FIRST)
 
@@ -24,7 +24,7 @@ Therefore **everything Keel creates is written in English by default** — every
 
 ## Version reporting
 
-If the user asks which version of Keel they have or are using (e.g. "what version is this skill", "which Keel version do I have"), state it plainly from the frontmatter: "You're using Keel v1.8.0." Keep the version in the frontmatter (`metadata.version`), this line, and `CHANGELOG.md` in sync whenever the skill is updated; the frontmatter is the source of truth.
+If the user asks which version of Keel they have or are using (e.g. "what version is this skill", "which Keel version do I have"), state it plainly from the frontmatter: "You're using Keel v1.9.0." Keep the version in the frontmatter (`metadata.version`), this line, and `CHANGELOG.md` in sync whenever the skill is updated; the frontmatter is the source of truth.
 
 ## Update check (start of every session)
 
@@ -79,6 +79,7 @@ The user builds many projects (WordPress/WooCommerce plugins, MCP servers, web a
 - **Code adapts to the design, never the design to the code.** The build follows the design to the letter; where the stack forces a change, the code strategy changes (and is logged), never the design intent. This is enforced through the handoff contract (Phases 3–4).
 - **Design delivers build-ready assets; the build never transforms them.** Every screen handed to Design is defined by what it *does* (its functionalities), not just how it looks. Design applies the existing design system exactly (divergence is a Design Request, never a creative choice) and delivers every logo and icon in **both SVG and PNG**, plus every asset in a format the build drops in directly — so Code never has to convert, resize, recolor, or re-export. When the handoff arrives, the first action is a completeness gate: verify Design delivered everything without exception; anything missing becomes a registered Design Request (a file + a ready-to-paste prompt) for Design to finish, never a build-side workaround. See Phases 3–4 and `references/handoff-contract.md`.
 - **Security is per-platform and non-optional.** The relevant profile is consulted from Phase 1 onward, not bolted on at the end.
+- **Nothing confidential ever reaches Git (UNBREAKABLE).** Every commit is preceded by a confidential-data check on the files about to enter the repository — secrets, credentials, private keys, tokens, real personal/customer data. A finding STOPS the commit: the user is warned, file by file, that pushing it is a serious security risk, and the fix is applied (`.gitignore` exclusion, untracking, history purge plus credential rotation if it was ever pushed) before anything is committed. See "Confidential data never reaches Git" below.
 - **Accessibility is non-negotiable, on every platform, and designed in from the first line — never retrofitted.** Whatever is built — HTML, iOS, Android, macOS, Windows, or a cross-platform framework — is usable with assistive technology from the first slice, using every accessibility tool the platform offers. It is stated up front in Phase 1 (like the internationalization decision) precisely because building accessibly from the start and "making it accessible" at the end are not the same work — the second is a rewrite. The target is the maximum reasonably achievable: WCAG 2.2 AA as the floor (AAA where feasible), EN 301 549 and the European Accessibility Act where they apply, and the native accessibility API on every other platform. See "Accessibility" below and `references/accessibility.md`.
 - **Output language is English by default — always, and never Spanish.** The primary language of everything *built* (source strings, UI copy, code identifiers, error messages, commit messages, API responses) defaults to English in every project, regardless of the language the user and the assistant converse in. Spanish is never assumed as the base language of the product. For WordPress/WooCommerce the base language is *always* English and the project is *always* prepared to be multi-language — non-negotiable. The multi-language questions are asked explicitly at project start (see "Output language & internationalization" below and Phase 1 §6). The docs — and everything else Keel creates (continuation prompts, briefs for Code/Design, lessons learned) — default to English as well, for token economy (see "Token economy" at the top); another language only on explicit request, with the extra token cost made clear.
 - **Perfect orthography in every language — Spanish especially (UNBREAKABLE).** Everything the assistant writes for the user — chat, `docs/`, code comments, UI copy, commit messages — is spelled and punctuated perfectly. In Spanish this means every ñ, every accent/tilde (á é í ó ú ü) and every opening ¿/¡ is present and correct, with zero spelling or grammatical errors. This is a hard contract, not a preference: dropping accents or the ñ, or writing "espanol"/"anadir"/"informacion", is a defect to be fixed like any other. See "Writing quality — perfect orthography" below.
@@ -124,6 +125,21 @@ After Phase 1 sets the project type, load exactly one profile (don't load all of
 | Reusable component / library / package | `references/security/library-component.md` |
 
 If a project spans types (e.g. a WordPress plugin that ships an MCP server), load both relevant profiles and apply the stricter rule on any conflict.
+
+## Confidential data never reaches Git (cross-cutting, UNBREAKABLE)
+
+Before EVERY commit and EVERY push — test points and sprint closes (Phase 5), the release (Phase 7), website deploys (Phase 8), adoption's first commit, any ad-hoc commit — check that nothing confidential is about to enter the repository. This is not a Phase 7 step: it applies from the project's very first commit, in every environment.
+
+1. **Scan what is actually going in** (the staged/changed files — at Phase 7, the whole tracked tree), by name and by content:
+   - By name: `.env*`, `*.pem`, `*.key`, `*.p12`/`*.pfx`, `id_rsa*`, `*credentials*`, `*secret*`, `wp-config.php` with real values, database dumps and exports (`*.sql`, `*.sqlite`), backups, local config carrying tokens.
+   - By content: private-key blocks (`-----BEGIN ... PRIVATE KEY-----`), API keys and tokens (`api_key=`, `Bearer ...`, provider-prefixed keys such as `AKIA...`, `sk-...`, `ghp_...`), passwords in config, OAuth client secrets, payment-gateway merchant keys (e.g. a Redsys SHA-256 merchant key), license keys, and real personal or customer data (names, emails, orders) in fixtures, seeds, logs, or dumps.
+   - Use what the environment offers: `git status` / `git diff --staged` plus grep patterns always; a dedicated scanner (`gitleaks`, `trufflehog`) when available — helpful, never required.
+2. **Something found → STOP the commit.** Warn the user explicitly, in the conversation language: name each file, say what it appears to contain, and state plainly that letting it reach the repository is a serious security risk. Then apply the fix that matches its state:
+   - Not yet tracked: add it to `.gitignore` so it can never reach the repository; commit only once the exclusion is in place.
+   - Tracked but never pushed: `git rm --cached` + `.gitignore`, then commit the removal.
+   - Pushed at any point in history: ignoring it is NOT enough — it must be removed from history (`git filter-repo` / BFG) AND the exposed credential treated as compromised and rotated. Say this explicitly and guide the user through it if they want.
+3. **The user decides, on record.** If the user confirms a flagged file is genuinely safe (placeholder or example values, sandbox-only keys meant to ship), record that decision in `docs/decisions.md` and proceed. Without that explicit confirmation, the file does not go in. Obvious placeholders (`your-api-key-here`) in templates and docs are not findings.
+4. Phase 5 sets up `.gitignore` at the scaffold and Phase 7 re-verifies the whole tree before release — neither replaces this check at each commit.
 
 ## Accessibility (cross-cutting, non-negotiable)
 

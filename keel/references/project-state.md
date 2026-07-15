@@ -232,7 +232,12 @@ This project is governed by the Keel workflow. Before reading code or changing A
    deviation, no "improving" recorded decisions. Anything undefined → ask the user.
    Design gaps → Design Request (Keel Phase 4).
 4. Update `docs/PROGRESS.md` and `docs/decisions.md` at the moment of every change.
-   Commit at passed test points. If ending mid-work, produce the continuation prompt
+   Commit at passed test points — never without first checking the staged files for
+   confidential data (secrets, credentials, private keys, tokens, real personal or
+   customer data). A finding STOPS the commit: warn the user file by file that
+   pushing it is a serious security risk, and exclude it via `.gitignore` (already
+   tracked: untrack it too; ever pushed: purge history AND rotate the credential)
+   before committing anything. If ending mid-work, produce the continuation prompt
    from `.claude/skills/keel/references/project-state.md`.
 5. Work with execution discipline, whatever model or environment is running:
    - Batch independent tool calls in ONE parallel block; never run sequentially what

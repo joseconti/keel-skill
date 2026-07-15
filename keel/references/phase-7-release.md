@@ -20,7 +20,7 @@ Generate per project type. Always exclude: secrets/credentials, `.env*`, local c
 - MCP server / web app (e.g. Fly.io): `.env`, deploy secrets, local data volumes.
 - Library/component: build output, coverage, packaging artifacts.
 
-Verify nothing sensitive is already tracked (if it is, it must be removed from history, not just ignored — flag this to the user explicitly).
+Verify nothing sensitive is already tracked, running the full confidential-data check (SKILL.md "Confidential data never reaches Git") over the WHOLE tracked tree — not only the files changed lately. If something is tracked: flag it to the user explicitly — it must be removed from history (`git filter-repo` / BFG), not just ignored, and any credential that was ever pushed is compromised and must be rotated.
 
 ### 2. `.gitattributes` with `export-ignore`
 
