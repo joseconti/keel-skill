@@ -75,7 +75,7 @@ Not every environment has Claude Design. The phase is never left blocked without
 
 ## What Design must return (the handoff contract)
 
-A `design-handoff/` folder per `references/handoff-contract.md`: real artifacts under `artifacts/` (templates built once, components, only-unique pages, real assets, tokens-as-code) plus `SPEC/` (`manifest.md`, `design-tokens.md`, `screens/*.md`, `interactions.md`, `assets-index.md`, `external-assets.md`, `external-setup.md`, `accessibility.md`, `open-questions.md`). Place the returned handoff at `docs/design/design-handoff/`.
+A `design-handoff/` folder per `references/handoff-contract.md`: real artifacts under `artifacts/` (templates built once, components, only-unique pages, real assets, tokens-as-code) plus `SPEC/` (`manifest.md`, `design-tokens.md`, `screens/*.md`, `interactions.md`, `assets-index.md`, `external-assets.md`, `external-setup.md`, `accessibility.md`, `open-questions.md`). Place the returned handoff at `docs/design/design-handoff/`. That directory holds the delivery and NOTHING else, ever (contract rule 10): it must stay wholesale-replaceable — deleting it and placing a fresh delivery is exactly how re-deliveries are installed.
 
 ## Definition of done
 

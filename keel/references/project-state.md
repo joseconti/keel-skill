@@ -241,7 +241,7 @@ Two mechanisms, created at Phase 1 step 0a (and during adoption step 2):
 The project root carries a `CLAUDE.md` with the Keel block below. Claude Code, Cowork and the Claude app read the project's `CLAUDE.md` automatically — that is what makes this the lock: it is read before anything else, in every environment, by every session, without depending on any skill being installed. If `CLAUDE.md` already exists, insert the block between its delimiters without touching the rest; the delimiters make it safely updatable later.
 
 ```
-<!-- KEEL:BEGIN — v2.0.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
+<!-- KEEL:BEGIN — v2.1.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
 # Keel protocol (mandatory for ANY assistant working in this repository)
 
 This project is governed by the Keel workflow. Before reading code or changing ANYTHING:

@@ -12,6 +12,7 @@ Read `references/handoff-contract.md`, `references/build-spec-template.md`, and 
 4. Do not deviate. Build matches artifacts + SPEC exactly.
 5. Code adapts to the design — never the design to the code.
 6. Missing → ask Design (Design Request), not yourself.
+7. `docs/design/design-handoff/` is untouchable: it holds Design's delivery and nothing else — nothing is ever written into it (contract rule 10). Everything the build produces lives in the project tree or `docs/`, so the delivery can always be swapped wholesale.
 
 State these back to the user when the phase starts.
 
@@ -37,7 +38,7 @@ Input is `docs/design/design-handoff/`. Check against `references/handoff-contra
 
 Record every discrepancy as a gap (what, where expected, why it blocks faithful build) — and record every CHECK, not only the findings. The audit's result is the BUILD-SPEC §1 evidence table, one row per bullet above: item / checked / evidence (a path, a listing, a quoted value) / result. An item without evidence is not audited.
 
-The filesystem facts get a deterministic mechanical pass — run them as commands (or a small ad-hoc script) and paste the output into the evidence table: every asset in `assets-index.md` exists under the delivered assets; every logo/icon has both SVG and PNG; every unique screen in the manifest has its `SPEC/screens/*.md`; `open-questions.md` has no open items; every token value in `design-tokens.md` appears in the delivered styles.
+The filesystem facts get a deterministic mechanical pass — run them as commands (or a small ad-hoc script) and paste the output into the evidence table: every asset in `assets-index.md` exists under the delivered assets; every logo/icon has both SVG and PNG; every unique screen in the manifest has its `SPEC/screens/*.md`; `open-questions.md` has no open items; every token value in `design-tokens.md` appears in the delivered styles; and no file exists under `docs/design/design-handoff/` that the delivery's own SPEC/index does not account for — a foreign file violates contract rule 10 (the directory must stay wholesale-replaceable) and is moved out to its correct home before anything else proceeds.
 
 Contrast is recomputed, not trusted: recompute every declared contrast pair from the hex values in `design-tokens.md` — the WCAG arithmetic is deterministic. A wrong declared ratio, or a pair below 4.5:1 (normal text) / 3:1 (large text and UI components), is a gap → Design Request. The recomputed values land in the BUILD-SPEC accessibility section as the audit's own arithmetic, never Design's claims copied through.
 
@@ -51,7 +52,9 @@ If Step 1 found any gap or `open-questions.md` is unresolved: do not proceed, do
 
 **Register every Design Request before handing it over** (per `references/project-state.md`): save the filled template as `docs/design/design-requests/DR-NNN.md` (sequential numbering) with a `Status: sent` line at the top, and list it under "Open items" in `docs/PROGRESS.md`. When Design re-delivers and the re-audit passes, mark the DR `Status: resolved [date]` and clear it from PROGRESS.md. A fresh session must be able to see from the register alone which requests are still open — "zero unresolved Design Requests" is always verified against the register, never against memory.
 
-**The re-delivery is verified, not welcomed.** First diff it against the previous delivery: anything changed outside the named gaps is itself a new gap — the template's byte-stable rule is a checked fact, not a courtesy. Then re-run Step 1 on the re-delivery. After the re-audit passes, update the affected `docs/BUILD-SPEC.md` sections from the re-delivered values and mark the DR resolved in the register. If the same item bounces a second time, it goes directly to the user to decide, and the decision is recorded.
+**Installing a re-delivery is a wholesale swap** — possible precisely because the directory holds nothing but Design's bytes (contract rule 10): archive the current delivery to `docs/old/design-handoff/<DR-id-or-date>/` (move, never delete — the diff below needs it and history stays traceable), then place the new delivery at `docs/design/design-handoff/`, complete. Never merge file-by-file into a directory that has been mixed with anything else — if a foreign file is found, that is the rule-10 violation to fix first.
+
+**The re-delivery is verified, not welcomed.** First diff it against the archived previous delivery: anything changed outside the named gaps is itself a new gap — the template's byte-stable rule is a checked fact, not a courtesy. Then re-run Step 1 on the re-delivery. After the re-audit passes, update the affected `docs/BUILD-SPEC.md` sections from the re-delivered values and mark the DR resolved in the register. If the same item bounces a second time, it goes directly to the user to decide, and the decision is recorded.
 
 ## Step 4 — Build, faithfully
 
@@ -91,7 +94,7 @@ First, **tell the user plainly that Design could not generate these images itsel
 Then, for each asset in `SPEC/external-assets.md`, one at a time:
 
 1. **Adapt Design's base prompt to the chosen generator.** Take the base prompt verbatim from the SPEC entry and only rephrase it / add tool-specific guidance for that generator. Every descriptive element must trace to `SPEC/external-assets.md` (and `design-tokens.md`). Never add or invent visual details Design didn't put in the base prompt — if the base prompt is missing something needed, that's the failure branch below, not a place to improvise.
-2. **Give the user exactly ONE adapted prompt**, plus the exact place to save the result: target directory (so it lands where `assets-index.md`/the build expects, normally `artifacts/assets/...`), the exact filename, and the format (and intrinsic dimensions/aspect ratio from the SPEC).
+2. **Give the user exactly ONE adapted prompt**, plus the exact place to save the result: the target directory in the PROJECT's own tree — the path the technical plan's code map / the BUILD-SPEC asset map names, NEVER inside `docs/design/design-handoff/` (contract rule 10: the delivery stays wholesale-replaceable) — the exact filename, and the format (and intrinsic dimensions/aspect ratio from the SPEC). Record the final path in the BUILD-SPEC asset map.
 3. **Ask the user to generate it, save it exactly as instructed, and report back / show the result.** Don't send the next asset's prompt yet.
 4. **Confirm the asset fits** (right subject, style on-system, correct dimensions/format, saved at the right path/name) before moving on. If it's off, re-adapt against Design's base prompt and retry — do not lower the design bar to accept a mismatch.
 
@@ -102,9 +105,9 @@ When the user can't produce a faithful asset, diagnose — don't guess:
 
 Never collapse these two branches: inventing a visual detail reintroduces the exact defect this skill prevents; bouncing a Design Request when the spec was fine just blocks the user.
 
-Once an asset is confirmed and saved at its target path/name, treat it as a real artifact: it must satisfy `assets-index.md` exactly like any Design-produced asset.
+Once an asset is confirmed and saved at its target path/name in the project tree, treat it as a real artifact: it must satisfy its SPEC entry (role, dimensions, format) exactly like any Design-produced asset, and the BUILD-SPEC asset map records where it lives. The handoff directory itself is never touched.
 
-**Fonts follow the same one-at-a-time discipline.** When the handoff carries an acquisition block instead of font files (licensing — `references/handoff-contract.md` rule 4), walk the user through each font exactly like an external asset: give ONE instruction (the exact download source and which files/weights to get), wait for their confirmation, tell them the exact target path from the block, verify the files actually landed there (list them), confirm the delivered `@font-face`/styles resolve against those paths, and only then move to the next font. Never substitute a different font, a CDN, or a system font stack as a build-side workaround — a font that cannot be obtained goes back to Design as a Design Request.
+**Fonts follow the same one-at-a-time discipline.** When the handoff carries an acquisition block instead of font files (licensing — `references/handoff-contract.md` rule 4), walk the user through each font exactly like an external asset: give ONE instruction (the exact download source and which files/weights to get), wait for their confirmation, tell them the exact target path from the block — in the PROJECT's tree, never inside `docs/design/design-handoff/` (contract rule 10) — verify the files actually landed there (list them), confirm the delivered `@font-face`/styles resolve against that final path, and only then move to the next font. Never substitute a different font, a CDN, or a system font stack as a build-side workaround — a font that cannot be obtained goes back to Design as a Design Request.
 
 ## Step 7 — Verify against the faithfulness checklist
 
