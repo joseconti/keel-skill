@@ -122,7 +122,7 @@ Rules: exact commands or tight prefixes only — never `Bash(*)`, never a broad 
 
 The assistant's own pre-commit check (SKILL.md "Confidential data never reaches Git") still runs in every session — this hook is the NET under it, and it also covers commits made outside Keel sessions (the user's own terminal, another tool). A classic git hook was chosen deliberately over an assistant-specific hook: it fires in EVERY environment and editor, which is exactly Keel's portability principle.
 
-Install at the scaffold: commit the script at `.githooks/pre-commit` (executable), run `git config core.hooksPath .githooks`, and record in the project card that the gate is active. `core.hooksPath` is per-clone: document the one-line setup in the project's developer notes (e.g. the repo README's development section) so collaborators run it too. Then VERIFY the gate: stage a synthetic secret (e.g. a file containing `api_key = "sk-` + 24 letters), confirm the commit is blocked, remove the synthetic file. An unverified gate is not a gate.
+Install at the scaffold: commit the script at `.githooks/pre-commit` (executable), run `git config core.hooksPath .githooks`, and record in the project card that the gate is active. `core.hooksPath` is per-clone: document the one-line setup in the project's developer notes (e.g. the repo README's development section) so collaborators run it too. Then VERIFY the gate: stage a synthetic secret, confirm the commit is blocked, and remove the synthetic file. Assemble the synthetic secret when creating the test file — an `api_key`-style assignment (equals sign, then `sk-` plus at least 20 letters); this reference deliberately never writes that assignment verbatim, so the skill's own files never trip the gate. An unverified gate is not a gate.
 
 ```sh
 #!/bin/sh
@@ -138,8 +138,12 @@ fail=0
 IFS='
 '
 
-# 1) Suspicious names
+# 0)+1) Suspicious names — skipping the canonical trees that legitimately
+# CONTAIN the gate's own patterns: the gate's script and the embedded Keel
+# skill. The assistant-side check (Keel SKILL.md) still scans them; only
+# this net skips them.
 for f in $files; do
+  case "$f" in .githooks/*|.claude/skills/*) continue ;; esac
   base=$(basename "$f")
   case "$base" in
     .env|.env.*|*.pem|*.key|*.p12|*.pfx|id_rsa*|*credential*|*secret*|*.sql|*.sqlite|wp-config.php)
@@ -150,6 +154,7 @@ done
 # 2) Secret-shaped content in the STAGED blob (not the working tree)
 pat="-----BEGIN [A-Z ]*PRIVATE KEY-----|api[_-]?key[\"']?[[:space:]]*[:=]|Bearer [A-Za-z0-9._~+/=-]{20,}|AKIA[0-9A-Z]{16}|sk-(proj-)?[A-Za-z0-9]{20,}|ghp_[A-Za-z0-9]{36,}|xox[baprs]-[A-Za-z0-9-]{10,}"
 for f in $files; do
+  case "$f" in .githooks/*|.claude/skills/*) continue ;; esac
   if git show ":$f" 2>/dev/null | LC_ALL=C grep -Eqa -e "$pat"; then
     printf 'BLOCKED (content): %s matches a secret pattern\n' "$f"; fail=1
   fi
@@ -173,7 +178,7 @@ MSG
 exit 1
 ```
 
-False positives (e.g. a legitimate `class-secrets-manager.php`) are expected occasionally and cheap: the bypass policy above handles them consciously, on the record. Never loosen the patterns to avoid a one-time bypass. If the user also wants an assistant-side hook (a Claude Code `PreToolUse` hook in `settings.json` that gates `git commit`), add it on top — but the git hook is the baseline and never replaced by it.
+False positives are kept rare by design — field-tested: (1) the gate itself exempts the canonical trees that legitimately contain the very patterns it searches for, `.githooks/` (its own script) and `.claude/skills/` (the embedded skill, including this reference), while the assistant-side check still scans them like everything else; (2) never CREATE a false positive when writing — in `docs/decisions.md`, `docs/lessons-learned.md`, comments, or any project note, a secret-shaped string is described or split apart (`api` + `_key`), never pasted verbatim (SKILL.md "Confidential data never reaches Git", point 5). The occasional remaining case (e.g. a legitimate `class-secrets-manager.php`) is handled by the conscious bypass policy above, on the record. Never loosen the patterns to avoid a one-time bypass. If the user also wants an assistant-side hook (a Claude Code `PreToolUse` hook in `settings.json` that gates `git commit`), add it on top — but the git hook is the baseline and never replaced by it.
 
 ## `.mcp.json` — conditional, at the repo root
 
