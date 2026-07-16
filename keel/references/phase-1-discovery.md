@@ -98,7 +98,7 @@ If the assistant cannot perform the scan from this environment (no web/search to
 Then offer the user three options, in this order:
 
 1. **Move the conversation to an environment with web access** (e.g. from a terminal Claude Code session to the desktop Claude app where web tools are available, or to a Cowork session, or to any client where browsing/search is enabled). This is the preferred option.
-2. **Use a different agent or tool** that has web research, run the scan there, and bring the findings back into this session as input.
+2. **Use a different agent or tool** that has web research, run the scan there, and bring the findings back into this session as input. The assistant composes the complete, ready-to-paste prompt for that agent (what to scan, the three artifacts to produce, the citation rule) — per the SKILL.md boundary rule, the user carries a prompt, never a description of one.
 3. **Skip the scan and proceed** — explicitly, with the warning below recorded in `docs/01-discovery.md`.
 
 If the user chooses option 3, record it clearly in `docs/01-discovery.md` under a "Competitive scan: SKIPPED" subsection, and include this warning (do not soften it — the honest-assessment principle applies):

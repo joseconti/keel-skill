@@ -61,7 +61,9 @@ Only an approved, bracket-clean brief is handed over. Two passes, in order:
 
 ### 4. Hand the brief to the user
 
-Tell the user the brief is at `docs/design/DESIGN-BRIEF.md`, to paste into Design, and state the one rule that matters most: build once, ask don't invent. Keep it short.
+**Produce the exact, complete opening message for Design and show it — never instructions about what to paste.** The user pastes ONE thing: a short framing paragraph (project name, what Design must deliver — the `design-handoff/` folder per the embedded contract — and the one rule that matters most: build once, ask don't invent) followed by the FULL content of `docs/design/DESIGN-BRIEF.md`. Assemble it, show it ready to copy, and say where the returned folder goes (`docs/design/design-handoff/`). This is the standing rule for every chat/tool boundary (SKILL.md operating principles): the user is the courier, never the composer.
+
+**Also show the return prompt now** — the ready-to-paste prompt for the chat where the build will continue once Design's folder is back in the repo, built from the continuation-prompt template in `references/project-state.md` with the position pre-filled: resume at Phase 4 (faithful build), Step 1 — audit the handoff at `docs/design/design-handoff/` against `references/handoff-contract.md`. Days may pass before the handoff returns; the user must not have to ask for the way back in.
 
 #### If Claude Design is not available
 
