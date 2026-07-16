@@ -68,7 +68,7 @@ Work through these in order. The reference file for a phase is the authoritative
 | 3. Design handoff | What to tell Design + the files Design must read/return | `references/phase-3-design-handoff.md` |
 | 4. Faithful build | Audit Design's return with evidence, consolidate spec, build with zero deviation, guided external setup | `references/phase-4-faithful-build.md` |
 | 5. Development | How to build: sprints planned in plan mode, assumption re-validation at every kickoff, test points, a real playground, debug logs with a switch, independent review, user verification per sprint | `references/phase-5-development.md` |
-| 6. Documentation | `docs/`: API, classes, functions, usage, architecture | `references/phase-6-documentation.md` |
+| 6. Documentation | `docs/`: API, classes, functions, usage, architecture — plus the end-user HTML guide (`guide/`: languages asked, English suggested as principal; ships-in-release asked) | `references/phase-6-documentation.md` |
 | 7. Release | git hygiene, package hygiene, release prep, full-suite gate on the candidate | `references/phase-7-release.md` |
 | 8. Project website (conditional) | study the product, plan & build its site: site type, sections, domain, design direction, vanilla build, self-hosted fonts, product screenshots, SEO + AEO, launch, operations | `references/phase-8-website.md` |
 

@@ -43,6 +43,8 @@ mini-discovery at Phase 1 §3 scale (the assistant proposes the feature's shape,
 
 This is the same cycle `references/adoption.md` defines for adopted projects — greenfield projects use it too after v1. There is no "small enough to skip the cycle": a small feature gets a proportionally small pass through every step, not an exemption from steps.
 
+**The end-user guide is part of the cycle, so nothing is ever left dangling:** when the project carries `guide/` (Phase 6), every added or changed capability updates the guide in the SAME change that ships it — its new task page or its corrected steps, in every locale the guide carries — never "later". A capability the guide does not cover is an open defect, exactly like a missing regression test. If the project has no guide yet, a maintenance pass is a fine moment to offer building it (Phase 6 section, with its language and packaging questions).
+
 ## The full-suite rule
 
 EVERY maintenance change, however small, re-runs the entire automated suite before its release — one-line fixes included: the blast radius of a change is what the suite exists to measure, not what the author assumes. And every fixed bug carries its regression test (a hotfix without one is not done, per the hotfix path) — the suite only protects against what it contains.

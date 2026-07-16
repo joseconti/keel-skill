@@ -49,6 +49,7 @@ Keep it to roughly one page. Detail lives in the linked files, never accumulated
 - Keel baseline: [vX.Y.Z — last Keel version this project was reconciled to]
 - Website intent: [yes — own domain|subdomain / no]
 - Client budget: [yes / no — asked once at Phase 1 step 10; yes → docs/budget.md at Phase 2 close]
+- User guide: [languages + ships in release yes/no / declined — asked at Phase 6; guide/ at the repo root]
 
 ## Phase status
 | Phase | Status | Key artifacts |

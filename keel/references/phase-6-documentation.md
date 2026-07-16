@@ -46,7 +46,7 @@ docs/
 └── accessibility.md              (NEW — applied a11y: standard targeted, per-platform measures, verification, known gaps)
 ```
 
-Numbering map, so no session wonders about the "gaps": `00` competitive landscape and `01` discovery are Phase 1; `02` spec and `03` technical plan are Phase 2; `04-adoption-audit.md` exists only in adopted projects (`references/adoption.md`); the design brief, BUILD-SPEC, playground.md, estimate.md, budget.md, issues.md and token-ledger.md are unnumbered (they live by role: `design/`, root); `05` is the Phase 5 test-point log; `07-release.md` is added by Phase 7 (it does not exist yet at this phase). Websites (Phase 8) add their own artifacts under `docs/site/` or in the site's own repo. The repo root additionally carries the portability lock (`CLAUDE.md`, optional `AGENTS.md` and `.claude/skills/keel/`) per `references/project-state.md` — repo-only, export-ignored in Phase 7.
+Numbering map, so no session wonders about the "gaps": `00` competitive landscape and `01` discovery are Phase 1; `02` spec and `03` technical plan are Phase 2; `04-adoption-audit.md` exists only in adopted projects (`references/adoption.md`); the design brief, BUILD-SPEC, playground.md, estimate.md, budget.md, issues.md and token-ledger.md are unnumbered (they live by role: `design/`, root); `05` is the Phase 5 test-point log; `07-release.md` is added by Phase 7 (it does not exist yet at this phase). Websites (Phase 8) add their own artifacts under `docs/site/` or in the site's own repo. The repo root additionally carries the portability lock (`CLAUDE.md`, optional `AGENTS.md` and `.claude/skills/keel/`) per `references/project-state.md` — repo-only, export-ignored in Phase 7 — and, unless declined, `guide/`: the end-user HTML guide (see its section below), shipped or repo-only per the recorded decision.
 
 Adapt names to the project type (e.g. for a WordPress plugin, `api/` documents REST routes, WP-CLI commands, and MCP abilities; `reference/hooks-and-extension-points.md` documents actions/filters; for an MCP server, `api/` documents tools/abilities and their schemas).
 
@@ -86,6 +86,27 @@ The repository root gets a short README: what the project is (one paragraph), re
 ### accessibility.md
 A concrete summary of how accessibility was applied in THIS project: the standard targeted (WCAG 2.2 AA floor / AAA where reached; EN 301 549 / EAA if in scope), the per-platform measures actually implemented (semantic/native structure, keyboard/AT operability, focus management, contrast, target sizes, reduced-motion, honored user preferences), how it was verified (which automated tools and which assistive technologies were tested), how a maintainer keeps it intact, and any known gaps recorded honestly (no overlay, no false conformance claim). Not the generic reference — the applied result. See `references/accessibility.md`.
 
+## The end-user guide — `guide/` at the repo root
+
+`docs/` is written for developers and maintainers. The END USER gets their own artifact: a navigable HTML guide at `guide/` in the repo root — a main `index.html` plus one page per topic — explaining what the product is for and how to do everything with it.
+
+**Ask two questions before building it** (batched, with recommended defaults, per SKILL.md "How to run a phase" §3):
+
+1. **Languages.** One language or several? When more than one, English is recommended as the principal. The default list mirrors the product's shipped locales from Phase 1 §6. One directory per locale (`guide/en/`, `guide/es/`, ...), a language switcher on the index, the principal listed first.
+2. **Does it ship in the release package?** The user may not want the guide in the distributable. Yes → it ships and becomes a distributable surface: the placeholder scan in `scripts/keel-verify` covers it and Phase 7 verifies it on the release candidate. No → add `/guide/` to `.gitattributes` `export-ignore` now (Phase 7 re-verifies the boundary) and the guide stays repo-only.
+
+Record both answers in `docs/decisions.md` and on the project card (`User guide:` line — languages + ships yes/no; "declined" if the user wants no guide at all, which is a valid recorded choice).
+
+**Coverage — the guide is VERY detailed, by contract.** The reader must be able to do EVERYTHING the product is capable of, without asking anyone: every capability appears as a task ("how do I ..."), with the exact steps (paths, clicks, commands), what the user should see after each one, and the why in one plain-language line. The completeness check is mechanical, not felt: every v1 feature in `docs/01-discovery.md`/`docs/02-functional-spec.md` and every setting in `docs/usage/configuration.md` maps to its guide section — a capability or setting without its section is a gap that blocks this phase, exactly like an undocumented public surface. Include: what the product is for (one page), installation, configuration (every setting: where it lives, valid values, defaults, effects), one task page per feature, troubleshooting — including how to switch on the debug log and copy its entries (the Phase 5 log switch) — and where to get support.
+
+Build rules:
+
+- **Consolidated, never invented.** The content derives from what already exists — `docs/usage/`, the functional spec, `docs/playground.md`'s try-it instructions, the applied `docs/accessibility.md` — rewritten task-first in plain end-user language. The guide is never a second source of truth: on any conflict, `docs/` wins and the guide is corrected.
+- **Vanilla, self-contained, offline.** Plain HTML/CSS, no frameworks, no CDN, no external fonts or scripts; relative links only, so it works opened from disk (`file://`) and from any hosting; images and screenshots stored inside `guide/`. Product screenshots, where they genuinely help, follow the guided capture discipline (the user captures, the assistant places).
+- **Accessible.** It is HTML: `references/accessibility.md` applies to the guide itself — semantic structure, contrast, keyboard navigation, alt text on every image.
+- **Per-locale correct.** Every locale meets the same orthography standard as everything else (SKILL.md "Writing quality"); secondary locales are translations of the principal and are kept in sync with it.
+- **Kept current.** Once the guide exists, every feature or behavior change updates it in the same slice/sprint that changes the behavior (the Phase 5 docs-at-creation discipline extends to it), and the maintenance freshness duty (`references/maintenance.md`) includes it.
+
 ## Rules
 
 - **This phase consolidates.** Per Phase 5, every public surface was documented at the moment it was created with a runnable example. If a surface is undocumented here, it is a Phase 5 defect — fix the slice, do not retroactively invent docs from the code.
@@ -103,6 +124,7 @@ A concrete summary of how accessibility was applied in THIS project: the standar
 - Every public API/class/function/hook is documented with a runnable example, and `docs/api/INDEX.md` matches the docs one-to-one (no orphan rows, no missing rows).
 - architecture.md (consolidating the key entries of `docs/decisions.md`), usage/, security.md, accessibility.md complete and reconciled with the as-built code.
 - Repo README.md present: short front door linking into `docs/`.
+- The end-user guide decision is recorded (`User guide:` card line + decisions.md), and — unless declined — `guide/` exists with its navigable index in the chosen language(s), passing the mechanical coverage check: every v1 feature and every setting has its guide section. If it ships, it is placeholder-clean; if not, `/guide/` is export-ignored.
 - No undocumented public surface; no unlabeled placeholder.
 - `docs/PROGRESS.md` updated.
 

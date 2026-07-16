@@ -45,6 +45,7 @@ Verification is phase-aware and condition-aware: read the project card and phase
 | `docs/security.md` | Consolidated security posture per the loaded profile(s) | Phase 6 | Always |
 | `docs/accessibility.md` | Accessibility record: automated results + guided assistive-technology pass, per item | Phase 6 | Always |
 | `README.md` (repo root) | The repository's front door | Phase 6 | Always |
+| `guide/` (repo root) | End-user HTML guide: navigable index + one page per topic, one dir per locale, full capability coverage | Phase 6 | Unless declined (card: `User guide:`) |
 | `docs/07-release.md` | Release record (incl. full-suite re-run on the candidate + keel-verify output) | Phase 7 | Always |
 | `<site-docs>/` (`docs/site/` or the site's own repo, per the recorded decision) | Phase 8 site set: `PRODUCT-BRIEF.md`, site discovery, spec, design docs | Phase 8 | Website intent only |
 | `<site-docs>/launch-report.md` | One row per launch check: command/tool, result, date | Phase 8 launch | Website intent only |
@@ -53,7 +54,7 @@ Verification is phase-aware and condition-aware: read the project card and phase
 | `docs/old/` | Archive (move, never delete) | First sprint close | When archiving starts |
 | `docs/04-adoption-audit.md` | Gap audit vs Keel standards | Adoption step 5 | Adopted projects only |
 
-Project-card lines that must exist (inside `docs/PROGRESS.md`): the full card per the `references/project-state.md` template, including `Keel portability:`, `Claude config:` (since v1.10.0), `Keel baseline:` (since v1.10.0) and `Client budget:` (since v2.0.0).
+Project-card lines that must exist (inside `docs/PROGRESS.md`): the full card per the `references/project-state.md` template, including `Keel portability:`, `Claude config:` (since v1.10.0), `Keel baseline:` (since v1.10.0), `Client budget:` and `User guide:` (both since v2.0.0).
 
 ## Table 2 — Skill files and the Keel version that last changed them
 
@@ -75,7 +76,7 @@ After an update, re-read `SKILL.md`, the current phase's reference, and THIS fil
 | `references/phase-2-functional-spec.md` | v2.0.0 |
 | `references/adoption.md` | v1.10.0 |
 | `references/estimation-budget.md` | v2.0.0 |
-| `references/phase-6-documentation.md` | v1.7.0 |
+| `references/phase-6-documentation.md` | v2.0.0 |
 | `references/phase-3-design-handoff.md` | v2.0.0 |
 | `references/phase-4-faithful-build.md` | v2.0.0 |
 | `references/handoff-contract.md` | v2.0.0 |
@@ -109,7 +110,7 @@ What the reconciliation APPLIES, version by version, for every version newer tha
 | v1.12.0 | None structural (the manifest itself was introduced, skill-side). |
 | v1.12.1 | Ensure `.keel-update-check` is an unconditional `.gitignore` entry. |
 | v1.13.0 | None structural. |
-| v2.0.0 | Ask the `Client budget:` question if it was never asked and add the card line. On runnable projects, generate `scripts/keel-verify` and add seed/reset to the playground at (or after) the Phase 5 scaffold. If the Claude config package is accepted and the forge has CI, offer the CI workflow. If the project has UI, the next handoff audit or re-audit uses the evidence-table `docs/BUILD-SPEC.md` §1. If Phase 7 is done, set the PROGRESS.md position to "maintenance" and work per `references/maintenance.md`. If website intent is recorded, plan `launch-report.md` and `operations.md` at the next launch or freshness pass. On runnable projects, the debug-log system with its on/off switch (Phase 5 scaffold spec) is added at the next sprint kickoff or maintenance change. The lock-block stamp refreshes through the normal freshness check. |
+| v2.0.0 | Ask the `Client budget:` question if it was never asked and add the card line. On runnable projects, generate `scripts/keel-verify` and add seed/reset to the playground at (or after) the Phase 5 scaffold. If the Claude config package is accepted and the forge has CI, offer the CI workflow. If the project has UI, the next handoff audit or re-audit uses the evidence-table `docs/BUILD-SPEC.md` §1. If Phase 7 is done, set the PROGRESS.md position to "maintenance" and work per `references/maintenance.md`. If website intent is recorded, plan `launch-report.md` and `operations.md` at the next launch or freshness pass. On runnable projects, the debug-log system with its on/off switch (Phase 5 scaffold spec) is added at the next sprint kickoff or maintenance change. The reconciliation itself ASKS whether to create the full end-user guide now (`guide/` — the Phase 6 section, with its language and packaging questions) and records the answer on the new `User guide:` card line; creating it on a released project is a normal maintenance change. The lock-block stamp refreshes through the normal freshness check. |
 
 ## Maintenance (part of EVERY release — no exceptions)
 
