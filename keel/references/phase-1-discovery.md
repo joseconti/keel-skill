@@ -16,6 +16,8 @@ So: give an honest, critical assessment even when it's uncomfortable.
 
 This is constructive honesty, not destructive criticism: every objection comes with its reasoning and, where possible, a concrete alternative. The user explicitly wants the truth even when it hurts. Do not soften an assessment to be agreeable, and do not let a weak idea proceed unchallenged just because the user is invested in it.
 
+**Closure protocol.** The assessment never trails off into conversation: it ends in a recorded verdict — **proceed / adjust scope / do not build** — plus the user's decision on it. Proceeding against a negative assessment is the user's right; it is recorded in `docs/decisions.md` as "proceeds against negative assessment: <reason>". If the user parks or discards the project, PROGRESS.md records `Status: parked — <why>` and every artifact produced so far stays in place — never deleted — so a future session can resume or close it cleanly. Once verdict and decision are recorded, the matter is settled: the assistant never re-litigates the verdict in later sessions.
+
 ## What to produce
 
 - The project state files, initialized FIRST (see step 0a): `docs/PROGRESS.md`, `docs/decisions.md`, `docs/lessons-learned.md`.
@@ -74,6 +76,18 @@ Based on (a)–(c), the assistant proposes:
 - **Table-stakes features** — functionalities the new project must include because they are now baseline in the category. Building without them ships a v1 that looks unfinished.
 - **Differentiator candidates** — gaps users complain about that the new project could close. These are grounded in (c), not invented.
 - **AI / MCP / agentic layer proposals (optional).** Only when they add real, logical value (e.g. semantic search over the project's content, MCP exposure of operations a power user would actually script, an agent step that compresses a repetitive workflow). Each AI/MCP proposal is labelled explicitly as **"added value"** (with the reason it actually helps) or **"forced filler"** (AI for AI's sake). Forced filler is dropped, not softened — same honesty rule as the rest of Phase 1. If no AI/MCP layer is warranted, say so plainly.
+
+#### Run the scan in subagents when the environment provides them
+
+When the environment provides subagents, run the scan in one — or several in parallel, one per competitor. Subagents return the drafted scan artifacts and conclusions, never raw dumps of pages or search results; the main session validates that every external-demand item resolves to a source before accepting the draft. This keeps the main session's context clean for the discovery conversation that follows.
+
+#### When the first pass finds zero competitors
+
+An empty first pass is never accepted as final. Retry with differently-phrased queries and with adjacent product categories before concluding anything. If the scan is still empty, record "no competitors found" as its own analysis block in `docs/00-competitive-landscape.md`, feeding the honest assessment: either this is a genuinely new niche, or it is a sign of no market / wrong search framing — say which and why, and let the user react. Table stakes then derive from the nearest adjacent category: the products users would reach for today in the absence of this one.
+
+#### What "partial" means on the scan status line
+
+The discovery template's scan status offers done / partial / SKIPPED. Partial is a defined state, not a softer done: the scan ran but one or more artifacts is incomplete — sources not visited, fewer competitors examined than intended, a list built only from search snippets. Record exactly which parts are missing and why; any unified-list item without a resolving source is marked unverified.
 
 #### When the scan cannot be done in this environment
 
@@ -170,7 +184,7 @@ The language the user and assistant *converse in* (often Spanish) and the langua
 
 Record the decision in the discovery doc and `decisions.md`. It propagates to Phase 3 (Design must not hardcode copy; strings are translatable) and is a hard verification point in Phase 5.
 
-### 7. Project website intent (global picture only — execution is a separate skill)
+### 7. Project website intent (global picture only — built later in Phase 8 of this skill)
 
 Ask now whether the project will have its own presentation website. This is asked early only so the global picture is known (it can influence naming, branding, domain). Record: will there be a project site? and if so, own domain or a subdomain of the user's existing domain? Do NOT build it here — the website is built in Phase 8 of this skill, normally after the first release. This step only captures the intent so it informs naming/branding/domain.
 
@@ -217,6 +231,8 @@ Record the decision in the discovery doc, `docs/decisions.md`, and the PROGRESS.
 
 With the v1 scope agreed, produce the preliminary estimate so the user can answer whoever asked for a quote. Load `references/estimation-budget.md` and follow it: itemized AI working hours (per phase, session wall-clock ranges), itemized vibe coder hours (segments — what the developer does + hours), contingency, and the AI cost mode (subscription ≈ 0 marginal cost / API with verified per-token prices). Record it as **Estimate v1 (preliminary)** in `docs/estimate.md`, with wide ranges and stated assumptions, and create `docs/token-ledger.md` (template in that reference) so actual token usage is recorded from here on. NEVER estimate from traditional human development time — the estimate is AI time + supervision time, full stop. If the user needs a client-facing preliminary budget now, produce it per the same reference, clearly marked preliminary; the firm budget comes at Phase 2 close.
 
+Ask here, once — and never again in any later phase: **is there a client to bill or a quote to produce?** Record the answer in the PROGRESS.md project card as `Client budget: yes/no`. `docs/estimate.md` and `docs/token-ledger.md` are produced always — the user needs the numbers whether or not anyone is billed. The client-facing `docs/budget.md` (Phase 2 close) is produced only when `Client budget: yes`; when no, none of the client questions (rate, currency, budget language) are asked — not now, not at Phase 2.
+
 ## `docs/01-discovery.md` structure
 
 ALWAYS use this template:
@@ -241,7 +257,9 @@ ALWAYS use this template:
 - v1: ...
 - Later: ... (deliberately deferred — visible, not lost)
 ## Honest assessment
-- [the truthful evaluation of the idea, grounded in the competitive landscape: weaknesses, prior art, scope realism — and the verdict]
+- [the truthful evaluation of the idea, grounded in the competitive landscape: weaknesses, prior art, scope realism]
+- Verdict: [proceed / adjust scope / do not build — with the reasoning]
+- User decision: [proceed / adjust / park / discard] (against a negative verdict → decisions.md entry "proceeds against negative assessment: <reason>"; parked/discarded → PROGRESS.md Status: parked — <why>, artifacts kept)
 ## Constraints & non-negotiables
 ## License
 - License: [e.g. GPL-3.0-or-later] (constrains dependency choices from Phase 5; verified shipping in Phase 7)
@@ -281,6 +299,7 @@ ALWAYS use this template:
 ## Preliminary estimate (AI-time based)
 - Estimate v1 (preliminary) recorded in docs/estimate.md: AI hours [X–Y], vibe coder hours [X–Y], contingency [+N%], AI cost mode [subscription / API]
 - Token ledger created: docs/token-ledger.md (actuals recorded from here on)
+- Client budget: [yes / no — asked once here, recorded in the project card; yes → docs/budget.md at Phase 2 close, no → no budget.md and the client questions (rate, currency, budget language) are never asked]
 ## Open questions for the user
 - [anything still undefined — must be resolved before Phase 2]
 ```
@@ -291,7 +310,7 @@ ALWAYS use this template:
 - The `CLAUDE.md` lock is in place at the repo root (Keel block between delimiters), and the embed-the-skill and Claude-config questions were asked and recorded in the project card.
 - Competitive scan completed: `docs/00-competitive-landscape.md` exists with per-competitor inventory, unified feature list, and external-demand list (each item cited). OR — if the scan was impossible from this environment — the user has been informed with the specific reason, the three options were offered, and either (a) the conversation moved to a capable environment and the scan was done there, (b) a different agent/tool produced the scan and the findings were brought back, or (c) the user explicitly chose to skip and the full warning block is recorded verbatim in `docs/01-discovery.md`.
 - The "Competitive landscape & opportunity" section of `docs/01-discovery.md` lists table-stakes, differentiator candidates, and AI/MCP layer proposals labelled as added-value or forced-filler (with forced-filler dropped).
-- The idea received an honest assessment, grounded in the competitive landscape, and the verdict is recorded (not default praise).
+- The idea received an honest assessment, grounded in the competitive landscape, and the closure protocol ran: the verdict (proceed / adjust scope / do not build) AND the user's decision are recorded (not default praise). Proceeding against a negative assessment → `docs/decisions.md` entry with the reason; parked/discarded → `Status: parked — <why>` in PROGRESS.md with all artifacts kept.
 - Project type is fixed and the matching security profile has been loaded.
 - A proposed v1 was presented unprompted (or, when the user arrived with a defined scope of their own, the diff against the scan was), each feature carrying its why; the v1 scope is explicit and the user agreed to it.
 - Installed-base/upgrade reality is recorded; if there's an installed base, the migration obligation is noted.
@@ -303,6 +322,7 @@ ALWAYS use this template:
 - "Design needed?" is answered.
 - If design is needed: the design-system decision is recorded (existing with source/location, founding with future home, or one-off with reason) in the discovery doc, `decisions.md`, and the project card — including the target surfaces/platforms the system must cover (marking which ship in this project vs which it anticipates for reuse).
 - Preliminary estimate produced per `references/estimation-budget.md`: `docs/estimate.md` (Estimate v1 — itemized AI hours and vibe coder hours, contingency, AI cost mode, assumptions stated, wide ranges marked as such) and `docs/token-ledger.md` created. No number is based on traditional human development time.
+- The client question was asked once — is there a client to bill or a quote to produce? — and `Client budget: yes/no` is on the project card (yes → `docs/budget.md` at Phase 2 close; no → the client questions are never asked).
 - `docs/01-discovery.md` exists and has zero open questions left unresolved.
 
 Do not enter Phase 2 with open discovery questions — an unresolved idea-level question becomes an expensive rework later.

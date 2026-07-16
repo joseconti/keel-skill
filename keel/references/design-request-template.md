@@ -42,7 +42,7 @@ For each item: what is missing, where it was expected, and what is needed.
 ### [Category — e.g. External software setup]
 - **Missing:** [e.g. the OAuth provider console requires a redirect URI and scopes, but `SPEC/external-setup.md` has no values — they were left implicit]
 - **Where expected:** [`SPEC/external-setup.md`]
-- **Needed:** [every exact value the user must enter by hand: software + version, exact path inside it, each field, each exact value/toggle, and the order — because downstream the user is walked through this one verified step at a time and an implicit value cannot be guided. Ask the user for anything that is theirs to decide (IDs, domains, secrets).]
+- **Needed:** [every exact value the user must enter by hand: software + version, exact path inside it, each field, each exact value/toggle, and the order — because downstream the user is walked through this one verified step at a time and an implicit value cannot be guided. Ask the user for anything that is theirs to decide (IDs, domains); a secret's VALUE is exchanged only in the Phase 4 guided walkthrough and never written here or into `SPEC/external-setup.md` — record its descriptive placeholder instead.]
 - **Deliver into:** [`SPEC/external-setup.md`]
 
 ### [Category — e.g. Accessibility spec]
@@ -63,5 +63,6 @@ For each item: what is missing, where it was expected, and what is needed.
 - Do not regenerate structurally-identical pages — keep the template + manifest model.
 - Ensure `SPEC/open-questions.md` ends with zero unresolved items.
 - Only touch the named gaps; leave everything else byte-stable so the audit can re-pass cleanly.
+- The re-delivery is DIFFED against the previous delivery: any change outside the named gaps is rejected as a new gap.
 
 Once re-delivered, the build will re-audit and proceed only if every gap above is resolved.

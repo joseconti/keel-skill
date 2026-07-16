@@ -2,6 +2,10 @@
 
 A verifiable checklist, not generic advice. Each item is something you can confirm is present and correct, per page or per site. Covers classic SEO, AEO (optimization for AI answer engines), and the supporting site files that consolidate both (`robots.txt`, `sitemap.xml`, `humans.txt`, `manifest.json`, `.well-known/security.txt`, `llms.txt`, favicons and the JSON-LD set). Honest scope: this is sound technical SEO and AEO — it does NOT promise rankings and includes no manipulative tactics. Plan these in Phase 2, build them in Phase 4, verify them at launch (`references/phase-8-launch-checklist.md`).
 
+## Working with a dedicated SEO skill
+
+Keyword/intent research and per-page content briefs are outside this checklist. When a dedicated SEO/AIO skill or workflow is available, run it BEFORE the section catalogue so its research feeds the page copy and structure. This file remains the single writer of the technical artifacts (metas, OG, JSON-LD, `sitemap.xml`, `robots.txt`, the well-known files) — the SEO skill's output is input to them, never a second writer of the same files.
+
 ## Per-page essentials
 
 - **Title**: unique, accurate, ≤ ~60 chars, primary intent first. One per page; no duplicates across pages.
@@ -68,9 +72,10 @@ Every site ships these unless explicitly justified otherwise. They are part of t
 - Located at the site root, reachable at `/robots.txt`, served as `text/plain`.
 - Does **not** accidentally block the site (no stray `Disallow: /`).
 - References the sitemap at the bottom: `Sitemap: https://example.com/sitemap.xml` (absolute URL).
-- Explicitly addresses AI/answer-engine crawlers — the policy is a user decision recorded in discovery, not the assistant's. Default if the user wants AI citation (recommended for project sites): **allow them**. Default if the user wants to opt out of AI training: **disallow them**. Either way, state it explicitly per crawler rather than relying on default behavior. Relevant user-agents at the time of writing include (the list is volatile — verify at launch):
-  - Answer engines that cite (usually allow): `ClaudeBot` (Anthropic answers), `PerplexityBot`, `OAI-SearchBot` (ChatGPT search), `Google-Extended` (Google AI), `Applebot-Extended`.
-  - Training crawlers (often the user wants to choose): `GPTBot` (OpenAI training), `anthropic-ai` (Anthropic legacy), `CCBot` (Common Crawl), `Bytespider`, `meta-externalagent`.
+- Explicitly addresses AI/answer-engine crawlers — the policy is a user decision recorded in discovery, not the assistant's. Two distinct axes, decided separately:
+  - **AI assistants and answer engines that fetch or cite for users** (usually allow — this is how the site gets cited): `Claude-User`, `Claude-SearchBot`, `PerplexityBot`, `Perplexity-User`, `OAI-SearchBot`, `ChatGPT-User`, `DuckAssistBot`.
+  - **AI training crawlers** (allowing them is a recorded user decision, never a silent default): `GPTBot`, `ClaudeBot`, `Google-Extended` — note: `Google-Extended` governs Gemini/Vertex training and grounding and does NOT affect Google AI Overviews, which rides normal Google Search crawling — plus `Applebot-Extended`, `CCBot`, `meta-externalagent`, `Bytespider`.
+  - The lists are volatile: at launch, verify each vendor's current crawler documentation before writing the final file, and record the allow/block decision per crawler.
 - For each user-agent, an explicit `User-agent:` block with `Allow:` or `Disallow:` — don't rely on the absence of a rule.
 
 ### `sitemap.xml` (mandatory)
@@ -173,6 +178,7 @@ A few rules that catch most mistakes:
 
 - **Clean, stable URL structure**: human-readable, lowercase, hyphenated, no session/junk params; URLs won't change after launch (or have redirects if they must).
 - **HTTPS everywhere**, valid TLS, HTTP→HTTPS redirect, HSTS (also a security-profile item).
+- **Security headers**: the exact header set and its `curl -sI` verification live in `references/security/website.md`; the launch checklist verifies them on the live site.
 - **404 and any redirects** behave correctly; no broken internal links.
 - One canonical host (www or non-www) — the other 301-redirects to it; sitemap and canonicals use only the canonical host.
 

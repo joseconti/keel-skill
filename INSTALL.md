@@ -11,10 +11,12 @@ The unit of installation is the **`keel/`** directory:
 ```
 keel/
 ├── SKILL.md
+├── MANIFEST.md
 ├── CHANGELOG.md
 ├── LICENSE
 ├── NOTICE
 └── references/
+    ├── keel-maintenance.md
     ├── phase-1-discovery.md
     ├── phase-2-functional-spec.md
     ├── ...
@@ -22,8 +24,11 @@ keel/
         ├── wordpress.md
         ├── web-app.md
         ├── mcp-server.md
-        └── library-component.md
+        ├── library-component.md
+        └── website.md
 ```
+
+`MANIFEST.md` is part of the skill — a copy without it breaks the post-update reconciliation. Copy the `keel/` directory whole, never file by file.
 
 Top-level files in this repository (`README.md`, `INSTALL.md`, `.gitignore`, `.gitattributes`) are repository metadata. They are **not** part of the skill and do not need to be copied to the install location.
 
@@ -36,7 +41,9 @@ git clone https://github.com/joseconti/keel-skill.git
 cd keel-skill
 ```
 
-Or download a release archive from the GitHub releases page and extract it. The release archives are produced by `git archive` and already exclude repository-only files via `.gitattributes` `export-ignore`, so the archive's root will be the `keel/` directory contents.
+Or download a release archive from the GitHub releases page and extract it. The release archives already exclude repository-only files via `.gitattributes` `export-ignore`. Note the layout: the tag archive unpacks to a `keel-skill-vX.Y.Z/` root directory that CONTAINS the `keel/` folder — copy that inner `keel/` folder to your skills directory (never the outer directory, or you end up with `keel/keel/SKILL.md`).
+
+Keel is also listed on the author's skills marketplace — [skills.joseconti.com/plugin/keel.html](https://skills.joseconti.com/plugin/keel.html) — which distributes it as part of a Claude Code / Cowork plugin; follow the marketplace's own instructions to add it and install from there.
 
 ## Install location
 
@@ -81,6 +88,18 @@ After adding it, bump the plugin version and reinstall the plugin in your Claude
 ### Option C — Shared with a team
 
 For a team installation, host the skill in a shared location your team's Claude environments already read from (an internal plugin marketplace, a shared skills folder synced via your existing tooling, etc.). The skill is plain files; any mechanism that delivers a directory will work, as long as `SKILL.md` ends up at the root of the installed folder.
+
+### Option D — Claude apps (claude.ai / desktop) and the API
+
+The Claude apps install skills as an uploaded zip whose root contains `SKILL.md`. Create it from the repository:
+
+```bash
+cd keel && zip -r ../keel.zip . && cd ..
+```
+
+Then upload `keel.zip` in the app's skills section (under Settings — the exact location and availability depend on your plan; see the current guidance at [docs.claude.com](https://docs.claude.com) and [support.claude.com](https://support.claude.com)). The same zip works for the Claude API's skills endpoint — consult the API documentation for the upload call.
+
+Note that app-managed skill storage is usually not writable by the assistant: Keel's session-start update check will tell you when a newer version exists and what it brings, but replacing the uploaded skill is yours to do (re-upload the new zip).
 
 ## Verifying the installation
 

@@ -2,6 +2,15 @@
 
 Phase 7 already enforces a real-environment verification hard gate, git/package hygiene, and versioning. This adds the website-specific launch checks. A failure here blocks the launch — same rule as the rest of Keel: "it works on the real domain" is not "it built locally".
 
+## Launch report — every check leaves a row (read first)
+
+Every check in this file lands as a row in `<site-docs>/launch-report.md`: item, how it was verified (the exact command/tool/step), result, date. An item without its row is NOT verified — "checked it" with no row does not count. The checks split two ways:
+
+- **Assistant-verifiable** — `curl` checks, fetching the well-known files, parsing each page's `<head>`, JSON-LD validation, sitemap coverage, the automated accessibility scan: the assistant executes them itself and records command + output in the row.
+- **User-guided** — checks needing the user's hands or accounts (OG/social debuggers that need a login, the real assistive-technology pass): run as guided one-step-at-a-time loops, each step's confirmation recorded in the row.
+
+When the environment provides the subagents defined in `references/claude-config.md`, delegate: **`launch-verifier`** crawls the sitemap and returns the pass/fail table that feeds `launch-report.md`; **`a11y-auditor`** runs the automated accessibility pass and prepares the guided-loop script for the manual one. The main session validates and records their results; it does not re-crawl.
+
 ## Real-environment verification (hard gate)
 
 Deploy the exact site to the actual host and the decided domain/subdomain (or a staging that mirrors it), then verify there — not locally:
@@ -15,11 +24,13 @@ Deploy the exact site to the actual host and the decided domain/subdomain (or a 
 
 Walk `references/phase-8-technical-seo.md` against the live site:
 
-### Per-page (sample every distinct template)
+### Per-page (every page on the sitemap)
+
+Derive the page list from `sitemap.xml` and check EVERY page on it. Title/description/`og:url` uniqueness is only provable over the full list — sampling one page per template proves the template, not the site, and is not sufficient.
 
 - Unique title + meta description + single h1 + canonical on every page.
 - Base `<head>` meta tags present: charset, viewport, theme-color, color-scheme (if used), referrer policy, author.
-- **Open Graph / Twitter card complete on every distinct template** — verify each required tag is actually present, not merely that "something renders":
+- **Open Graph / Twitter card complete on every page** — verify each required tag is actually present, not merely that "something renders":
   - `og:title`, `og:description`, `og:url` (absolute, = canonical), `og:type` and `og:image` all present. The classic failure is `og:image` present while `og:title`/`og:description`/`og:url` are missing — the card then renders blank or not at all.
   - `og:image` is an **absolute HTTPS URL** returning `200`, 1200×630, PNG/JPEG, under ~5 MB, with `og:image:width`/`height`/`alt` set.
   - `twitter:card` set (`summary_large_image`) plus `twitter:title`/`description`/`image`.
@@ -60,16 +71,25 @@ Walk `references/phase-8-technical-seo.md` against the live site:
 - Compression (gzip/brotli) and sane `Cache-Control` headers on static assets; HTML not aggressively cached.
 - HTTPS canonical-host redirect works (the non-canonical host 301s to the canonical one).
 
+## Security headers & forms
+
+Per the website security profile loaded at the start of Phase 8 (`references/security/website.md`):
+
+- **Header set verified with `curl -sI` on the live site** — the exact expected set lives in the security profile; record the command and the returned headers in the launch report.
+- **Anti-spam exercised for real, not assumed:** submit with the honeypot field filled → rejected; N rapid submissions → rate-limited. Record both results.
+- **Email deliverability:** send a real test message through the form and confirm SPF/DKIM/DMARC alignment on the received message (inspect its headers) — contact mail that lands in spam is a launch failure.
+
 ## Accessibility (hard gate — verified with real assistive technology on the live site)
 
-Per the Web/HTML section of `references/accessibility.md` and the Phase 1 commitment. Verify on the deployed site, not just in dev — automated tooling alone is insufficient:
+Per the Web/HTML section of `references/accessibility.md` and the Phase 1 commitment. Verify on the deployed site, not just in dev — automated tooling alone is insufficient. The manual passes below run as the guided assistive-technology pass in `references/accessibility.md` — one step at a time, the user confirms each — with results recorded in `docs/accessibility.md`:
 
 - **Keyboard-only:** every interactive element reachable and operable, logical focus order, visible focus, no keyboard trap, the skip link works, focus not obscured by sticky headers/overlays.
 - **Screen-reader pass** (VoiceOver / NVDA): landmarks and a single-`h1` heading outline are navigable; every control exposes an accessible name/role/state; images have correct text alternatives (decorative ones empty); forms have associated labels and errors are announced.
 - **Contrast:** every text and UI-object pair meets WCAG 2.2 AA (4.5:1 text / 3:1 large text and UI objects) — measured, not eyeballed.
 - **Reflow & text scaling:** usable at 200% text and 320px reflow with no clipping, overlap, or loss of content/function.
 - **User preferences honored:** `prefers-reduced-motion`, `prefers-contrast` / forced-colors (Windows High Contrast), `prefers-color-scheme`.
-- **Automated scan** (axe / Lighthouse / WAVE / pa11y) clean of violations — as a complement to, never a replacement for, the manual passes above.
+- **Automated scan over the full sitemap URL list** (e.g. `pa11y-ci --sitemap <url>`, or axe-core run across every URL from `sitemap.xml`), executed by the assistant (or the `a11y-auditor` subagent), clean of violations — as a complement to, never a replacement for, the manual passes above.
+- **Accessibility statement** (when EU scope applies): the page from the section catalogue exists and is linked, and its conformance status and known gaps match `docs/accessibility.md`.
 - The result meets WCAG 2.2 AA (AAA where reached) or the shortfall is honestly recorded in `docs/accessibility.md` (no overlay, no false conformance claim).
 
 ## Screenshots & generated assets
@@ -91,13 +111,26 @@ Per the Web/HTML section of `references/accessibility.md` and the Phase 1 commit
 - Phase 7 git/package hygiene done: `.gitignore`/`.gitattributes` correct, no secrets committed, distributable/deploy artifact clean.
 - Version and changelog updated (oldest → newest) if the site is itself versioned/released.
 
+## After launch — operations
+
+Launch is not the end state. Record the site's operational duties in `<site-docs>/operations.md` before closing the phase:
+
+- **Renewal dates:** domain renewal; TLS renewal if manually managed (platform-managed: note the platform instead); `security.txt` `Expires` — rotate before expiry.
+- **Uptime monitoring:** which check is in place (service, URL, alert target) — or the recorded decision not to have one. Never silently none.
+- **Backups:** where site backups live and how to restore — or why none is needed (e.g. the site is fully reproducible from the repo), recorded.
+- **Sitemap submitted to Search Console** (and Bing Webmaster if used) — a guided user loop, it needs the user's account; recheck coverage once indexed (pages discovered, no unexpected exclusions).
+- **Standing freshness duty:** from now on every product release (Phase 7) triggers the site-freshness mini-checklist — JSON-LD `softwareVersion`, the changelog/news page, screenshots if the UI changed, `sitemap.xml` `lastmod`, `llms.txt` — per `references/maintenance.md`.
+
 ## Definition of done (this reference)
 
+- Every check in this file has its row in `<site-docs>/launch-report.md` (item, how verified, result, date) — no row, not verified.
 - Real-environment verification passed on the actual domain.
-- SEO present and correct on every live page; the full well-known set (`robots.txt`, `sitemap.xml`, `humans.txt`, `manifest.json`, `.well-known/security.txt`, `llms.txt`, favicons) reachable and valid.
+- SEO present and correct on every live page (the full `sitemap.xml` list, not a sample); the full well-known set (`robots.txt`, `sitemap.xml`, `humans.txt`, `manifest.json`, `.well-known/security.txt`, `llms.txt`, favicons) reachable and valid.
 - Structured data validates live; AEO checks (answer-first, HTML-extractable, AI-crawler policy, `llms.txt`) all green.
-- Accessibility verified on the live site with real assistive technology (WCAG 2.2 AA floor: keyboard, screen reader, contrast, reflow, honored user preferences) per `references/accessibility.md`.
+- Security headers verified live with `curl -sI` per `references/security/website.md`; form anti-spam exercised for real (honeypot, rate limit); SPF/DKIM/DMARC aligned on a received test message.
+- Accessibility verified on the live site with real assistive technology (WCAG 2.2 AA floor: keyboard, screen reader, contrast, reflow, honored user preferences) per `references/accessibility.md`; accessibility statement present and linked when EU scope applies.
 - No placeholder/legal gaps.
 - Faithfulness to design holds live; hygiene done.
+- `<site-docs>/operations.md` produced: renewals, monitoring decision, backups, sitemap submission, standing freshness duty (`references/maintenance.md`).
 
-Only then is the site launched. Note completion back in the project tracking (docs/PROGRESS.md).
+Only then is the site launched and the phase closed. Note completion back in the project tracking (docs/PROGRESS.md).

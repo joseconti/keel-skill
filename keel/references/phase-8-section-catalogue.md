@@ -20,8 +20,10 @@ Sections are building blocks; not all apply to all site types. For each, "requir
 - **FAQ** — pre-empts support load and objections. Optional but high value.
 - **Changelog / roadmap** — especially for plugins/tools with an installed base; ties to the changelog ordering (oldest → newest).
 - **About / author** — trust, especially for independent/open-source projects.
-- **Contact / support** — how to get help; if a form, spec its states and the anti-spam approach (the loaded security profile applies).
+- **Contact / support** — how to get help; if a form, spec its states and the anti-spam approach per the concrete techniques in `references/security/website.md`: honeypot + time-trap by default, rate limit on the endpoint; a CAPTCHA only if user-approved and with an accessible alternative.
 - **Legal** — privacy, cookies, imprint as required by jurisdiction; flagged in discovery.
+- **Accessibility statement** — *required when the site or product is in EU scope* (EN 301 549 / European Accessibility Act): conformance status, known gaps (from `docs/accessibility.md`), and a feedback channel for accessibility issues. Linked from the footer.
+- **404 page** — *required template for every site type.* Designed by Design like any other template: helpful copy, a way back into the site, no dead end. The launch checklist already verifies it behaves correctly, so it must exist as a designed template, not a build-side improvisation.
 - **Footer** — navigation, legal links, repo/license link, language switcher if multilingual.
 
 ## Sitemap by site type

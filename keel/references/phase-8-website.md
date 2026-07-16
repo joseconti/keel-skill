@@ -8,6 +8,7 @@ This phase is the former standalone `keel-web` skill, absorbed into Keel so ther
 
 - Phase 1 `docs/01-discovery.md` recorded "project website: yes" (and own-domain vs subdomain intent).
 - Typically after Phase 7. If the user isn't ready at release, Phase 7 reminds them; resume here later.
+- A later explicit user request for the site supersedes a recorded Phase 1 "no": record the change in `docs/decisions.md` as a new entry, then run Phase 8 normally.
 
 ## Where the site lives (decide first — prevents artifact collisions)
 
@@ -23,8 +24,9 @@ In the references below, site artifact paths follow this decision (own repo → 
 - **Assess honestly first.** Before building, judge whether a separate site is even warranted: maybe the marketplace/.org listing already does the job, maybe a README is enough, maybe a one-page landing beats a multi-page site. Say so with the reasoning — same honest-assessment principle as Phase 1. Do not build a bigger site than the project needs.
 - **Reuse Keel's phases, don't reinvent.** Design handoff, faithful build, guided image generation, sprint tracking, security, release hygiene are Phases 3–7 — apply them to the site. The six references here only add the web-specific depth.
 - **No deviation, no invention.** Same handoff contract and build faithfulness as Phase 4. Missing design detail → Design Request. Build once, reuse by manifest — never regenerate near-identical pages.
-- **Vanilla by default; fonts and images self-contained.** Plain HTML/CSS/JS — no frameworks/libraries/CDN/runtime third-party scripts. The only exception is a user-approved static-site generator for a specific site type (e.g. docs micro-site), explicitly recorded; the assistant never decides this itself. Fonts always self-hosted via local `@font-face` (never Google Fonts/CDN), procured through a guided one-step-at-a-time loop. Images Design can't produce use the Phase 4 guided generation loop. Details in `references/phase-8-design-direction.md`.
+- **Vanilla by default; fonts and images self-contained.** Plain HTML/CSS/JS — no frameworks/libraries/CDN/runtime third-party scripts. The permitted exceptions are exactly the ones the user has explicitly approved and recorded: a static-site generator for a site type where it adds real value (e.g. docs micro-site), and the analytics decision from site discovery §5. Nothing else; the assistant never decides an exception itself. Fonts always self-hosted via local `@font-face` (never Google Fonts/CDN), procured through a guided one-step-at-a-time loop. Images Design can't produce use the Phase 4 guided generation loop. Details in `references/phase-8-design-direction.md`.
 - **Accessibility is a verified deliverable, not a side effect.** The site meets the Web/HTML section of `references/accessibility.md` (WCAG 2.2 AA floor, AAA where feasible; EN 301 549 / EAA in EU scope) — semantic HTML, keyboard operability, visible focus, contrast, honored `prefers-reduced-motion`/`prefers-contrast`, reflow at large text — built in from the first section and verified with real assistive technology at launch. This is the Phase 1 commitment applied to the site.
+- **Load the security profile at the start of Phase 8.** The website security profile `references/security/website.md` (headers, TLS, forms + anti-spam, mixed content, deploy integrity) is loaded now — for the site, every later mention of "the loaded security profile" refers to it. If the site has any app backend beyond a contact endpoint, ALSO load `references/security/web-app.md`.
 - **Decide structure-shaping things before design.** Site type, site language (its own blocking decision), design direction, section set and domain are decided and recorded BEFORE the design handoff.
 
 ## Steps (web specifics layered on Keel's phases)
@@ -41,8 +43,9 @@ In the references below, site artifact paths follow this decision (own repo → 
 | Dynamic parts (forms/CMS) if any: sprints + test points | Phase 5 (as-is) | — |
 | Site documentation (how to edit/deploy, SEO/AEO/domain as-built) | Phase 6 (as-is) | `references/phase-8-technical-seo.md` recap |
 | Pre-launch real-environment verification | Phase 7 (as-is) | `references/phase-8-launch-checklist.md` |
+| Post-launch operations → `<site-docs>/operations.md` | hand-off to maintenance | `references/phase-8-launch-checklist.md` ("After launch — operations") |
 
-Run order: study the product → discovery → sections/domain/SEO+AEO spec (all before design) → design handoff with direction (incl. reserved screenshot slots) → faithful build with guided fonts/images/screenshots and SEO+AEO → dynamic parts if any → docs → launch checklist.
+Run order: study the product → discovery → sections/domain/SEO+AEO spec (all before design) → design handoff with direction (incl. reserved screenshot slots) → faithful build with guided fonts/images/screenshots and SEO+AEO → dynamic parts if any → docs → launch checklist → post-launch operations.
 
 ## Definition of done
 
@@ -57,5 +60,7 @@ Run order: study the product → discovery → sections/domain/SEO+AEO spec (all
 - Web accessibility verified per `references/accessibility.md` (WCAG 2.2 AA floor) with real assistive technology at launch — not only as an SEO adjacent check.
 - SEO and AEO present and verified per page.
 - Real-environment launch verification passed (`references/phase-8-launch-checklist.md`).
+- `<site-docs>/launch-report.md` produced: every launch check recorded — item, how it was verified, result, date.
+- `<site-docs>/operations.md` produced: renewals, monitoring, backups, sitemap submission, standing freshness duty ("After launch — operations" in `references/phase-8-launch-checklist.md`).
 
-This is the final phase. Report the launch summary to the user.
+Report the launch summary to the user. The phase ends; the duty does not: from now on every product release (Phase 7) triggers the site-freshness mini-checklist in `references/maintenance.md`.

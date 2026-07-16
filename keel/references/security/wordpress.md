@@ -17,10 +17,9 @@ Load this when the project type is a WordPress plugin or WooCommerce extension. 
 
 ## MCP / OAuth (the user's common surface)
 
-- The MCP Adapter endpoint and `/mcp/` requests must enforce Bearer token validation; 401 with the correct `WWW-Authenticate` pointing to resource metadata when missing/invalid.
-- OAuth 2.1 with PKCE (S256): validate code challenge/verifier; never accept a public client without PKCE.
-- Scope every MCP ability to a capability; do not expose a privileged ability without an authorization check equivalent to the underlying WP capability.
-- Never log tokens, secrets, or full Authorization headers.
+- Map every MCP ability/tool to a WordPress capability check, exactly as REST routes map `permission_callback` — no ability without one; use the least capability that fits.
+- Application passwords and OAuth tokens carry the full capabilities of their WP user: connect the least-privileged user that works, honor revocation, require HTTPS, and never store, log, or echo one in plaintext — core keeps only the hash.
+- **When the plugin ships an MCP server or ability surface, load `references/security/mcp-server.md` IN FULL — this section is the WP mapping, not a substitute for that profile (redirect-URI allow-lists, blast radius, model-facing threats live there).**
 
 ## Secrets & data
 
@@ -41,6 +40,11 @@ Load this when the project type is a WordPress plugin or WooCommerce extension. 
 - `LIKE` queries escape the term with `$wpdb->esc_like()` *before* `$wpdb->prepare()`.
 - Every `register_setting()` has a real `sanitize_callback`; settings are re-sanitized on save, not only on render.
 - Cron/background handlers and `admin-post`/`admin-ajax` endpoints re-check capability and nonce — being "not linked in the UI" is not protection.
+- SSRF: any `wp_remote_get`/`wp_remote_post` whose URL is influenced by user input is validated first — `wp_http_validate_url()`, reject private/internal ranges, `wp_safe_remote_*` semantics / safe redirects.
+- Object injection: never `unserialize()` (or `maybe_unserialize()`) data that crossed a trust boundary — store and transport JSON instead.
+- Identifiers: `$wpdb->prepare()` placeholders do not cover table/column names or `ORDER BY` — use the `%i` identifier placeholder (WP 6.2+) or a strict allow-list.
+- Timing: compare tokens, license keys and HMACs with `hash_equals()`, never `==`/`===` string comparison.
+- Translations are third-party input: translated strings are escaped at output like any other variable (`esc_html__()`, `esc_attr__()`, or escape at the point of output) — a malicious `.po`/`.mo` is a real vector.
 
 ## Plugin-platform specifics
 
@@ -59,3 +63,11 @@ Load this when the project type is a WordPress plugin or WooCommerce extension. 
 - MCP/OAuth: token validation + PKCE + per-ability authz confirmed; no secret logged.
 - ABSPATH guard present in every PHP file; redirects via `wp_safe_redirect`; LIKE terms escaped; settings have sanitize callbacks.
 - Uninstall path leaves no sensitive residue (unless opted in).
+
+## Verify with
+
+- `phpcs` with the WordPress standard including the security sniffs: `phpcs --standard=WordPress` — `WordPress.Security.*` must be clean.
+- The Plugin Check plugin: `wp plugin check <slug>`.
+- `composer audit` / `npm audit` when the plugin bundles dependencies.
+
+At a test point, the command and its result are the evidence recorded in `docs/05-test-points.md` — an unrecorded check did not happen.

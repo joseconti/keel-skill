@@ -39,3 +39,11 @@ Load this when the deliverable is a library, package, or reusable component cons
 - Published artifact contains only intended files; no secrets in package or examples.
 - Dependency scan clean; versions pinned.
 - Public/internal boundary explicit; changelog notes security fixes oldest → newest.
+
+## Verify with
+
+- Package-manager audit of the dependency tree (`npm audit` / `composer audit` / `pip-audit` per ecosystem).
+- Inspect the PUBLISHED artifact, not the repo: `npm pack --dry-run` or the ecosystem's equivalent — no secrets, no dev files, only intended exports.
+- Diff the public API against the previous release before publishing — a breaking change is a major, per the disclosure duty above.
+
+At a test point, the command and its result are the evidence recorded in `docs/05-test-points.md` — an unrecorded check did not happen.

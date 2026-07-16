@@ -3,11 +3,13 @@
 Load this reference at these moments, and only these:
 
 - **Close of Phase 1 (Discovery)** → produce the **preliminary estimate** (ranges), so the user can answer a client quickly.
-- **Close of Phase 2 (Functional spec + technical plan)** → produce the **firm estimate** and the **client-facing budget**.
+- **Close of Phase 2 (Functional spec + technical plan)** → produce the **firm estimate** — and, when the project card says `Client budget: yes`, the **client-facing budget**.
 - **Any recorded scope change after a budget exists** → recompute and issue a new budget version (see "Scope changes").
 - **Adoption / existing projects**: when the user needs to quote a piece of planned work (remediation sprint, new feature) to a client, run the same procedure on that scope.
 - The user asks "what would this cost / how long will this take" at any point.
 - **End of every working session (and every phase/sprint close)** → append the session's row to `docs/token-ledger.md` (see "The token ledger" below — one line, cheap).
+
+Whether a client budget exists at all is decided once — at Phase 1 step 10, with one question: is there a client to bill or a quote to produce? — and recorded in the PROGRESS.md project card as `Client budget: yes/no`. `docs/estimate.md` and `docs/token-ledger.md` are unconditional: every project gets them, client or not. `docs/budget.md` is produced only when `Client budget: yes`; when `Client budget: no`, the rate, currency and budget-language questions are never asked.
 
 ## The rule this reference exists for (UNBREAKABLE)
 
@@ -71,6 +73,8 @@ Never assume any of these; ask them together when producing the firm budget (at 
 6. **Availability**: how many hours/week the developer will dedicate → converts hours into an estimated **calendar delivery** (always labeled as an estimate).
 7. Optional: quote validity period, payment terms, fixed price vs hours. If the user converts the estimate into a **fixed price**, the risk margin on top is their business decision — recommend one explicitly (contingency + margin), never a bare optimistic number.
 
+With `Client budget: no` on the project card there is no budget and no client: never ask 1, 4, 5 or 7 — only what the estimate itself needs (AI mode, contingency, availability).
+
 ## Step 4 — AI cost (tokens, per model)
 
 Two modes:
@@ -130,7 +134,7 @@ Preliminary (v1) uses wide ranges and says so. Firm (v2+) narrows them from the 
 
 ## Step 6 — `docs/budget.md` (client-facing, in the client's language)
 
-Written in the language asked in Step 3.4, with perfect orthography. **The two cost blocks are always separate** — developer services and AI cost — so the user decides exactly what the client sees and what gets billed:
+Produced only when the project card says `Client budget: yes` (asked once at Phase 1 step 10 — never re-asked here). Written in the language asked in Step 3.4, with perfect orthography. **The two cost blocks are always separate** — developer services and AI cost — so the user decides exactly what the client sees and what gets billed:
 
 ```
 # Budget — [Project name] — v[N] — [date]
@@ -159,6 +163,8 @@ If the user wants a shareable file (PDF or similar) and the environment can prod
 
 ## Step 7 — Present, adjust, approve (mandatory loop)
 
+With `Client budget: no` this loop reduces to presenting the estimate — there is no budget to adjust or approve. Otherwise:
+
 1. Present both artifacts: the internal estimate (how the numbers were built) and the client budget.
 2. Ask explicitly: **does the budget look right, or do you want adjustments?** Typical adjustments, offered proactively: not billing the AI cost (subscription = no extra expense); rounding totals; adding a commercial margin; a different rate; folding contingency into the rate; removing segments the user will not charge for.
 3. Iterate until the user **explicitly approves**. Client acceptance is the user's business — Keel does not block the project on it, but the budget document itself must be approved by the user before it is considered done.
@@ -166,7 +172,7 @@ If the user wants a shareable file (PDF or similar) and the environment can prod
 
 ## The token ledger — actuals, recorded as the project runs (`docs/token-ledger.md`)
 
-An estimate without actuals never improves. From the first estimate on, actual token usage is recorded in `docs/token-ledger.md` — one row per working session, appended at session end and verified at phase/sprint closes. Create it together with Estimate v1.
+An estimate without actuals never improves. From the first estimate on, actual token usage is recorded in `docs/token-ledger.md` — one row per working session, appended at session end and verified at phase/sprint closes. Create it together with Estimate v1. Appending the session's row is part of the continuation-prompt procedure in `references/project-state.md`: a session that ends mid-work still appends its row before producing the prompt.
 
 ```
 # Token Ledger — [Project name]
@@ -197,13 +203,15 @@ At release, Phase 7 runs the **final reconciliation** as part of its artifacts: 
 
 ## Scope changes (after a budget exists)
 
+A scope change is an artifact event first, a budget event second: follow the "Scope changes" playbook in `references/project-state.md` (spec amendment → design delta → BUILD-SPEC delta), then recompute here as described below.
+
 Any scope change recorded in `decisions.md` that affects the work (new feature, dropped feature, changed integration) → recompute the affected lines, append **Estimate v[N+1]** to `docs/estimate.md`, produce **budget v[N+1]**, and run Step 7 again. The budget never silently drifts from the recorded scope; "we'll absorb it" is a user decision to record, not a default.
 
 ## Definition of done (each run of this reference)
 
 - `docs/estimate.md` has the new version: itemized AI hours, itemized vibe coder hours (segment | what the developer does | hours), contingency, calendar estimate, AI cost with mode — and, if API, prices with source and verification date. All grounded in the recorded scope, with assumptions stated.
-- The Step 3 questions were asked and answered (firm budget), including rate + currency and the budget language.
-- `docs/budget.md` produced in the client's language, itemized per segment with amounts, the developer block and the AI block **separate**, total and terms present.
-- The user explicitly approved the budget (or adjustments were applied and re-approved); the approval and its choices are recorded in `docs/decisions.md`; `docs/PROGRESS.md` updated.
+- The Step 3 questions were asked and answered (firm budget), including rate + currency and the budget language — or, with `Client budget: no`, only the estimate questions (AI mode, contingency, availability) and no client question at all.
+- With `Client budget: yes`: `docs/budget.md` produced in the client's language, itemized per segment with amounts, the developer block and the AI block **separate**, total and terms present. With `Client budget: no`: no budget.md, by design — not an omission.
+- The user explicitly approved the budget (or adjustments were applied and re-approved) and the approval and its choices are recorded in `docs/decisions.md` — not applicable when `Client budget: no`; `docs/PROGRESS.md` updated either way.
 - `docs/token-ledger.md` exists from Estimate v1 on, with a row per working session (method stated); at release the final reconciliation (totals by model, cost at verified prices, deviation vs estimate, calibration lesson) is done and reported to the user.
 - No number anywhere is based on traditional human development time.

@@ -32,7 +32,7 @@ State the resulting package contents to the user so the boundary is visible and 
 
 ### 3. Versioning & changelog
 
-- Set the version per the project's scheme.
+- **Propose the version; never decide it.** The Keel version discipline applies at project scale: the assistant PROPOSES the number — patch / minor / major per the project's scheme, with one line of reasoning — and WAITS for the user's explicit approval before writing any version number anywhere. Only after that approval does it sync the touchpoints below. A version decided unilaterally is a defect, whatever the number.
 - **Sync every version touchpoint.** `docs/03-technical-plan.md` lists every place the version string lives (e.g. plugin main-file header, readme.txt `Stable tag`, a VERSION constant, package.json). Update ALL of them to the same value and verify they match — a mismatched touchpoint (header says 2.1.1, stable tag says 2.1.0) is a classic release defect that breaks updates.
 - Update the changelog: **oldest → newest ordering** (e.g. 2.1.0 then 2.1.1). Never invert.
 - Each entry: what changed, grouped (added/changed/fixed/security), referencing features from `docs/`.
@@ -40,8 +40,13 @@ State the resulting package contents to the user so the boundary is visible and 
 ### 4. Pre-release verification
 
 Before tagging:
-- Phase 5 test points all pass; Phase 6 docs complete.
+- **Executed checks, not log reading.** "Phase 5 test points all pass" is verified by RE-RUNNING now, on the release candidate — never by reading `docs/05-test-points.md`: run the ENTIRE automated suite against the exact distributable being tagged and record command + result in `docs/07-release.md`; run `scripts/keel-verify` on the candidate — clean, output recorded. Phase 6 docs complete.
+- **Walk `docs/PROGRESS.md`'s open items.** Every `⚠ unverified` step or asset is re-attempted in the real environment NOW, or the user accepts it explicitly with a `docs/decisions.md` entry. Nothing unverified rides silently into the tag.
+- **Zero placeholder copy in the distributable** (`scripts/keel-verify` checks the surfaces mechanically; confirm on the built package).
+- **Performance budgets verified on the candidate,** with the measurement method the plan named, numbers recorded.
+- **Debug logging defaults OFF in the release candidate.** The switch and the logging code stay in — they are the day-one diagnostic path — but the shipped default generates nothing until the user enables it (the Phase 5 scaffold set it ON for development; this gate flips and verifies the default on the actual candidate).
 - Security profile checklist passed (link `docs/security.md`).
+- When the environment provides subagents (per `references/claude-config.md`), `security-auditor` reviews the final tree before the tag; findings are fixed, or explicitly accepted by the user on the record.
 - If the Claude config package exists (`references/claude-config.md`): rules/agents still match the recorded conventions and security profile, the `settings.json` allow-list still matches the plan's commands, and the pre-commit gate still blocks a synthetic secret.
 - **Accessibility verification (gate — no tag without it for anything with a UI).** Automated checks pass, and a manual pass with the platform's **real assistive technology** — screen reader, keyboard/switch, largest text size, reduced-motion and high-contrast on — succeeds on the **actual distributable** in a real environment, not just in dev. It meets the Phase 1 targeted level (WCAG 2.2 AA floor / AAA where feasible; EN 301 549 / EAA where in scope) or the shortfall is honestly recorded in `docs/accessibility.md` (no overlay, no false conformance claim). Link `docs/accessibility.md`. Per `references/accessibility.md`.
 - Build the distributable the way the user actually ships it (e.g. `git archive` / the plugin packaging step) and inspect the output: no secrets, no dev files, all runtime files present, correct version.
@@ -56,7 +61,8 @@ Before tagging:
 - Produce/refresh the end-user README and any required store/marketplace metadata. For WordPress.org plugins specifically: `readme.txt` valid (`Requires at least`, `Tested up to` — current WP version actually tested, `Requires PHP`, `Stable tag` = this release), plugin main-file headers in sync, and the assets the listing needs (banner, icon, screenshots with captions).
 - Note the release in `docs/` (e.g. append to changelog and a short release note).
 - **Close the loop on issues and cost.** If a forge issue log exists (`docs/issues.md`): mark the issues this release closes — entries complete, shipping version recorded — and reference them in the changelog entry where useful. Then run the **final token reconciliation** in `docs/token-ledger.md` (per `references/estimation-budget.md`): total tokens by model, cost at verified current prices, and the deviation vs the estimate — report it to the user plainly, and record the calibration lesson for future estimates in `docs/lessons-learned.md` if significant.
-- Update `docs/PROGRESS.md`: Phase 7 done, and Phase 8 pending or n/a per the Phase 1 website intent.
+- **Maintenance handoff.** The release is not the end state: from here on the project is in maintenance, and anything that arrives — a bug report, a feature request, a dependency alert, a platform update — follows `references/maintenance.md` (triage, the hotfix path, rollback, the dependency/CVE duty, recurring features, site freshness when a Phase 8 site exists).
+- Update `docs/PROGRESS.md`: Phase 7 done, current position "maintenance" (per `references/maintenance.md`), and Phase 8 pending or n/a per the Phase 1 website intent.
 
 ## `docs/07-release.md`
 
@@ -66,7 +72,7 @@ Before tagging:
 ## export-ignore boundary (in repo, not in package)
 ## Package contents (verified)
 ## Changelog entry (oldest → newest)
-## Pre-release verification results
+## Pre-release verification results (full suite re-run on the candidate: command + result; keel-verify output; open items closed)
 ## Accessibility verification results (automated + real assistive-tech, on the distributable)
 ## Issues closed by this release (from docs/issues.md — if the log exists)
 ## Token reconciliation (totals by model, cost at verified prices, deviation vs estimate)
@@ -78,15 +84,19 @@ Before tagging:
 - `.gitignore` and `.gitattributes` (export-ignore) exist, correct for the project type, and the package boundary is agreed with the user.
 - No secret is tracked in git; no dev file is in the shipped package; no runtime file is missing from it.
 - If the Claude config package exists: verified current against the recorded decisions, and none of it (`.claude/`, `.githooks/`, `.mcp.json`) ships.
-- Version set and **identical across every touchpoint** listed in the technical plan; changelog updated oldest → newest.
+- Version proposed by the assistant and explicitly approved by the user, then set and **identical across every touchpoint** listed in the technical plan; changelog updated oldest → newest.
 - LICENSE file and headers ship correctly; bundled dependency licenses compatible.
 - Distributable built and its contents verified.
 - Real-environment verification passed on the actual distributable (and the real upgrade, if there's an installed base).
+- The ENTIRE automated suite was re-run on the exact distributable being tagged, command + result recorded in `docs/07-release.md`; `scripts/keel-verify` clean on the candidate.
+- No `⚠ unverified` item rode into the tag: each was re-attempted in the real environment or explicitly accepted by the user in `docs/decisions.md`; zero placeholder copy in the distributable; performance budgets verified on the candidate.
+- If the environment provides subagents: `security-auditor` reviewed the final tree, findings fixed or accepted on the record — otherwise its unavailability recorded.
+- Maintenance handoff noted: PROGRESS.md's position is "maintenance" and future work follows `references/maintenance.md`.
 - Accessibility verification passed on the actual distributable for anything with a UI (automated + real assistive-tech), meeting the Phase 1 targeted level or with the shortfall honestly recorded in `docs/accessibility.md`.
 - If `docs/issues.md` exists: the issues this release closes are marked resolved with complete entries and the shipping version recorded.
 - Final token reconciliation done in `docs/token-ledger.md` (totals by model, cost at verified prices, deviation vs estimate) and reported to the user.
 - `docs/07-release.md` complete.
 
-This is the final phase of the build lifecycle. Report the release summary to the user.
+This is the final phase of the build lifecycle; from here the project lives in maintenance (`references/maintenance.md`). Report the release summary to the user.
 
 If Phase 1 recorded project-website intent (yes), proceed to Phase 8 (Project Website) if the user is ready, or remind them Phase 8 can be run later whenever they want the site. Phase 8 is part of this skill — not built here in Phase 7.

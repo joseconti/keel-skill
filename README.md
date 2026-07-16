@@ -4,7 +4,7 @@
 
 Use it for any new project — WordPress/WooCommerce plugins, MCP servers, web apps, components, libraries, or websites. Keel runs a complete multi-phase workflow so you never have to re-explain your standing requirements every time you start something new.
 
-- **Version:** 1.12.1
+- **Version:** 2.0.0
 - **License:** GPL-3.0-or-later
 - **Author:** [José Conti](https://plugins.joseconti.com/en)
 
@@ -14,16 +14,20 @@ Keel encodes a full project lifecycle as a single skill. When you start a new pr
 
 | Phase | Purpose |
 |-------|---------|
-| 1. Discovery | Competitive scan, idea assessment, project type, constraints, license, accessibility commitment, language model, design system (existing or founded), website intent, preliminary AI-time estimate |
-| 2. Functional spec | Flows, data model, integrations, permissions, technical plan (stack, architecture, conventions), design split, acceptance criteria, firm estimate and client budget |
-| 3. Design handoff | What to tell Claude Design and the files Design must read and return |
-| 4. Faithful build | Audit Design's return, consolidate the build spec, build with zero deviation, guided external setup |
-| 5. Development | Sprint planning, vertical slices with test points, verification playground for real functional testing, living progress tracker, lessons learned |
+| 1. Discovery | Competitive scan, honest idea assessment with a recorded verdict, proposed v1 (the assistant proposes, the user reacts), project type, constraints, license, accessibility commitment, language model, design system (existing or founded), website intent, client-budget question, preliminary AI-time estimate |
+| 2. Functional spec | Flows, data model, integrations, permissions, technical plan (stack, architecture, conventions, testing plan with named frameworks and a playground recipe), design split, acceptance criteria, adversarial spec review, firm estimate and client budget |
+| 3. Design handoff | What to tell Claude Design and the files Design must read and return — with an approval gate, screenshot-based visual references, and a playbook for when Design is not available |
+| 4. Faithful build | Audit Design's return with recorded evidence (including recomputed contrast), consolidate the build spec, build with zero deviation, guided external setup, independent fidelity review |
+| 5. Development | Sprint planning, vertical slices with test points and evidence (commands, outputs, commit hashes), unit/integration/e2e coverage per acceptance criterion, real playground with synthetic seed data, independent review subagents, full-suite sprint closes, lessons learned |
 | 6. Documentation | Full `docs/` layout: API, classes, functions, usage, architecture, security, accessibility, playground |
-| 7. Release | `.gitignore` vs `.gitattributes` export-ignore, versioning, real-environment verification, release artifacts |
-| 8. Project website (conditional) | Product study, site type, sections, domain, design direction, vanilla build, self-hosted fonts, SEO and AEO, launch |
+| 7. Release | `.gitignore` vs `.gitattributes` export-ignore, proposed version with explicit user approval, full-suite re-run on the exact release candidate, real-environment verification, release artifacts, maintenance handoff |
+| 8. Project website (conditional) | Product study, site type, sections, domain, design direction, vanilla build, self-hosted fonts, SEO and AEO, launch report with full-sitemap verification, post-launch operations |
 
-Security is cross-cutting. As soon as Phase 1 fixes the project type, Keel loads the matching security profile (WordPress/WooCommerce, web app, MCP server, library/component) and keeps it in mind through every later phase.
+After Phase 7 the project enters **maintenance** (`references/maintenance.md`): triage, a hotfix path from the release tag, rollback guidance, dependency and CVE response ("Tested up to" only after testing), recurring features, and the website freshness duty.
+
+Security is cross-cutting. As soon as Phase 1 fixes the project type, Keel loads the matching security profile (WordPress/WooCommerce, web app, MCP server, library/component, or website for Phase 8 sites) and keeps it in mind through every later phase. Every profile ends in a "Verify with" block naming the exact tools (phpcs with the WordPress security sniffs and Plugin Check, npm/composer/pip audit, OWASP ZAP baseline, MCP Inspector) — at a test point, the command and its result are the evidence, and an unrecorded check did not happen. The MCP profile covers model-facing threats (tool-result injection, description poisoning, confused deputy, destructive-tool consent, Origin validation).
+
+Verification is executable, not declarative. Every gate that can be checked mechanically is: acceptance criteria map to named automated tests (unit, integration, and browser-driven e2e for UI flows), test-point rows carry the exact commands with their output and commit hash, sprint closes run the full suite, the handoff audit leaves evidence per item and recomputes contrast ratios from the delivered hex values, and each project generates its own release linter (`scripts/keel-verify`). Independent subagents (code reviewer, security auditor, docs verifier, design-fidelity auditor, playground QA, launch verifier, accessibility auditor) break the self-certification loop wherever the environment provides them. The standing bar: anything a compile, a boot of the playground, or a basic test would have caught must be caught before the work is handed over.
 
 Accessibility is cross-cutting too, and non-negotiable. As soon as Phase 1 fixes the project type and target platform(s), Keel loads `references/accessibility.md` and applies it — from the first line, on every platform (web, iOS, Android, macOS, Windows) — through every later phase, targeting WCAG 2.2 AA (AAA where feasible), EN 301 549 and the European Accessibility Act where they apply, and each platform's native accessibility API. It is stated up front, never retrofitted at the end.
 
@@ -37,9 +41,9 @@ Keel has three entry modes: a new project (Phase 1 from zero), resuming an in-pr
 
 Every Keel project also carries a **portability lock**: a `CLAUDE.md` block (optionally plus the skill embedded at `.claude/skills/keel/`) that binds any environment or AI opening the repo — Claude app, Cowork, Claude Code in VS Code, or another assistant — to the Keel workflow, even where the skill is not installed. Workflow files never ship in the distributable (Phase 7 export-ignore).
 
-Projects can also opt into **native Claude Code configuration**, generated from their own recorded decisions (`references/claude-config.md`): path-scoped `.claude/rules/` distilled from the technical plan's conventions and the security profile, `.claude/agents/` reviewer subagents (code review, security audit, docs verification), a confirmed minimal permission allow-list in `.claude/settings.json`, a confidential-data git pre-commit gate that blocks secrets from any environment or editor, and `.mcp.json` for development MCP servers. The `CLAUDE.md` lock remains the universal mechanism — this package is Claude Code ergonomics on top, offered once per project, always recorded in the project card, and never shipped.
+Projects can also opt into **native Claude Code configuration**, generated from their own recorded decisions (`references/claude-config.md`): path-scoped `.claude/rules/` distilled from the technical plan's conventions and the security profile, `.claude/agents/` reviewer and verifier subagents (code review, security audit, docs verification, design fidelity, playground QA, launch verification, accessibility audit), a confirmed minimal permission allow-list in `.claude/settings.json`, a confidential-data git pre-commit gate that blocks secrets from any environment or editor, an optional CI workflow built from the plan's exact verified commands, and `.mcp.json` for development MCP servers. The `CLAUDE.md` lock remains the universal mechanism — this package is Claude Code ergonomics on top, offered once per project, always recorded in the project card, and never shipped.
 
-Keel also keeps itself current. At the start of every session it checks this repository for a newer release (`git ls-remote --tags`, with API fallbacks). Every copy is checked separately — an up-to-date app install does not hide an outdated embedded copy in the opened project. It updates every copy it can durably write — the user-level install and, always when present, the project's embedded `.claude/skills/keel/` — with a verified full-tree replacement, summarizing the improvements; for a copy it cannot write (app-managed skill storage, as in the Claude app / Cowork), it tells you a newer version exists, what it brings, and how to update. The check is best-effort and never blocks work, and the remote lookup is throttled to at most one check per 24 hours per project via a machine-local stamp (`.keel-update-check` at the project root, always gitignored) — the full SKILL.md read and the stamp-only lock-freshness check still run in every session, since they are local and free. After an update, a **post-update reconciliation** brings the open project itself up to date with what the new version introduces — new required files or directories, new project-card lines, lock-block refreshes, never-asked questions — tracked by the project card's `Keel baseline:` line and recorded like any other decision. Its first input is the **parity manifest** (`keel/MANIFEST.md`): everything a Keel project must contain, phase- and condition-aware, plus the Keel version that last changed each skill file — the exact re-read list after any update.
+Keel also keeps itself current. At the start of every session it checks this repository for a newer release (`git ls-remote --tags`, with API fallbacks). Every copy is checked separately — an up-to-date app install does not hide an outdated embedded copy in the opened project. It updates every copy it can durably write — the user-level install and, always when present, the project's embedded `.claude/skills/keel/` — with a verified full-tree replacement, summarizing the improvements; for a copy it cannot write (app-managed skill storage, as in the Claude app / Cowork), it tells you a newer version exists, what it brings, and how to update. The check is best-effort and never blocks work, and the remote lookup is throttled to at most one check per 24 hours per project via a machine-local stamp (`.keel-update-check` at the project root, always gitignored) — the full SKILL.md read and the stamp-only lock-freshness check still run in every session, since they are local and free. After an update, a **post-update reconciliation** brings the open project itself up to date with what the new version introduces — new required files or directories, new project-card lines, lock-block refreshes, never-asked questions — tracked by the project card's `Keel baseline:` line and recorded like any other decision. Its first input is the **parity manifest** (`keel/MANIFEST.md`): everything a Keel project must contain, phase- and condition-aware, plus the Keel version that last changed each skill file and a per-version action list — the exact re-read list and to-do delta after any update.
 
 ## Operating principles
 
@@ -57,7 +61,7 @@ Keel also keeps itself current. At the start of every session it checks this rep
 - Reuse the internal API; never duplicate code. Search the existing API before writing anything new; generalize a close fit instead of forking it. Duplication is a defect.
 - Document every public surface at the moment it is created — functions, classes, hooks, routes, MCP abilities, CLI commands — with a runnable example. Phase 6 consolidates documentation; it never writes it from zero.
 - Maximum extensibility for extensible project types: filterable user-facing strings, before/after hooks on decisions, filterable queries and responses, replaceable public classes.
-- Real functional verification whenever possible, not only automated tests: a runnable playground (Docker, wp-env, sandbox) where real flows, CLI, and API calls are exercised — and the user gets access details plus try-it instructions (`docs/playground.md`).
+- Real functional verification whenever possible, not only automated tests: a runnable playground with a per-platform recipe (wp-env, MCP Inspector, Playwright, a clean consumer project) and synthetic seed data, where real flows, CLI, and API calls are exercised — and the user gets access details plus try-it instructions (`docs/playground.md`). Anything a compile, a boot, or a basic test would have caught is caught before hand-over, and a failing test is never weakened to pass.
 - Budgets are AI-time based, never human-time based: the AI's hours plus the vibe coder's supervision hours, itemized per segment, with the AI's token cost separate — and the actuals reconciled against the estimate at release.
 - Forge issues are tracked in a living log (`docs/issues.md`): everything there is, everything resolved and exactly how, everything still pending.
 - Confirm before advancing a phase. Each phase has a definition of done.
@@ -80,15 +84,20 @@ keel-skill/
 ├── INSTALL.md
 ├── .gitignore
 ├── .gitattributes
+├── .github/workflows/     # Release CI: lints every tag, publishes the release (repo-only)
+├── tests/                 # Release linter + eval scenarios (repo-only, never shipped)
 └── keel/
     ├── SKILL.md           # Skill entry point (frontmatter is the source of truth for version)
-    ├── MANIFEST.md        # Parity manifest: required project structure + per-file skill versions
+    ├── MANIFEST.md        # Parity manifest: required structure + per-file versions + per-version actions
     ├── CHANGELOG.md       # Oldest to newest, never inverted
     ├── LICENSE            # GPL-3.0-or-later
     ├── NOTICE             # Copyright notice
     └── references/        # Phase reference files, loaded on demand
+        ├── keel-maintenance.md
         ├── project-state.md
         ├── adoption.md
+        ├── maintenance.md
+        ├── playground-recipes.md
         ├── claude-config.md
         ├── estimation-budget.md
         ├── phase-1-discovery.md
@@ -114,12 +123,13 @@ keel-skill/
             ├── wordpress.md
             ├── web-app.md
             ├── mcp-server.md
-            └── library-component.md
+            ├── library-component.md
+            └── website.md
 ```
 
 ## Version reporting
 
-The version in `keel/SKILL.md` frontmatter (`metadata.version`) is the source of truth. The same version is mirrored in `keel/CHANGELOG.md`, in the introduction line of `SKILL.md`, and in the `keel/MANIFEST.md` header. Keep all four in sync whenever the skill is updated.
+The version in `keel/SKILL.md` frontmatter (`metadata.version`) is the source of truth. The same version is mirrored in `keel/CHANGELOG.md`, in the introduction line of `SKILL.md`, and in the `keel/MANIFEST.md` header. This README's version line and the canonical lock-block stamp in `references/project-state.md` are kept in sync as well — `tests/lint-release.py` verifies all of it mechanically and CI runs it on every tag.
 
 ## Contributing
 
@@ -129,6 +139,7 @@ When contributing:
 
 - Follow the existing tone and structure of the reference files.
 - Update `CHANGELOG.md` (oldest to newest) and the version in `SKILL.md` frontmatter.
+- Run `python3 tests/lint-release.py` before proposing a release — it checks version sync, the description length limit, changelog order, reference-index parity, and the manifest against the tree.
 - Do not commit Mac, Windows, Linux, or editor metadata files (see `.gitignore`).
 
 ## License

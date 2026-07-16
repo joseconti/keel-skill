@@ -1,0 +1,58 @@
+# Keel release pipeline.
+#
+# - On every push and pull request: run the release linter (version sync,
+#   description limit, changelog order, reference parity, manifest parity).
+# - On a version tag (v*): lint, verify the tag matches the frontmatter,
+#   extract that version's CHANGELOG section, and publish the GitHub release
+#   with those notes. The tag archive itself is GitHub's, shaped by
+#   .gitattributes export-ignore.
+#
+# This file is repo-only (export-ignored); it never ships with the skill.
+
+name: release
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run release linter
+        run: python3 tests/lint-release.py
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify tag matches frontmatter version
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          FM=$(sed -n 's/^  version: *//p' keel/SKILL.md | head -1)
+          echo "tag=$TAG frontmatter=$FM"
+          test "$TAG" = "$FM"
+      - name: Extract changelog section for this version
+        run: |
+          python3 - <<'EOF'
+          import os, re, sys
+          version = os.environ["GITHUB_REF_NAME"].lstrip("v")
+          text = open("keel/CHANGELOG.md", encoding="utf-8").read()
+          m = re.search(rf"^## {re.escape(version)}\s*$(.*?)(?=^## [0-9]|\Z)", text, re.M | re.S)
+          if not m:
+              sys.exit(f"No CHANGELOG section found for {version}")
+          open("RELEASE_NOTES.md", "w", encoding="utf-8").write(m.group(1).strip() + "\n")
+          EOF
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: RELEASE_NOTES.md
+          name: Keel ${{ github.ref_name }}

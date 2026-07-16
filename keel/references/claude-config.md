@@ -1,6 +1,6 @@
 # Native Claude Code project configuration (`.claude/`) — optional package
 
-Load this reference at three moments, and only these: (a) Phase 1 step 0a (or adoption step 2), when the package is OFFERED; (b) the close of Phase 2 (adoption: after its step 4), when rules and agents are MATERIALIZED; (c) the Phase 5 scaffold, when settings, the pre-commit gate, and `.mcp.json` are COMPLETED.
+Load this reference at three moments, and only these: (a) Phase 1 step 0a (or adoption step 2), when the package is OFFERED; (b) the close of Phase 2 (adoption: after its step 4), when rules and agents are MATERIALIZED; (c) the Phase 5 scaffold, when settings, the pre-commit gate, `.mcp.json`, and the CI workflow are COMPLETED.
 
 Claude Code loads certain project files natively: `.claude/rules/*.md` (modular instructions, path-scopable), `.claude/agents/*.md` (project subagents), `.claude/settings.json` (shared permissions and config), and `.mcp.json` at the repo root (MCP servers). Keel can generate these from decisions the project has ALREADY made, so sessions running in Claude Code get the project's conventions, security profile, and quality gates enforced ergonomically — without re-reading the full technical plan into context every time.
 
@@ -19,7 +19,7 @@ Alongside the existing embed-the-skill question, ask ONCE whether the project sh
 Claude config: [none / rules / rules+agents / full]
 ```
 
-(`full` = rules + agents + settings + pre-commit gate + `.mcp.json` when applicable.) Record a D-entry in `docs/decisions.md` with what was accepted. In the same breath, tell the user once that `CLAUDE.local.md` and `.claude/settings.local.json` exist for PERSONAL, non-committed preferences: Keel never creates them (they are the user's own), but always adds both to `.gitignore` so they can never be committed by accident.
+(`full` = rules + agents + settings + pre-commit gate + `.mcp.json` and the CI workflow when applicable.) Record a D-entry in `docs/decisions.md` with what was accepted. In the same breath, tell the user once that `CLAUDE.local.md` and `.claude/settings.local.json` exist for PERSONAL, non-committed preferences: Keel never creates them (they are the user's own), but always adds both to `.gitignore` so they can never be committed by accident.
 
 Do not block on this question: if the user defers, record `Claude config: none (deferred)` and move on — the package can be added later from this reference at any phase boundary.
 
@@ -28,12 +28,13 @@ Do not block on this question: if the user defers, record `Claude config: none (
 | Piece | Generated from | Created at | Updated when |
 |-------|----------------|-----------|--------------|
 | `.claude/rules/` | `docs/03-technical-plan.md` §Conventions + the loaded security profile + Keel quality gates | Phase 2 close (adoption: after its step 4) | A recorded decision changes a source — same change, never silently |
-| `.claude/agents/` | Same sources + `docs/api/INDEX.md` discipline | Phase 2 close (adoption: after its step 4) | Same rule |
+| `.claude/agents/` | Same sources + `docs/api/INDEX.md` discipline | Phase 2 close (adoption: after its step 4); `launch-verifier` only with website intent — or at Phase 8 start on first need | Same rule |
 | `.claude/settings.json` | Technical plan §Tooling commands + playground commands | Phase 5 scaffold, ALWAYS confirmed with the user | Tooling/playground commands change |
 | `.githooks/pre-commit` | SKILL.md "Confidential data never reaches Git" | Phase 5 scaffold (adoption: immediately, with approval) | The gate's patterns need tightening (recorded) |
+| CI workflow (e.g. `.github/workflows/ci.yml`) | Technical plan §Tooling commands — the same verified source as `settings.json` | Phase 5 scaffold, if the forge supports CI | The plan's verified commands change |
 | `.mcp.json` (repo root) | Technical plan — ONLY if it defines development MCP servers | Phase 5 scaffold, confirmed | The dev MCP set changes |
 
-Everything in the table is repo-only: Phase 7 marks `.claude/`, `.githooks/`, and `.mcp.json` `export-ignore` alongside the existing workflow files, so none of it ships in the distributable.
+Everything in the table is repo-only: Phase 7 marks `.claude/`, `.githooks/`, `.mcp.json`, and the CI workflow directory `export-ignore` alongside the existing workflow files, so none of it ships in the distributable.
 
 ## `.claude/rules/` — three files, path-scoped
 
@@ -76,9 +77,11 @@ paths:
 - Update docs/PROGRESS.md and docs/decisions.md at the moment of change, never later.
 ```
 
-## `.claude/agents/` — three project subagents
+## `.claude/agents/` — seven project subagents
 
-Markdown files with YAML frontmatter (`name`, `description`, `tools`). Give them read-only tools (`Read, Grep, Glob`) — they flag, they never fix. Do NOT pin a `model:` (model names age; inherit the session's). The `description` must say WHEN to use the agent — Claude Code delegates based on it.
+Markdown files with YAML frontmatter (`name`, `description`, `tools`). Give them read-only tools (`Read, Grep, Glob`) — they flag, they never fix; the verifiers that must EXECUTE to verify (run the playground, fetch the deployed site, run accessibility tooling) add `Bash`/`WebFetch` on top and still never write. Do NOT pin a `model:` (model names age; inherit the session's). The `description` must say WHEN to use the agent — Claude Code delegates based on it.
+
+All of them materialize together at Phase 2 close (adoption: after its step 4), except `launch-verifier`: generated only when Phase 1 recorded website intent — or at Phase 8 start on first need. The conditional agents (`design-fidelity-auditor`, `playground-qa`, `launch-verifier`, `a11y-auditor`) are generated only for projects meeting their condition — an agent the project can never use is noise, not coverage.
 
 **`code-reviewer.md`**:
 
@@ -99,6 +102,16 @@ Report: file:line — what fails — which recorded rule it violates. Order by s
 **`security-auditor.md`** — same skeleton; description: "Audits changes against the [type] security profile. Use before any commit touching input handling, auth, data writes, or external calls." Body: the distilled profile checklist (same ten bullets as the rule), plus: verify no secret, credential, key, or real personal data appears in the changed files. Report file:line + risk + rule.
 
 **`docs-verifier.md`** — same skeleton; description: "Verifies docs/api/INDEX.md and docs/api/ + docs/reference/ are one-to-one. Use at test points and sprint closes." Body: every INDEX row has its doc; every doc has its row; every public surface in the diff appears in both; examples reference symbols that exist. Report mismatches as slice defects.
+
+**`design-fidelity-auditor.md`** — UI projects only; same skeleton, read-only. description: "Verifies the built UI against docs/BUILD-SPEC.md and the design handoff, screen by screen. Use at Phase 4 Step 7 (the fidelity walk) and whenever fidelity is in doubt." Body: read `docs/BUILD-SPEC.md`, `docs/design/design-handoff/`, and the built UI code; verify per screen: (1) computed/token values against the BUILD-SPEC token table (§3), (2) every state row of the state matrix (§4) present and reachable, (3) every asset referenced without build-side transformation. Report screen + file:line — expected vs built. Findings become defects or Design Requests — never silently fixed.
+
+**`playground-qa.md`** — projects with a playground; skeleton plus `Bash` (it executes, it never edits). description: "Runs docs/playground.md literally, with fresh context. Use at sprint closes and at the Phase 7 gate." Body: receive ONLY `docs/playground.md` and follow it to the letter — start commands, every try-it flow, teardown. Report every point where reality diverges from the document: a command that fails, a step that assumes unstated context, a flow that dead-ends. An instruction gap is a defect exactly like a code bug — the document, not the reader, gets fixed.
+
+**`launch-verifier.md`** — website projects (Phase 8); skeleton plus `Bash`/`WebFetch` (it fetches, it never edits). description: "Crawls the deployed site and returns the launch verification table. Use at the Phase 8 launch checklist." Body: from `sitemap.xml`, fetch every page; parse every head (title, description, OG — present and unique per page); validate the JSON-LD; fetch the well-known files; check the security headers. Report the pass/fail table that feeds `<site-docs>/launch-report.md`, one row per check with its evidence.
+
+**`a11y-auditor.md`** — UI and website projects; skeleton plus `Bash` (it runs tooling, it never edits). description: "Runs the automated accessibility pass and prepares the guided assistive-technology script. Use before Phase 4's definition of done and at the Phase 8 launch checklist." Body: run the automated pass (axe-core / pa11y / the platform inspectors) across the screens or the full sitemap URL list, recording command + result; prepare the step-by-step script for the guided assistive-technology pass the user will run (the guided loop in `references/accessibility.md`). Report findings by severity; automated coverage is partial by design — the guided pass closes the rest.
+
+This file DEFINES the agents; the phase references INVOKE them: Phase 4 Step 7, Phase 5 test points and sprint closes, the Phase 7 gate, the Phase 8 launch checklist. If the environment provides no subagents, the session runs the same checks inline and says so — the check never disappears with the mechanism.
 
 ## `.claude/settings.json` — minimal allow-list, ALWAYS confirmed
 
@@ -180,6 +193,12 @@ exit 1
 
 False positives are kept rare by design — field-tested: (1) the gate itself exempts the canonical trees that legitimately contain the very patterns it searches for, `.githooks/` (its own script) and `.claude/skills/` (the embedded skill, including this reference), while the assistant-side check still scans them like everything else; (2) never CREATE a false positive when writing — in `docs/decisions.md`, `docs/lessons-learned.md`, comments, or any project note, a secret-shaped string is described or split apart (`api` + `_key`), never pasted verbatim (SKILL.md "Confidential data never reaches Git", point 5). The occasional remaining case (e.g. a legitimate `class-secrets-manager.php`) is handled by the conscious bypass policy above, on the record. Never loosen the patterns to avoid a one-time bypass. If the user also wants an assistant-side hook (a Claude Code `PreToolUse` hook in `settings.json` that gates `git commit`), add it on top — but the git hook is the baseline and never replaced by it.
 
+## The CI workflow — conditional, forge-side
+
+Generated at the Phase 5 scaffold when the package was accepted and the project's forge supports CI (GitHub Actions or the forge's equivalent). ONE workflow, running on push and on pull request: install → lint → build → the FULL test suite — the technical plan's EXACT verified commands, the same verified source as `settings.json`, never invented — plus a secret scan (gitleaks) and `scripts/keel-verify`. A command that is not in the plan and verified does not enter the workflow.
+
+Why it exists when the pre-commit gate already does: the gate is per-clone (`core.hooksPath` is configured checkout by checkout) — CI is the net that fires in every environment, on every push, including commits made where no hook and no Keel session was present. That is exactly the portability argument this file already makes for the gate, one level up.
+
 ## `.mcp.json` — conditional, at the repo root
 
 Create it ONLY when `docs/03-technical-plan.md` defines MCP servers used during development (e.g. the project's own MCP server under test, or a WordPress content MCP for the playground). Confirm with the user before writing.
@@ -211,6 +230,7 @@ Hard rule: NEVER a literal secret in this file — environment expansion (`${VAR
 - `settings.json`, if accepted: allow-list built only from verified plan/playground commands and explicitly confirmed by the user before writing.
 - The pre-commit gate, if accepted: installed (`.githooks/pre-commit` + `core.hooksPath`), VERIFIED by blocking a synthetic secret, and its collaborator setup line documented.
 - `.mcp.json` exists only if the plan defines dev MCP servers, carries no literal secret, and was confirmed.
+- The CI workflow, if accepted and the forge supports CI: one workflow, on push and PR, running the plan's EXACT verified commands (install → lint → build → full test suite) plus the secret scan and `scripts/keel-verify` — nothing invented.
 - `.gitignore` includes `CLAUDE.local.md`, `.claude/settings.local.json`, and `.keel-update-check` (this entry is unconditional — it applies even when the whole package was declined).
 - Phase 7's export-ignore covers `.claude/`, `.githooks/`, and `.mcp.json`; nothing from this package ships.
 - Every generated piece is reflected in the project card and `docs/decisions.md`; no piece is ever regenerated silently.

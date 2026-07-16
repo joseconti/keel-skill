@@ -7,7 +7,7 @@ Goal: turn the agreed v1 scope into a precise functional specification with flow
 - `docs/02-functional-spec.md` — the functional contract.
 - `docs/flows/` — one flow per significant user/system journey (markdown with step lists; include a Mermaid diagram where it clarifies branching).
 - `docs/03-technical-plan.md` — the technical foundation: stack, architecture, code map, conventions (step 4). Without it, every later session invents its own conventions and the codebase drifts.
-- `docs/estimate.md` (firm version appended) and `docs/budget.md` — the client-facing budget (step 7, per `references/estimation-budget.md`).
+- `docs/estimate.md` (firm version appended) and — only when the project card says `Client budget: yes` — `docs/budget.md`, the client-facing budget (step 7, per `references/estimation-budget.md`).
 
 ## Steps
 
@@ -57,8 +57,12 @@ ALWAYS use this template for `docs/03-technical-plan.md`:
 - Error handling: [one strategy: exceptions vs error objects (e.g. WP_Error) vs result types; user-facing error policy]
 - Logging: [mechanism + levels; never log secrets — per the security profile]
 ## Testing
-- Framework(s) + exact run commands; what gets unit vs integration vs end-to-end coverage
-- Verification playground (whenever the project can be run): how the software will be exercised for REAL beyond the automated suite — Docker/docker-compose, wp-env, a playground script, a disposable sandbox, whatever fits the stack — with exact start/stop commands. Stood up at the Phase 5 scaffold; access details + step-by-step try-it instructions for the user live in docs/playground.md
+- Unit tests: framework + the exact run command
+- Integration and end-to-end tests: framework + the exact run command, and what gets unit vs integration vs e2e coverage. E2E is REQUIRED when the project has a UI or multi-step user flows — for web that means a browser-driven test (e.g. Playwright)
+- Verification playground (whenever the project can be run): the recipe chosen from references/playground-recipes.md for the project type — how the software will be exercised for REAL beyond the automated suite (Docker/docker-compose, wp-env, a playground script, a disposable sandbox, whatever fits the stack) — with exact start/stop commands, the seed-data mechanism (synthetic fixtures or a seeding script — NEVER real data) and its reset command. Stood up at the Phase 5 scaffold; access details + step-by-step try-it instructions for the user live in docs/playground.md
+- Real exercise per flow: the exact command, URL, or tool call that exercises each main flow in the playground
+- Debug logging: the product's own log mechanism and its on/off switch, per platform (Woo: `WC_Logger` + a settings checkbox; WP: plugin log + checkbox/constant; PrestaShop: module config; panel apps: a panel toggle; servers/CLIs/libraries: env var or constant; MCP servers: stderr) — designed for copy-paste diagnosis by the user, ON during development, OFF by default at release (built at the Phase 5 scaffold; verified at the Phase 7 gate)
+- Performance budget measurement: how any budget declared in §Support matrix & budgets will be measured
 - Regression rule: every bug fixed gets a test pinning the fix (linked from lessons-learned)
 ## Tooling commands
 - lint / test / build / package: the exact commands (verified end-to-end at Phase 5 scaffold)
@@ -69,6 +73,8 @@ ALWAYS use this template for `docs/03-technical-plan.md`:
 ```
 
 The code map and conventions are what keep multi-chat development coherent: a fresh session reads this file instead of exploring the codebase. Keeping the code map current when the layout changes is part of the change, not optional.
+
+The Testing block is decided in this much detail now for one reason: the coding agent must deliver code that works on first run. Anything a compile, a boot, or a basic test would have caught must never survive to a hand-over — and that is only enforceable in Phase 5 if the frameworks, commands, playground recipe, seed data and per-flow exercises were fixed here, not improvised there.
 
 ### 4a. Materialize the Claude config rules and agents (if accepted at step 0a)
 
@@ -82,8 +88,11 @@ This is the bridge to Phase 3. Produce a clear split:
 - **No design needed:** backend, jobs, CLI, pure logic.
 - **External software the user must configure by hand** (Unity, hosting panel, OAuth console, SaaS settings, DNS, payment gateway): list each. These become the `SPEC/external-setup.md` requirements in Phase 3 and the guided walkthrough in Phase 4.
 - **Assets Design likely can't produce** (photographic images, complex illustrations, 3D renders): flag any you can already foresee. These become `SPEC/external-assets.md` requirements in Phase 3 and the guided one-asset-at-a-time generation loop in Phase 4.
+- **Target devices/viewports and exact breakpoints** (per screen): which devices/viewports each screen must serve and the exact breakpoint values — numbers, not adjectives. The Phase 3 design brief requires exact breakpoints per screen and copies these values verbatim; nothing else upstream captures them, so they are fixed here. Propose recommended defaults (e.g. 360 / 768 / 1280 px) and let the user react.
 
 For every screen that needs design, also record its **accessibility requirements** (semantic structure and heading order, keyboard/assistive-tech operability, contrast, focus order and visible focus, error identification, target size, reduced-motion) — these become part of what Design must specify in Phase 3, per `references/accessibility.md`. Accessibility is not deferred to the build; it is specified with the screen.
+
+Three of these recorded items — foreseen external assets, per-screen accessibility requirements, and target devices/viewports with exact breakpoints — get their own lines in the spec template below (an instruction that dies before the template gets lost) and are inputs Phase 3 carries verbatim into the brief. Ask each with a recommended default, per SKILL.md "How to run a phase": every question answerable by a non-developer.
 
 ### 6. Acceptance criteria
 
@@ -91,9 +100,26 @@ Define, per feature, the conditions under which it's considered done. These feed
 
 Every feature with a UI includes **accessibility conditions** in its acceptance criteria — operable by keyboard and assistive technology, accessible name/role/state exposed, contrast met, visible focus, error identification (not color-only), adequate target size, and honored user preferences (reduced motion, text scaling). Accessibility is a done condition of the feature, not a separate later pass (see `references/accessibility.md`).
 
+### 6a. Adversarial spec review (fresh context — before the firm estimate)
+
+Before any number is closed, the spec gets an adversarial review from fresh context: a subagent when the environment provides one, otherwise a strict self-check against this checklist. The reviewer's job is to break the spec, not to admire it. Verify mechanically:
+
+- Every Phase 1 feature has requirements with all six parts: inputs / processing / outputs / preconditions / postconditions / error behavior.
+- Every branching journey has its flow file.
+- Every screen in the design split has its per-screen accessibility requirements.
+- Every requirement has an acceptance criterion.
+- Ambiguities are attacked: what happens on empty? On permission denied? On double submit?
+
+Findings fix the spec NOW — a hole closed here costs minutes; the same hole found later is a Design Request or a Phase 5 rework.
+
 ### 7. Firm estimate & client budget (close of spec — AI-time based)
 
-With the real scope now fixed (requirements, flows, screens, slices implied by the technical plan, integrations, external-setup items), close the numbers. Follow `references/estimation-budget.md` end to end: recompute the itemized AI hours and vibe coder hours from the actual spec; ask the batched budget questions (rate + currency, AI mode and model(s), contingency, the budget's language — it is a client-facing deliverable — taxes note, availability for the calendar estimate); compute the AI cost (verified per-token prices if API; ≈ 0 marginal on subscription); append **Estimate v[N] (firm)** to `docs/estimate.md`; and produce `docs/budget.md` in the client's language — itemized segments priced line by line, the developer block and the AI block SEPARATE, totals, estimated calendar delivery, and terms. Then run the mandatory present → adjust → approve loop with the user (e.g. choosing not to bill the AI cost on subscription) and record the approval and its choices in `docs/decisions.md`. Any scope change after this budget → new version, re-approved (same reference). NEVER price from traditional human development time.
+With the real scope now fixed (requirements, flows, screens, slices implied by the technical plan, integrations, external-setup items) and the spec hardened by the step 6a review, close the numbers. Follow `references/estimation-budget.md` end to end: recompute the itemized AI hours and vibe coder hours from the actual spec; compute the AI cost (verified per-token prices if API; ≈ 0 marginal on subscription); append **Estimate v[N] (firm)** to `docs/estimate.md`. The client budget is conditioned on the Phase 1 project-card line — read it, never re-ask it:
+
+- **`Client budget: yes`** → ask the batched budget questions (rate + currency, AI mode and model(s), contingency, the budget's language — it is a client-facing deliverable — taxes note, availability for the calendar estimate) and produce `docs/budget.md` in the client's language — itemized segments priced line by line, the developer block and the AI block SEPARATE, totals, estimated calendar delivery, and terms. Then run the mandatory present → adjust → approve loop with the user (e.g. choosing not to bill the AI cost on subscription) and record the approval and its choices in `docs/decisions.md`. Any scope change after this budget → new version, re-approved (same reference).
+- **`Client budget: no`** → skip `docs/budget.md` entirely; the rate, currency and budget-language questions are never asked (AI mode, contingency and availability are still asked — the estimate needs them). The firm estimate in `docs/estimate.md` still closes the phase.
+
+NEVER price from traditional human development time.
 
 ## `docs/02-functional-spec.md` structure
 
@@ -115,9 +141,12 @@ ALWAYS use this template:
 - Needs design: [screens, with template-reuse notes]
 - No design: [...]
 - External manual setup: [...]
+- Foreseen external assets (Design likely can't produce): [...]
+- Per-screen accessibility requirements: [...]
+- Target devices/viewports and exact breakpoints: [per screen — the Phase 3 brief copies these values verbatim]
 ## Acceptance criteria (per feature — include accessibility conditions for every UI feature)
 ## Estimate & budget
-- see docs/estimate.md (Estimate v[N] firm) and docs/budget.md (client-facing, approved — D-entry in docs/decisions.md)
+- see docs/estimate.md (Estimate v[N] firm) and, when the project card says Client budget: yes, docs/budget.md (client-facing, approved — D-entry in docs/decisions.md)
 ## Open questions for the user
 ```
 
@@ -129,9 +158,10 @@ ALWAYS use this template:
 - Data model, integrations, and permissions are specified.
 - `docs/03-technical-plan.md` complete per its template: stack with exact versions, support matrix, architecture, code map, conventions (prefix, naming, error handling, logging), testing approach with run commands, version touchpoints, license-compatibility rule. Significant choices recorded in `docs/decisions.md`.
 - If the project card accepted Claude config rules/agents: `.claude/rules/` and `.claude/agents/` generated per `references/claude-config.md`, path-scoped, recorded in `docs/decisions.md`.
-- The design split is explicit, including external-setup items.
+- The design split is explicit, including external-setup items, foreseen external assets, per-screen accessibility requirements, and target devices/viewports with exact breakpoints — each on its own template line, carried into the Phase 3 brief.
 - Zero unresolved open questions.
-- Firm estimate appended to `docs/estimate.md` and `docs/budget.md` produced in the client's language (itemized per segment, developer and AI blocks separate, totals and terms) per `references/estimation-budget.md`, explicitly approved by the user with the approval recorded in `docs/decisions.md`. Client acceptance itself is the user's business — it does not gate Phase 3.
+- The adversarial spec review (step 6a) ran before the firm estimate — fresh context (subagent when available, strict self-check otherwise), the full checklist verified mechanically — and every finding was fixed in the spec.
+- Firm estimate appended to `docs/estimate.md` per `references/estimation-budget.md`, and the client budget approved — `docs/budget.md` in the client's language (itemized per segment, developer and AI blocks separate, totals and terms), explicitly approved by the user with the approval recorded in `docs/decisions.md` — or recorded as not applicable (no client: `Client budget: no` on the project card). Client acceptance itself is the user's business — it does not gate Phase 3.
 - `docs/PROGRESS.md` updated (phase status, artifacts, next action).
 
 If the project needs design, proceed to Phase 3. If Phase 1 said no design and Phase 2 confirms no UI, skip to Phase 5.

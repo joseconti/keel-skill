@@ -18,7 +18,7 @@ Before any planning, say the truth (mirrors the honest-assessment principle):
 - Is the goal something a single page can do, or does it genuinely need multiple pages?
 - Who actually visits a project site like this, and would they convert better via the listing or a site?
 
-Do not build a bigger site than the project needs. State the recommendation and let the user decide with full information.
+Do not build a bigger site than the project needs. State the recommendation and let the user decide with full information. Record the verdict in the site's discovery doc with this fixed structure, mirroring the `docs/decisions.md` format — `Justified?: yes / no / smaller version — reason — user's decision` — so the assessment cannot dissolve into a soft sentence.
 
 ## 2. Purpose, audience, primary CTA
 
@@ -50,7 +50,7 @@ This is a decision in its own right, not an implicit inheritance. A project can 
 - Who writes the copy: the user provides final copy, or placeholder is used? If placeholder, it must be clearly marked so it's never shipped (same rule as the rest of Keel).
 - Tone of voice, in one or two lines, so Design and copy stay consistent.
 - Legal/compliance content needed (privacy, cookies, imprint) — flag now; it becomes required sections.
-- **Analytics & consent (decide now, not at launch).** Options, in order of preference under the vanilla rule: **none** (default — a project site often doesn't need it), **self-hosted analytics** (e.g. a self-hosted Matomo/Plausible — still a conscious addition, recorded), or **third-party analytics** (a runtime third-party script: this is an exception to the vanilla rule and requires explicit user approval, recorded). If any analytics uses cookies/identifiers and the audience includes the EU: consent management and the cookie/privacy pages become REQUIRED sections, and nothing tracks before consent. Record the decision; the launch checklist verifies it.
+- **Analytics & consent (decide now, not at launch).** Options, in order of preference under the vanilla rule: **none** (default — a project site often doesn't need it), **self-hosted analytics** (e.g. a self-hosted Matomo/Plausible — still a conscious addition, recorded), or **third-party analytics** (a runtime third-party script: one of the two recorded exceptions to the vanilla rule — the approved static-site generator being the other — and it requires explicit user approval, recorded). If any analytics uses cookies/identifiers and the audience includes the EU: consent management and the cookie/privacy pages become REQUIRED sections, and nothing tracks before consent. Record the decision; the launch checklist verifies it.
 
 ## 6. Constraints
 

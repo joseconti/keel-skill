@@ -37,6 +37,7 @@ You are producing a **reusable design system + real built artifacts + a governin
 - **Logo:** [provided — files listed below / **you (Design) create it** as part of founding this system / pending from the user — a dependency, not yours to invent]
   - If you create it: deliver real files, not a description — a master **SVG** *and* exported **PNG** versions, variants (horizontal / stacked / icon-only), on-light and on-dark versions, a monochrome version, minimum sizes and clear-space rules. Deliver the PNGs at the sizes/densities the target needs (e.g. @1x/@2x/@3x, favicon/app-icon sizes). Everything indexed in `SPEC/assets-index.md` and usable to derive favicons/app icons later. Iterate with the user before finalizing — the logo is their call.
 - **Brand assets provided:** [list — or "none"]
+- **Visual references:** [user-provided SCREENSHOTS, each annotated with what to take from it — never bare URLs. If the user offered a URL, the screenshots were requested per Phase 3 ("Visual references travel as screenshots"); a URL may accompany a capture as provenance only.]
 - **Founding seed (only when founding):** [the Phase 1 founding-interview answers, carried verbatim: colors loved/vetoed, typeface preference + licensing, personality adjectives, references liked/disliked, dark-mode intent, iconography/imagery style, vetoes. This is your starting base — found the identity FROM it; anything unanswered goes to `SPEC/open-questions.md`, never guessed.]
 
 If any of the above is "ask user", you must request it before finalizing — do not choose for them.
@@ -61,7 +62,7 @@ For every unique screen, first state **what the screen does** — its purpose an
 
 - default, hover, focus, active, disabled
 - loading, empty, error, success
-- responsive behavior at breakpoints: [list exact breakpoints]
+- responsive behavior at breakpoints: [list exact breakpoints — copied from `docs/02-functional-spec.md` §Design split (target devices/viewports)]
 - conditional / role-based / plan-based variants: [describe, e.g. "free vs premium", "admin vs editor" — or "none"]
 
 Document each in `SPEC/screens/<screen>.md`. Document cross-screen behavior and logic in `SPEC/interactions.md`.
@@ -81,7 +82,7 @@ If any part of this project requires a human to configure **external software** 
 - Identify every such piece of external setup.
 - For each, write **every exact configuration value** into `SPEC/external-setup.md`: the software + version if relevant, the exact screen/path inside it, each field name, each exact value/toggle, and the order steps must be done in.
 - Do NOT leave any needed value implicit inside an artifact file. Downstream, a builder will walk a human through this **one step at a time**, reading values straight from `SPEC/external-setup.md`. A value that is not there cannot be guided and will block the build.
-- Where a value is the user's decision (an account ID, a domain, a secret, a business choice), ASK the user and record the answer — do not invent it.
+- Where a value is the user's decision (an account ID, a domain, a business choice), ASK the user and record the answer — do not invent it. **Except secrets:** a secret's VALUE (API key, client secret, merchant key, password, token) is never written into `SPEC/external-setup.md` or anywhere in the handoff — record a descriptive placeholder instead (e.g. `<client secret — the user enters it during the Phase 4 guided walkthrough; never written here>`) and note that the Phase 4 walkthrough transmits it. Non-secret values record normally.
 
 If there is no external setup, state "none" in `SPEC/external-setup.md` so the absence is explicit.
 
@@ -92,6 +93,8 @@ If a needed asset is something you cannot generate (a photographic image, a comp
 - A plain explanation of what the asset is and why it's needed.
 - Placement detail: role, exactly where it is used (which screen/template/slot), the intended final filename, format, and intrinsic dimensions/aspect ratio.
 - **A ready, generator-neutral base prompt you write yourself**: subject, composition, mood/style, what to include and exclude, and the exact palette/style pulled from `SPEC/design-tokens.md` so the generated image matches the design system.
+
+**Assets already foreseen by the spec:** [from `docs/02-functional-spec.md` §Design split — foreseen external assets]. Each of these gets its entry; add any further ones you discover while designing.
 
 The base prompt must be complete enough to hand off as-is. Downstream, a builder will tell the user you couldn't generate these, ask which image generator the user uses, and only *adapt* your base prompt to that generator (it will not invent visual content). It then tells the user the exact file format, final filename, and directory to save each result.
 

@@ -23,6 +23,7 @@ Input is `docs/design/design-handoff/`. Check against `references/handoff-contra
 
 - `SPEC/manifest.md` — every page resolves to a unique page or template + concrete data?
 - `SPEC/design-tokens.md` vs `artifacts/styles/` — values agree? Any token referenced but undefined? If the project card records an **existing** design system: do the delivered tokens, logo usage, and component styles match its canonical source exactly? Any unexplained divergence from the brand's canonical system is a gap (Design Request), not a creative choice — the build never "improves" or reinterprets the design system.
+- `SPEC/design-tokens.md` — states its origin (existing system + cited source / founded here / one-off) and covers EVERY target surface named in the brief's Section 2, with the canonical-token mapping onto each? A single-surface delivery for a multi-surface brief fails the gate (Design Request).
 - `SPEC/screens/*.md` — every unique screen documents its purpose/functionalities (what it does, not just how it looks) and all states + breakpoints + role/plan variants?
 - `SPEC/interactions.md` — every behavior/conditional/transition specified?
 - `SPEC/assets-index.md` — every referenced asset exists in `artifacts/assets/` with size/format? **Every logo and icon present in BOTH SVG and PNG?** Is every asset in a format the build uses directly — nothing that would force a build-side conversion, resize, recolor, rasterize, or re-export? An asset shipped in an inconvenient format, or a logo/icon missing one of the two formats, is a gap (Design Request), not a build-side fix. Per `references/handoff-contract.md` rule 4.
@@ -33,7 +34,11 @@ Input is `docs/design/design-handoff/`. Check against `references/handoff-contra
 - `SPEC/screenshots.md` — only for website projects (Phase 8): every reserved product-screenshot slot declared with target screen/state, approximate size, and slot CSS (per `references/phase-8-design-direction.md`)? For non-website projects this file is not expected.
 - Any placeholder copy that would otherwise ship?
 
-Record every discrepancy as a gap (what, where expected, why it blocks faithful build).
+Record every discrepancy as a gap (what, where expected, why it blocks faithful build) — and record every CHECK, not only the findings. The audit's result is the BUILD-SPEC §1 evidence table, one row per bullet above: item / checked / evidence (a path, a listing, a quoted value) / result. An item without evidence is not audited.
+
+The filesystem facts get a deterministic mechanical pass — run them as commands (or a small ad-hoc script) and paste the output into the evidence table: every asset in `assets-index.md` exists under the delivered assets; every logo/icon has both SVG and PNG; every unique screen in the manifest has its `SPEC/screens/*.md`; `open-questions.md` has no open items; every token value in `design-tokens.md` appears in the delivered styles.
+
+Contrast is recomputed, not trusted: recompute every declared contrast pair from the hex values in `design-tokens.md` — the WCAG arithmetic is deterministic. A wrong declared ratio, or a pair below 4.5:1 (normal text) / 3:1 (large text and UI components), is a gap → Design Request. The recomputed values land in the BUILD-SPEC accessibility section as the audit's own arithmetic, never Design's claims copied through.
 
 ## Step 2 — Consolidate `BUILD-SPEC.md` (still no code)
 
@@ -45,13 +50,15 @@ If Step 1 found any gap or `open-questions.md` is unresolved: do not proceed, do
 
 **Register every Design Request before handing it over** (per `references/project-state.md`): save the filled template as `docs/design/design-requests/DR-NNN.md` (sequential numbering) with a `Status: sent` line at the top, and list it under "Open items" in `docs/PROGRESS.md`. When Design re-delivers and the re-audit passes, mark the DR `Status: resolved [date]` and clear it from PROGRESS.md. A fresh session must be able to see from the register alone which requests are still open — "zero unresolved Design Requests" is always verified against the register, never against memory.
 
+**The re-delivery is verified, not welcomed.** First diff it against the previous delivery: anything changed outside the named gaps is itself a new gap — the template's byte-stable rule is a checked fact, not a courtesy. Then re-run Step 1 on the re-delivery. After the re-audit passes, update the affected `docs/BUILD-SPEC.md` sections from the re-delivered values and mark the DR resolved in the register. If the same item bounces a second time, it goes directly to the user to decide, and the decision is recorded.
+
 ## Step 4 — Build, faithfully
 
 Only when `docs/BUILD-SPEC.md` is complete and gap-free:
 
 - Port real artifacts into the target stack. Templates stay templates; don't flatten into N duplicated pages, don't duplicate where Design unified.
 - Match tokens exactly. No "close enough".
-- Implement every state in the state matrix; a screen isn't done until every documented state is built.
+- Implement every state in the state matrix; a screen isn't done until every documented state is built. Mark each state's `docs/BUILD-SPEC.md` §4 row at the moment it is built — the file is the record, not conversation memory.
 - Implement the accessibility spec exactly (`SPEC/accessibility.md`): accessible name/role/state for every component and state, keyboard/assistive-tech operability, visible focus and the specified focus order, target sizes, reduced-motion variants, and error identification. A screen isn't done until its accessibility is built and verified, per `references/accessibility.md`.
 - Where the stack forces a change, change the code strategy and log it in `BUILD-SPEC.md` integration notes — never alter the design.
 - Mid-build unspecified discovery → stop, return to Step 3 for that item.
@@ -64,7 +71,7 @@ External software the builder can't script (Unity, hosting panel, OAuth console,
 
 1. Give exactly ONE step: precise location inside the software, exact field, exact value — read straight from the SPEC, citing which SPEC entry. Never improvise a value.
 2. Ask the user to do that one step and report back when done. Don't send the next step yet.
-3. Ask for a screenshot when the step is verifiable; inspect it against the expected result before moving on.
+3. Ask for a screenshot when the step is verifiable; inspect it against the expected result before moving on. Where the environment cannot inspect a screenshot, have the user read out the relevant values/state instead. A step that cannot be verified right now is marked `⚠ unverified` — Phase 7's gate closes it out later.
 4. Advance only when confirmed. If wrong, stay on this step and help fix it.
 
 When the user says "I can't find what you're telling me", diagnose — do not guess a workaround:
@@ -90,7 +97,7 @@ Then, for each asset in `SPEC/external-assets.md`, one at a time:
 When the user can't produce a faithful asset, diagnose — don't guess:
 
 - **Design's base prompt was missing or too thin to adapt faithfully** (Design under-specified it): stop, do not invent the missing visual detail to fill the gap, generate a Design Request (Step 3) for that specific asset's missing base prompt / specification. Resume after Design re-delivers.
-- **Design's base prompt is sufficient but the generator can't match it** (tool limitation, e.g. won't hold an aspect ratio): the design isn't at fault and the SPEC doesn't change. Stay on this asset, mark it **unverified**, and work it out with the user (re-adapt within the base prompt's bounds, try crop/resize to the SPEC's exact dimensions, or try another generator). Don't skip ahead and don't alter the SPEC's intent.
+- **Design's base prompt is sufficient but the generator can't match it** (tool limitation, e.g. won't hold an aspect ratio): the design isn't at fault and the SPEC doesn't change. Stay on this asset, mark it **unverified**, and work it out with the user (re-adapt within the base prompt's bounds, have the USER crop/resize in their generation/editing tool to the SPEC's exact dimensions — the build never transforms assets, per `references/handoff-contract.md` rule 4 — or try another generator). Don't skip ahead and don't alter the SPEC's intent.
 
 Never collapse these two branches: inventing a visual detail reintroduces the exact defect this skill prevents; bouncing a Design Request when the spec was fine just blocks the user.
 
@@ -98,8 +105,14 @@ Once an asset is confirmed and saved at its target path/name, treat it as a real
 
 ## Step 7 — Verify against the faithfulness checklist
 
-Walk the checklist in `docs/BUILD-SPEC.md`: every screen matches artifact+SPEC; every state exists and is reachable; no invented values/behavior; no unintended placeholder copy; reuse preserved; if an existing design system governs, every token/logo/component matches its canonical source (any divergence was a Design Request, never a build-side choice); every logo/icon present in both SVG and PNG and every asset used directly with no build-side transformation; every external-setup step guided one at a time with traced values and screenshot confirmation (unverified flagged); every external asset generated from the SPEC, saved at its exact path/name/format, and confirmed (unverified flagged); accessibility built to `SPEC/accessibility.md` and verified (automated checks plus a real assistive-tech pass); every code-side adaptation logged with design intent intact; zero unresolved Design Requests. Report results. A failure is a build defect (fix code) or a genuine gap (Design Request) — never a reason to relax the design.
+Walk the checklist in `docs/BUILD-SPEC.md`: every screen matches artifact+SPEC; every state exists and is reachable; no invented values/behavior; no unintended placeholder copy; reuse preserved; if an existing design system governs, every token/logo/component matches its canonical source (any divergence was a Design Request, never a build-side choice); every logo/icon present in both SVG and PNG and every asset used directly with no build-side transformation; every external-setup step guided one at a time with traced values and screenshot confirmation (unverified flagged); every external asset generated from the SPEC, saved at its exact path/name/format, and confirmed (unverified flagged); accessibility built to `SPEC/accessibility.md` and verified (automated checks plus the guided assistive-technology pass below); every code-side adaptation logged with design intent intact; zero unresolved Design Requests. Report results. A failure is a build defect (fix code) or a genuine gap (Design Request) — never a reason to relax the design.
+
+Step 7 is executed by updating §10's checkboxes in `docs/BUILD-SPEC.md` itself: each box is ticked in the file at the moment its item is verified. The definition of done is checked by reading the file — never from conversation memory.
+
+The real assistive-technology pass runs as the guided user loop defined in `references/accessibility.md` ("Guided assistive-technology pass"): one concrete instruction at a time, the user reports what was announced / what happened, per-item results recorded. Where the environment cannot inspect a screenshot, the user reads out the relevant values/state. Anything not verifiable right now is marked `⚠ unverified` — and Phase 7's gate closes every unverified item out (re-attempt in the real environment, or explicit user acceptance on record).
+
+When the environment provides subagents (or the project carries `.claude/agents/`), delegate the fidelity walk to the `design-fidelity-auditor` agent (defined in `references/claude-config.md`): fresh context; it reads `docs/BUILD-SPEC.md` + `docs/design/design-handoff/` + the built code and reports per screen — token values vs §3, §4 states present and reachable, assets referenced without transformation. Its findings become defects or Design Requests. The session that built never self-certifies fidelity when an independent pass is available.
 
 ## Definition of done
 
-`docs/BUILD-SPEC.md` complete and gap-free, build matches it, external setup verified or explicitly flagged, every external asset generated and placed or explicitly flagged, accessibility built to `SPEC/accessibility.md` and verified (automated + real assistive-tech pass), faithfulness checklist passed, Design Request register shows zero open DRs, and `docs/PROGRESS.md` updated. Then Phase 5.
+`docs/BUILD-SPEC.md` complete and gap-free, its §1 evidence table filled for every Step 1 item (no item without evidence), build matches it, every re-delivery diffed against the previous delivery with nothing changed outside the named gaps, external setup verified or explicitly flagged, every external asset generated and placed or explicitly flagged, accessibility built to `SPEC/accessibility.md` and verified (automated + the guided assistive-technology pass; every `⚠ unverified` item flagged for Phase 7's gate to close out), faithfulness checklist passed with §10's boxes ticked in the file, Design Request register shows zero open DRs, and `docs/PROGRESS.md` updated. All checked by reading the files, never from conversation memory. Then Phase 5.

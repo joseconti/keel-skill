@@ -1,6 +1,6 @@
 # BUILD-SPEC Template
 
-Produce this as `BUILD-SPEC.md` in the project, fully filled, BEFORE writing any code. Every section must be resolved from the handoff. A blank or "TBD" section means the build cannot start — that item goes to a Design Request instead.
+Produce this as `docs/BUILD-SPEC.md` in the project, fully filled, BEFORE writing any code. Every section must be resolved from the handoff. A blank or "TBD" section means the build cannot start — that item goes to a Design Request instead.
 
 ---
 
@@ -9,9 +9,17 @@ Produce this as `BUILD-SPEC.md` in the project, fully filled, BEFORE writing any
 > Source handoff: `[path to design-handoff/]`
 > This document is the implementation contract. The build does not deviate from it. Code adapts to this; this never adapts to the code.
 
-## 1. Audit result
+## 1. Audit result (evidence table)
 
-- Handoff matches the contract structure: [yes / no — if no, this is a Design Request]
+One row per Phase 4 Step 1 bullet. **An item without evidence is not audited** — Evidence is concrete: a path, a listing, a quoted value, pasted command output (the mechanical filesystem pass and the recomputed contrast arithmetic paste their output here).
+
+| Item (Step 1 bullet) | Checked | Evidence (path / listing / quoted value) | Result |
+|----------------------|---------|------------------------------------------|--------|
+| Handoff matches the contract structure | [yes/no] | [e.g. tree listing of `design-handoff/`] | [pass / gap → DR] |
+| `manifest.md` — every page resolves | ... | ... | ... |
+| `design-tokens.md` — agrees with `artifacts/styles/`; origin stated; every brief surface covered | ... | ... | ... |
+| ... (every remaining Step 1 bullet, one row each) | ... | ... | ... |
+
 - `open-questions.md` status: [empty/resolved / N unresolved items → Design Request]
 - Gaps found: [none / list — each gap blocks build until resolved by Design]
 
@@ -34,6 +42,13 @@ Copied from `SPEC/design-tokens.md` and reconciled with `artifacts/styles/`. If 
 | font.body | `...` | ... |
 | motion.base | `..ms ...easing` | ... |
 | ... | ... | ... |
+
+When the brief names more than one target surface, represent the canonical-token mapping explicitly: add a Surface column to the table above, or one sub-table per surface. A canonical token with no mapping for a named surface is a gap → Design Request.
+
+### Surface: [name — one sub-table per target surface named in the brief]
+| Canonical token | Native value / equivalent on this surface | Spec reference |
+|-----------------|-------------------------------------------|----------------|
+| color.bg | [e.g. asset-catalog color / Material token / CSS variable] | `SPEC/design-tokens.md#...` |
 
 ## 4. Per-screen state matrix
 
@@ -58,9 +73,11 @@ For each unique screen, every state the build MUST implement, with its spec refe
 
 Copied from the handoff's accessibility spec; the build implements every row. A blank row is a gap → Design Request, not a guess. Per `references/accessibility.md`.
 
-| Screen / component | Contrast pairs (ratio) | Name / role / state (per state) | Focus order + visible focus | Target size | Reduced-motion / text-scaling / high-contrast | Error identification | Spec reference | Built |
-|--------------------|------------------------|---------------------------------|-----------------------------|-------------|-----------------------------------------------|----------------------|----------------|-------|
-| [name] | [pairs + ratios] | [per state] | [order + style] | [px/pt/dp] | [behavior] | [pattern] | `SPEC/accessibility.md#...` | ☐ |
+Contrast ratios are recomputed by the audit (Phase 4 Step 1) from the delivered hex values in `SPEC/design-tokens.md` — the audit's own arithmetic, never Design's claims copied through. A recomputed ratio that contradicts the declared one, or falls below 4.5:1 (normal text) / 3:1 (large text and UI components), is a gap → Design Request.
+
+| Screen / component | Contrast pairs (declared ratio) | Recomputed ratio (audit) | Name / role / state (per state) | Focus order + visible focus | Target size | Reduced-motion / text-scaling / high-contrast | Error identification | Spec reference | Built |
+|--------------------|---------------------------------|--------------------------|---------------------------------|-----------------------------|-------------|-----------------------------------------------|----------------------|----------------|-------|
+| [name] | [pairs + ratios] | [audit arithmetic from hex] | [per state] | [order + style] | [px/pt/dp] | [behavior] | [pattern] | `SPEC/accessibility.md#...` | ☐ |
 
 ## 5. Interaction & logic table
 
@@ -80,7 +97,7 @@ From `SPEC/assets-index.md`. Every asset must exist in `artifacts/assets/`, in a
 
 ## 7. External manual setup (driven one step at a time)
 
-From `SPEC/external-setup.md`. These steps are NOT scripted — they are guided to the user interactively, one verified step at a time (Phase 4 Step 5). Every value here must trace to the SPEC; nothing improvised. If `external-setup.md` says "none", write "No external manual setup required" and skip the table.
+From `SPEC/external-setup.md`. These steps are NOT scripted — they are guided to the user interactively, one verified step at a time (Phase 4 Step 5). Every value here must trace to the SPEC; nothing improvised. Secret values (API keys, client secrets, merchant keys, passwords, tokens) appear ONLY as their descriptive placeholder from the SPEC (e.g. `<client secret — the user enters it during the guided walkthrough; never written here>`); the real value is exchanged only inside the Step 5 loop. Exact non-secret values copy normally. If `external-setup.md` says "none", write "No external manual setup required" and skip the table.
 
 | # | External software (+version) | Exact location/path inside it | Field | Exact value | Spec reference | Verifiable by screenshot | Status |
 |---|------------------------------|-------------------------------|-------|-------------|----------------|--------------------------|--------|
@@ -113,6 +130,8 @@ How the real artifacts are ported into [target stack]. This is the ONLY place co
 - **Code-side adaptations log:** [each adaptation: what, why, and confirmation the visual/behavioral result is identical to the design]
 
 ## 10. Faithfulness checklist (verified at Step 7)
+
+Boxes are ticked in THIS file at the moment each item is verified — never retroactively, never from conversation memory. An unticked box blocks the definition of done.
 
 - ☐ Every screen visually matches its artifact + SPEC (tokens, layout, spacing).
 - ☐ Every documented state implemented and reachable.

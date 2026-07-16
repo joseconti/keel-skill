@@ -18,6 +18,13 @@ Load this for SPAs, API backends, or hosted services (e.g. on Fly.io). Apply fro
 - Rate-limit auth endpoints; lock out / back off on brute force; generic auth error messages (don't reveal which factor failed).
 - CSRF protection on cookie-authenticated state-changing requests.
 
+## Credential storage & recovery
+
+- Passwords hashed with argon2id (or bcrypt at an adequate cost) — never reversible encryption, never plain, never a homemade scheme.
+- Offer MFA (TOTP at minimum); require it as an option for privileged accounts.
+- Recovery flows: single-use, time-boxed tokens, stored hashed. No account enumeration — identical response whether the account exists or not.
+- Rate-limit login, reset, and every enumeration-prone endpoint.
+
 ## Secrets & config
 
 - Secrets only from environment or a secret manager; never in the repo, the image, or client bundles. Verify the client build contains no server secret.
@@ -45,3 +52,11 @@ Load this for SPAs, API backends, or hosted services (e.g. on Fly.io). Apply fro
 - Security headers + CSP present and effective.
 - Error responses leak nothing internal.
 - Dependency scan clean.
+
+## Verify with
+
+- Dependency audit per stack: `npm audit` / `composer audit` / `pip-audit`.
+- A baseline dynamic scan when feasible (OWASP ZAP baseline).
+- Security headers checked with `curl -sI` against the running app.
+
+At a test point, the command and its result are the evidence recorded in `docs/05-test-points.md` — an unrecorded check did not happen.

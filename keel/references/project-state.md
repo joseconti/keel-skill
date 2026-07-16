@@ -22,7 +22,7 @@ Created the moment Phase 1 starts producing artifacts — NOT in Phase 5. Before
 | `.claude/rules/`, `.claude/agents/` | Optional native Claude Code config: path-scoped rules + reviewer subagents, generated from recorded decisions | Phase 2 close, if accepted at 0a (adoption: after its step 4) — per `references/claude-config.md` | When a recorded decision changes their source — deliberately, never silently |
 | `.claude/settings.json`, `.githooks/pre-commit`, `.mcp.json` | Optional: confirmed permission allow-list, confidential-data commit gate, dev MCP servers | Phase 5 scaffold (gate at adoption step 2 if accepted) | Tooling/playground commands or the dev MCP set change |
 
-Everything else in `docs/` (specs, flows, design handoff, BUILD-SPEC, sprint files) is a **stable artifact**: written once at its phase, amended deliberately, never casually rewritten. The state files above are the only ones that change constantly — keeping them small and the artifacts stable is what makes context cheap and cache-friendly.
+Everything else in `docs/` (specs, flows, design handoff, BUILD-SPEC, sprint files) is a **stable artifact**: written once at its phase, amended deliberately — a mid-project scope change follows "Scope changes" below — never casually rewritten. The state files above are the only ones that change constantly — keeping them small and the artifacts stable is what makes context cheap and cache-friendly.
 
 ## `docs/PROGRESS.md` — template (ALWAYS this structure)
 
@@ -48,11 +48,12 @@ Keep it to roughly one page. Detail lives in the linked files, never accumulated
 - Claude config: [none / rules / rules+agents / full — per references/claude-config.md]
 - Keel baseline: [vX.Y.Z — last Keel version this project was reconciled to]
 - Website intent: [yes — own domain|subdomain / no]
+- Client budget: [yes / no — asked once at Phase 1 step 10; yes → docs/budget.md at Phase 2 close]
 
 ## Phase status
 | Phase | Status | Key artifacts |
 |-------|--------|---------------|
-| 1 Discovery | [pending/in progress/done] | docs/00-competitive-landscape.md, docs/01-discovery.md, docs/estimate.md (v1 preliminary) |
+| 1 Discovery | [pending/in progress/done/parked — <why>] | docs/00-competitive-landscape.md, docs/01-discovery.md, docs/estimate.md (v1 preliminary) |
 | 2 Functional spec | ... | docs/02-functional-spec.md, docs/03-technical-plan.md, docs/flows/, docs/estimate.md (firm), docs/budget.md |
 | 3 Design handoff | ... | docs/design/DESIGN-BRIEF.md |
 | 4 Faithful build | ... | docs/BUILD-SPEC.md |
@@ -71,10 +72,15 @@ Keep it to roughly one page. Detail lives in the linked files, never accumulated
 - Unverified external steps/assets: [from Phase 4 loops | "none"]
 - Forge issues in progress: [see docs/issues.md | "none"]
 
+### Deferred items (consciously postponed work)
+- [what — severity — review trigger: "revisit when touching X" / "before release" | "none"]
+
 Last updated: [date — phase/step]
 ```
 
-Update rules: mark a phase `done` only when its definition of done passed (reported ✓/✗ to the user). "Next action" must always be executable by a fresh session with no other context. Never let PROGRESS.md drift from reality — a stale state file is worse than none.
+Update rules: mark a phase `done` only when its definition of done passed (reported ✓/✗ to the user). `parked — <why>` is a recognized project status: set it when the user parks or discards the project — at the Phase 1 verdict or at any later point; the artifacts stay in place, never deleted, so the project can be resumed or revisited cold. "Next action" must always be executable by a fresh session with no other context. Never let PROGRESS.md drift from reality — a stale state file is worse than none.
+
+Deferred items are the living list of consciously postponed WORK — a definition-of-done ✗ the user accepted, a performance finding accepted as-is — each entry carrying a severity and a review trigger ("revisit when touching X", "before release"). This is the greenfield counterpart of adoption's fix-now / fix-when-touched / accepted triage: `docs/decisions.md` logs the DECISION to defer; this list tracks the work until its trigger fires or the user closes it.
 
 ## `docs/decisions.md` — template
 
@@ -185,7 +191,7 @@ Updated in the same slice that adds or changes a surface — an INDEX row withou
 
 ## Continuation prompt (ANY phase, not just sprint closes)
 
-A chat can fill up in any phase — a long competitive scan, a long external-setup loop — not only during development. Whenever the session is ending (or the user asks to continue elsewhere), produce this ready-to-paste prompt. Phase 5's sprint close-out uses the same mechanism with sprint specifics added.
+A chat can fill up in any phase — a long competitive scan, a long external-setup loop — not only during development. Whenever the session is ending (or the user asks to continue elsewhere), produce this ready-to-paste prompt. Phase 5's sprint close-out uses the same mechanism with sprint specifics added. Before producing the prompt, append the session's row to `docs/token-ledger.md` (per `references/estimation-budget.md`) — the continuation prompt is not complete without it. **Show it to the user proactively** — at every sprint close and whenever a session is ending, with the one-line instruction to paste it into a new chat to continue; the user never has to ask for it.
 
 ```
 Load the `keel` skill and resume [PROJECT NAME] at Phase [N] ([phase name]), [step/sprint X].
@@ -205,10 +211,23 @@ These rules exist so sessions are cheap, deterministic, and cache-friendly. Foll
 2. **Read each static reference once per session.** Phase references and templates do not change mid-session — never re-read a file already loaded in this conversation; rely on the copy in context. Single exception: immediately after a Keel update, the copies in context belong to the old version — re-read the new `SKILL.md` and the current phase's reference (see "Post-update reconciliation").
 3. **Orient by state, not by scanning code.** The project's shape lives in `docs/03-technical-plan.md` (code map, conventions), `docs/architecture.md` (once it exists), and `docs/api/INDEX.md`. A session that needs to know "where is X / does Y exist" consults these first, then opens the one specific file it needs. Tree-wide code exploration is a signal that the state files are incomplete — fix the state files, don't normalize the scanning.
 4. **Surgical code reads.** When code must be read, read the specific file/function the state points to — not whole directories "for context".
-5. **Small living state, stable artifacts.** Only PROGRESS.md, decisions.md, lessons-learned.md, the DR register, INDEX.md, sprint files, and 05-test-points.md change routinely. Specs, flows, design handoff, and BUILD-SPEC are amended only deliberately (a recorded decision or Design Request), because every rewrite invalidates what other sessions and caches rely on.
+5. **Small living state, stable artifacts.** Only PROGRESS.md, decisions.md, lessons-learned.md, the DR register, INDEX.md, sprint files, 05-test-points.md, issues.md, token-ledger.md, and playground.md change routinely. Specs, flows, design handoff, and BUILD-SPEC are amended only deliberately (a recorded decision, a Design Request, or a scope change per "Scope changes" below), because every rewrite invalidates what other sessions and caches rely on.
 6. **Reference paths, don't duplicate content.** When producing or discussing a large artifact, write it to its file and refer to the path. Do not paste large file bodies into the conversation when a path reference serves.
 7. **Keep PROGRESS.md ~one page.** History goes to sprint files and `docs/old/`; PROGRESS.md holds only the present.
 8. **Update state at the moment of change.** After each phase step, decision, slice, test point, or DR: update the relevant state file immediately. State updated "later" is state lost when the chat dies.
+
+## Scope changes (a feature or requirement changes mid-project)
+
+Scope moves mid-project — a feature is added, dropped, or redefined after its spec closed. What never happens: code first and artifacts later, or a silent rewrite that leaves the record contradicting the build. The loop, in this order:
+
+1. **`docs/decisions.md` first.** Append the D-entry: what changed, why, decided by whom. No artifact is amended before the decision is on record.
+2. **Amend the spec artifacts.** `docs/01-discovery.md` (feature table) and `docs/02-functional-spec.md` plus its flow files — visible amendments, never silent rewrites.
+3. **If UI is affected: a DELTA brief to Design.** Same templates as Phase 3, scoped to the change; the returned delivery passes the Phase 4 Step 1 audit like any delivery, then lands as a delta in `docs/BUILD-SPEC.md`.
+4. **Re-plan the open sprint** (`docs/sprints/`): re-cut the slices the change invalidates; the sprint file records what moved and why.
+5. **Recompute the estimate** — and the client budget when one exists — per `references/estimation-budget.md`.
+6. **`docs/PROGRESS.md` reflects the new scope** — updated at the moment of change, as always.
+
+Boundary: Design Requests exist for GAPS in an existing handoff — a scope change is never smuggled through a DR.
 
 ## Portability across environments — the CLAUDE.md lock and the embedded skill
 
@@ -221,15 +240,16 @@ Two mechanisms, created at Phase 1 step 0a (and during adoption step 2):
 The project root carries a `CLAUDE.md` with the Keel block below. Claude Code, Cowork and the Claude app read the project's `CLAUDE.md` automatically — that is what makes this the lock: it is read before anything else, in every environment, by every session, without depending on any skill being installed. If `CLAUDE.md` already exists, insert the block between its delimiters without touching the rest; the delimiters make it safely updatable later.
 
 ```
-<!-- KEEL:BEGIN — v1.11.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
+<!-- KEEL:BEGIN — v2.0.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
 # Keel protocol (mandatory for ANY assistant working in this repository)
 
 This project is governed by the Keel workflow. Before reading code or changing ANYTHING:
 
 1. Read the FULL Keel `SKILL.md` FIRST, before anything else in this repository —
    from the installed `keel` skill if present, otherwise from the embedded copy
-   at `.claude/skills/keel/SKILL.md` — and follow it literally, starting with its
-   session-start update check. Remembering the protocol from an earlier chat, or
+   at `.claude/skills/keel/SKILL.md` — and follow it literally, starting by
+   executing its maintenance block (`references/keel-maintenance.md` — update
+   check, lock freshness). Remembering the protocol from an earlier chat, or
    having this lock in context, does NOT count as having read it: a session that
    works without having read SKILL.md in this session is out of protocol. If the
    update check installs a newer Keel, re-read the new `SKILL.md` and run its
@@ -283,7 +303,7 @@ install Keel (or restore `.claude/skills/keel/`) before continuing.
 
 If the user also works with non-Claude assistants, mirror the same block in `AGENTS.md` (the multi-agent convention file) so those tools are bound too.
 
-**Version stamp and freshness.** The `KEEL:BEGIN` delimiter carries the version of the Keel that last wrote the block (`KEEL:BEGIN — vX.Y.Z do not remove: …`); every write and every refresh stamps it with the RUNNING Keel version — when inserting the canonical block above, replace its stamp with the running version if they differ. The check is stamp-only, by design: stamp equal to the running version → the block is current, nothing else to read; stamp different or missing (blocks written before v1.11.0 carry no stamp) → rewrite the block between the delimiters from this canonical copy, restamped — never a content comparison. Match delimiters by the `KEEL:BEGIN` prefix, never by exact text. The lock-freshness check in SKILL.md ("Update check") runs this in every session; the refresh asks the user's OK (or rides the post-update reconciliation's batched plan). The same applies to the `AGENTS.md` mirror when the project keeps one.
+**Version stamp and freshness.** The `KEEL:BEGIN` delimiter carries the version of the Keel that last wrote the block (`KEEL:BEGIN — vX.Y.Z do not remove: …`); every write and every refresh stamps it with the RUNNING Keel version — when inserting the canonical block above, replace its stamp with the running version if they differ. The check is stamp-only, by design: stamp equal to the running version → the block is current, nothing else to read; stamp different or missing (blocks written before v1.11.0 carry no stamp) → rewrite the block between the delimiters from this canonical copy, restamped — never a content comparison. Match delimiters by the `KEEL:BEGIN` prefix, never by exact text. The lock-freshness check in SKILL.md's maintenance block (`references/keel-maintenance.md`) runs this in every session; the refresh asks the user's OK (or rides the post-update reconciliation's batched plan). The same applies to the `AGENTS.md` mirror when the project keeps one. The canonical block above keeps its own stamp equal to the skill's current version as part of the skill's release hygiene — the repository's release linter checks it — so a literal copy never seeds a stale stamp.
 
 ### 2. The embedded skill copy (recommended — ask the user once)
 
@@ -319,7 +339,7 @@ Never skip it silently. If the user defers it, record `Reconciliation pending vX
 
 ### The procedure
 
-1. **Re-read the governing files from the NEW copy.** After an update, the `SKILL.md` and the current phase's reference in context belong to the old version — re-read both, and read the new `MANIFEST.md` (the parity manifest): its Table 2 names every skill file changed since the project's baseline (the exact re-read list), and its Table 1 drives step 3's parity check. This is the single exception to the read-once rule (context & cache discipline, rule 2).
+1. **Re-read the governing files from the NEW copy.** After an update, the `SKILL.md` and the current phase's reference in context belong to the old version — re-read both, and read the new `MANIFEST.md` (the parity manifest): its Table 2 names every skill file changed since the project's baseline (the exact re-read list), its Table 1 drives step 3's parity check, and its Table 3 is the per-version action list — the concrete actions to apply, so the reconciliation applies a delta instead of interpreting the changelog. This is the single exception to the read-once rule (context & cache discipline, rule 2).
 2. **Diff the versions via the changelog.** Read every new `CHANGELOG.md` entry after the baseline version, oldest → newest. The changelog is written to make this cheap — never re-read every reference to find what changed.
 3. **Extract what touches the PROJECT, not only the assistant's behavior.** From each entry: files/directories the project should now have; project-card lines that now exist; changes to the lock block (between its `KEEL:BEGIN/END` delimiters); questions a phase now asks that were never asked here; new one-time verifications or gates. Behavior-only changes need nothing — they apply by themselves from the new references. Then run `MANIFEST.md` Table 1 as the ABSOLUTE parity check: everything required at or before the project's current phase (conditions per the project card) must exist — anything missing joins the plan, whatever version introduced it.
 4. **Present ONE batched catch-up plan.** What would be created or refreshed, which new questions need answers, what the new version requires versus what is optional. The user approves, trims, or defers. Optional mechanisms stay optional: reconciliation asks their never-asked question (e.g. the Claude config package for a project older than v1.10.0) — it never force-installs.

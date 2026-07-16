@@ -6,7 +6,7 @@ This phase absorbs the former `design-spec-handoff` skill. Read `references/hand
 
 ## Inputs from earlier phases
 
-- `docs/02-functional-spec.md` → the "Design split" (screens that need design, template-reuse candidates, external-setup items).
+- `docs/02-functional-spec.md` → the "Design split" (screens that need design, template-reuse candidates, external-setup items, foreseen external assets, per-screen accessibility requirements, and target devices/viewports with exact breakpoints). The brief copies the foreseen assets, the per-screen accessibility requirements, and the exact breakpoints verbatim from here — Phase 2 decided them; the brief never re-invents them.
 - `docs/03-technical-plan.md` → the target stack and host constraints. The brief's "Where the final code will live" comes from here — Design must know the real target (e.g. WP admin page vs static site vs SPA), never guess it.
 - `docs/01-discovery.md` (design-system decision, Phase 1 step 9) → whether a design system already governs this brand. **If existing:** its tokens, logo usage, typography and component styles go INTO the brief as the canonical Section 2 values, with their source cited — Design applies them and proposes any deviation as a question, never restyles silently. **If founding:** the brief tells Design it is creating the brand's canonical design system, built for reuse beyond this project, and carries the Phase 1 **founding-interview answers** verbatim (logo status — including whether Design creates it, colors, typography + licensing, personality, references, modes, imagery, vetoes) as the seed Design starts from. **If one-off:** state it, so Design knows the scope of what it defines.
 - `docs/01-discovery.md` (design-system target surfaces, Phase 1 step 9) → the surfaces/platforms the design system must cover (web, WordPress/WooCommerce admin, PrestaShop, iOS/iPadOS, watchOS, macOS, tvOS, Android, Windows, a cross-platform framework, email, print). The brief must name every target surface and require Design to deliver, per surface, the native/idiomatic tokens and component specs plus the mapping from one canonical token set onto that surface — so a design system that must serve iOS and web (for example) ships both the HIG-aligned iOS values and the web CSS values from a single brand source, never a web-only artifact that a native build then has to reinterpret. Surfaces marked "anticipated for reuse" are defined now even if this project ships only one of them.
@@ -37,6 +37,8 @@ If the design split in `docs/02-functional-spec.md` is vague, resolve it with th
 
 Fill `references/design-brief-template.md` completely — no unfilled brackets. A value that is genuinely the user's call and unknown goes to the user as a question now, not to Design as a guess. Save the filled brief as `docs/design/DESIGN-BRIEF.md`.
 
+**Visual references travel as screenshots, never as URLs.** When the user wants Design to see something — a site whose style they like, a competitor's layout, a specific component — ask them for screenshots of exactly the parts they mean, each with a one-line note of what to take from it, and ship them with the brief materials. If the user offers a URL instead, tell them plainly (this is field-tested experience): handing Design screenshots of what you want is far more effective than pointing it at an address — Design may not browse at all, a live page changes and renders differently per viewport, and a URL says nothing about WHICH part matters. Ask for the captures; the URL may be recorded next to them as provenance, but the screenshot is the reference.
+
 The brief must:
 - State the design-system status (existing → canonical values + source in Section 2, apply without reinventing; founding → building the brand's canonical system for reuse; one-off → explicit).
 - Name the target surfaces/platforms the system must cover and require, per surface, native/idiomatic tokens + component specs and the mapping from the one canonical token set onto that surface (or explicit single-surface scope).
@@ -50,9 +52,24 @@ The brief must:
 - Require `SPEC/accessibility.md` plus per-screen accessibility notes (contrast-verified pairs, focus style/order, name/role/state per component and state, heading/landmark structure, target sizes, reduced-motion variants, text-scaling/high-contrast behavior, error identification), per `references/accessibility.md`.
 - Forbid duplicating structurally-identical pages.
 
-### 3. Hand the brief to the user
+### 3. Approve the brief
+
+Only an approved, bracket-clean brief is handed over. Two passes, in order:
+
+1. **Mechanical pass.** Search the saved `docs/design/DESIGN-BRIEF.md` for unfilled brackets (`[` placeholders) and `UNDEFINED` markers. Any hit means the brief is not done: fill it from the Phase 1–2 artifacts or ask the user, then re-run the pass until it comes back clean.
+2. **User approval.** Present the user a short summary of the brief — screens (unique vs template-reused), design-system status, target surfaces, external-setup items, foreseen external assets, exact breakpoints — and ask for explicit approval. A correction goes into the brief and the summary is presented again.
+
+### 4. Hand the brief to the user
 
 Tell the user the brief is at `docs/design/DESIGN-BRIEF.md`, to paste into Design, and state the one rule that matters most: build once, ask don't invent. Keep it short.
+
+#### If Claude Design is not available
+
+Not every environment has Claude Design. The phase is never left blocked without a recorded branch: agree one with the user, record it as a `docs/decisions.md` entry, and proceed.
+
+- **(a) The user runs Design in another chat or environment.** Give the concrete round trip: hand over the content of `docs/design/DESIGN-BRIEF.md` (the file itself, or its full content to copy), tell the user to paste it into Design as the opening message, then bring the result back — export/download the returned `design-handoff/` folder, place it in the repo at `docs/design/design-handoff/`, and confirm the tree against `references/handoff-contract.md`.
+- **(b) No Design access at all, or Design never answers.** With the user's OK on record, the assistant itself produces the handoff in a dedicated design pass — the SAME `references/handoff-contract.md` structure and quality bar, placed at `docs/design/design-handoff/` — and it is audited in Phase 4 Step 1 exactly like an external delivery: no self-exemption from any gate.
+- **(c) A human designer works from the brief** and delivers per `references/handoff-contract.md`; place the delivery at `docs/design/design-handoff/` like any other.
 
 ## What Design must return (the handoff contract)
 
@@ -66,6 +83,8 @@ A `design-handoff/` folder per `references/handoff-contract.md`: real artifacts 
 - The brief mandates the exact handoff contract including `external-setup.md`, `external-assets.md`, and `accessibility.md`.
 - The brief requires logos and icons in both SVG and PNG and every asset in a directly-usable format (no build-side transformation), and requires each screen's purpose/functionalities to be stated, not just its visuals.
 - The brief requires Design to specify accessibility per screen (`SPEC/accessibility.md` + per-screen notes), per `references/accessibility.md`.
-- The user has what they need to run Design.
+- The mechanical pass found zero unfilled brackets and zero UNDEFINED markers, and the user approved the brief summary.
+- The user has what they need to run Design (or the no-Design branch is recorded in `docs/decisions.md`).
+- `docs/PROGRESS.md` records the exact waiting position: "Current position: waiting for Design handoff → Next action: place the returned folder at `docs/design/design-handoff/` and run Phase 4 Step 1".
 
-Phase 4 begins only once Design returns the handoff.
+Phase 4 begins only once the handoff sits at `docs/design/design-handoff/` — returned by Design or produced through the recorded branch.

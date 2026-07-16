@@ -24,6 +24,7 @@ A real decision tree for "dedicated domain vs subdomain of the user's existing d
 ## Once decided — record and route the setup
 
 - Record: chosen domain/subdomain, registrar (if dedicated), DNS provider, TLS approach (e.g. existing wildcard, new certificate, platform-managed).
+- Renewal dates (domain, and TLS if manually managed) are recorded at launch in `<site-docs>/operations.md` — see the "After launch — operations" section of `references/phase-8-launch-checklist.md`.
 - The concrete manual steps (DNS records, TLS issuance, registrar config) are NOT written as a document to follow alone. They go into the Phase 4 guided external-setup loop: one step at a time, the user confirms each (screenshot where verifiable) before the next. A value not specified is a Design/setup gap, not something to guess.
 - If dedicated and not yet registered: suggest checking availability and sensible TLDs; do not assume or pick a registrar for the user.
 

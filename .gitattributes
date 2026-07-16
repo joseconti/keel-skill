@@ -40,7 +40,6 @@
 /README.md         export-ignore
 /INSTALL.md        export-ignore
 
-# Tests and tooling (none yet, but reserved so future additions stay out of release)
+# Tests and tooling (release linter + eval scenarios; repo-only, never shipped)
 /tests/            export-ignore
 /test/             export-ignore
-/.editorconfig     export-ignore
