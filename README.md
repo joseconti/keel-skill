@@ -1,10 +1,10 @@
 # Keel
 
-**Keel** is a Claude skill for taking software projects from idea to release. *Keel* is the structural backbone laid down first, on which the whole project is built.
+**Keel** is a skill for taking software projects from idea to release — built for Claude and installable in any assistant that supports the open Agent Skills standard (OpenAI Codex, Cursor, Gemini CLI, GitHub Copilot, Windsurf, and more). *Keel* is the structural backbone laid down first, on which the whole project is built.
 
 Use it for any new project — WordPress/WooCommerce plugins, MCP servers, web apps, components, libraries, or websites. Keel runs a complete multi-phase workflow so you never have to re-explain your standing requirements every time you start something new.
 
-- **Version:** 2.1.0
+- **Version:** 3.0.0
 - **License:** GPL-3.0-or-later
 - **Author:** [José Conti](https://plugins.joseconti.com/en)
 
@@ -39,11 +39,11 @@ Forge issues get their own living log. Whenever issues on the project's Git forg
 
 Keel has three entry modes: a new project (Phase 1 from zero), resuming an in-progress Keel project (from `docs/PROGRESS.md`), and **adoption** — applying Keel to a project already underway (`references/adoption.md`): read-only inventory, the never-made Phase 1 decisions asked, artifacts reconstructed as-built, and a gap audit against Keel's standards prioritized with the user, changing no code.
 
-Every Keel project also carries a **portability lock**: a `CLAUDE.md` block (optionally plus the skill embedded at `.claude/skills/keel/`) that binds any environment or AI opening the repo — Claude app, Cowork, Claude Code in VS Code, or another assistant — to the Keel workflow, even where the skill is not installed. Workflow files never ship in the distributable (Phase 7 export-ignore).
+Every Keel project also carries a **portability lock**: the same Keel block in `CLAUDE.md` and `AGENTS.md` (optionally plus the skill embedded at `.claude/skills/keel/` and `.agents/skills/keel/`) that binds any environment or AI opening the repo — Claude app, Cowork, Claude Code in VS Code, OpenAI Codex, GitHub Copilot, Cursor, Gemini CLI, Windsurf, or another assistant — to the Keel workflow, even where the skill is not installed. Workflow files never ship in the distributable (Phase 7 export-ignore).
 
-Projects can also opt into **native Claude Code configuration**, generated from their own recorded decisions (`references/claude-config.md`): path-scoped `.claude/rules/` distilled from the technical plan's conventions and the security profile, `.claude/agents/` reviewer and verifier subagents (code review, security audit, docs verification, design fidelity, playground QA, launch verification, accessibility audit), a confirmed minimal permission allow-list in `.claude/settings.json`, a confidential-data git pre-commit gate that blocks secrets from any environment or editor, an optional CI workflow built from the plan's exact verified commands, and `.mcp.json` for development MCP servers. The `CLAUDE.md` lock remains the universal mechanism — this package is Claude Code ergonomics on top, offered once per project, always recorded in the project card, and never shipped.
+Projects can also opt into **native assistant configuration**, generated from their own recorded decisions (`references/assistant-config.md`) for the tools the user actually works with — Claude Code, OpenAI Codex, GitHub Copilot, Cursor, Gemini CLI, Windsurf: path-scoped rules distilled from the technical plan's conventions and the security profile, reviewer and verifier subagents (code review, security audit, docs verification, design fidelity, playground QA, launch verification, accessibility audit), confirmed minimal permission allow-lists, a confidential-data git pre-commit gate that blocks secrets from any environment or editor, an optional CI workflow built from the plan's exact verified commands, and per-tool MCP registration for development MCP servers — one container per accepted tool, identical substance in each. The lock remains the universal mechanism — this package is per-tool ergonomics on top, offered once per project, always recorded in the project card, and never shipped.
 
-Keel also keeps itself current. At the start of every session it checks this repository for a newer release (`git ls-remote --tags`, with API fallbacks). Every copy is checked separately — an up-to-date app install does not hide an outdated embedded copy in the opened project. It updates every copy it can durably write — the user-level install and, always when present, the project's embedded `.claude/skills/keel/` — with a verified full-tree replacement, summarizing the improvements; for a copy it cannot write (app-managed skill storage, as in the Claude app / Cowork), it tells you a newer version exists, what it brings, and how to update. The check is best-effort and never blocks work, and the remote lookup is throttled to at most one check per 24 hours per project via a machine-local stamp (`.keel-update-check` at the project root, always gitignored) — the full SKILL.md read and the stamp-only lock-freshness check still run in every session, since they are local and free. After an update, a **post-update reconciliation** brings the open project itself up to date with what the new version introduces — new required files or directories, new project-card lines, lock-block refreshes, never-asked questions — tracked by the project card's `Keel baseline:` line and recorded like any other decision. Its first input is the **parity manifest** (`keel/MANIFEST.md`): everything a Keel project must contain, phase- and condition-aware, plus the Keel version that last changed each skill file and a per-version action list — the exact re-read list and to-do delta after any update.
+Keel also keeps itself current. At the start of every session it checks this repository for a newer release (`git ls-remote --tags`, with API fallbacks). Every copy is checked separately — an up-to-date app install does not hide an outdated embedded copy in the opened project. It updates every copy it can durably write — the user-level install and, always when present, the project's embedded trees (`.claude/skills/keel/` + `.agents/skills/keel/`) — with a verified full-tree replacement, summarizing the improvements; for a copy it cannot write (app-managed skill storage, as in the Claude app / Cowork), it tells you a newer version exists, what it brings, and how to update. The check is best-effort and never blocks work, and the remote lookup is throttled to at most one check per 24 hours per project via a machine-local stamp (`.keel-update-check` at the project root, always gitignored) — the full SKILL.md read and the stamp-only lock-freshness check still run in every session, since they are local and free. After an update, a **post-update reconciliation** brings the open project itself up to date with what the new version introduces — new required files or directories, new project-card lines, lock-block refreshes, never-asked questions — tracked by the project card's `Keel baseline:` line and recorded like any other decision. Its first input is the **parity manifest** (`keel/MANIFEST.md`): everything a Keel project must contain, phase- and condition-aware, plus the Keel version that last changed each skill file and a per-version action list — the exact re-read list and to-do delta after any update.
 
 ## Operating principles
 
@@ -68,9 +68,9 @@ Keel also keeps itself current. At the start of every session it checks this rep
 
 ## Installation
 
-Keel is a skill for Claude (Claude Code, Cowork mode, or any Claude environment that supports skills). See [`INSTALL.md`](INSTALL.md) for the full installation guide, including personal install, plugin install, team install, verification, updating, and troubleshooting.
+Keel is a skill in the open Agent Skills format: it works in Claude (Claude Code, Cowork mode, or any Claude environment that supports skills) and in any other assistant that supports the standard — OpenAI Codex, Cursor, Gemini CLI, GitHub Copilot, Windsurf, and others. See [`INSTALL.md`](INSTALL.md) for the full installation guide, including personal install, per-assistant install paths, plugin install, team install, verification, updating, and troubleshooting.
 
-Quick version: clone the repository and copy the `keel/` directory into your Claude client's skills folder.
+Quick version: clone the repository and copy the `keel/` directory into your client's skills folder (for example `~/.claude/skills/keel` for Claude, or `~/.agents/skills/keel` for tools using the shared discovery convention).
 
 Keel is also listed on the author's skills marketplace: [skills.joseconti.com/plugin/keel.html](https://skills.joseconti.com/plugin/keel.html).
 
@@ -98,7 +98,7 @@ keel-skill/
         ├── adoption.md
         ├── maintenance.md
         ├── playground-recipes.md
-        ├── claude-config.md
+        ├── assistant-config.md
         ├── estimation-budget.md
         ├── phase-1-discovery.md
         ├── phase-2-functional-spec.md

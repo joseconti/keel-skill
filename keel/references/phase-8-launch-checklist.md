@@ -9,7 +9,7 @@ Every check in this file lands as a row in `<site-docs>/launch-report.md`: item,
 - **Assistant-verifiable** — `curl` checks, fetching the well-known files, parsing each page's `<head>`, JSON-LD validation, sitemap coverage, the automated accessibility scan: the assistant executes them itself and records command + output in the row.
 - **User-guided** — checks needing the user's hands or accounts (OG/social debuggers that need a login, the real assistive-technology pass): run as guided one-step-at-a-time loops, each step's confirmation recorded in the row.
 
-When the environment provides the subagents defined in `references/claude-config.md`, delegate: **`launch-verifier`** crawls the sitemap and returns the pass/fail table that feeds `launch-report.md`; **`a11y-auditor`** runs the automated accessibility pass and prepares the guided-loop script for the manual one. The main session validates and records their results; it does not re-crawl.
+When the environment provides the subagents defined in `references/assistant-config.md`, delegate: **`launch-verifier`** crawls the sitemap and returns the pass/fail table that feeds `launch-report.md`; **`a11y-auditor`** runs the automated accessibility pass and prepares the guided-loop script for the manual one. The main session validates and records their results; it does not re-crawl.
 
 ## Real-environment verification (hard gate)
 

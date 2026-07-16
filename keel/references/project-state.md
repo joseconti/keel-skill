@@ -17,10 +17,10 @@ Created the moment Phase 1 starts producing artifacts — NOT in Phase 5. Before
 | `docs/api/INDEX.md` | One line per public surface — the cheap lookup layer for the reuse rule | Phase 5, first slice | Same slice that adds/changes a surface |
 | `docs/issues.md` | Living log of forge issues: inventory + one entry per issue worked (diagnosis, resolution, commits, what remains) | First time forge issues are triaged or worked (any phase) | The moment an issue is triaged, worked, or closed |
 | `docs/token-ledger.md` | Actual token usage: one row per working session; final reconciliation (cost + deviation vs estimate) at release | With Estimate v1 (Phase 1 close), per `references/estimation-budget.md` | At the end of every working session; verified at phase/sprint closes |
-| `CLAUDE.md` (repo root) | The portability lock: binds ANY assistant/environment opening the repo to the Keel workflow | Phase 1, first action (or adoption) | When Keel's protocol block changes (between its delimiters only) — verified every session by the lock-freshness check (version stamp on the BEGIN delimiter) |
-| `.claude/skills/keel/` | Embedded copy of the skill (optional, recommended) — makes the repo self-sufficient | Phase 1, first action (with user approval) | Version-synced from the installed skill, one direction |
-| `.claude/rules/`, `.claude/agents/` | Optional native Claude Code config: path-scoped rules + reviewer subagents, generated from recorded decisions | Phase 2 close, if accepted at 0a (adoption: after its step 4) — per `references/claude-config.md` | When a recorded decision changes their source — deliberately, never silently |
-| `.claude/settings.json`, `.githooks/pre-commit`, `.mcp.json` | Optional: confirmed permission allow-list, confidential-data commit gate, dev MCP servers | Phase 5 scaffold (gate at adoption step 2 if accepted) | Tooling/playground commands or the dev MCP set change |
+| `CLAUDE.md` + `AGENTS.md` (repo root) | The portability lock, the same Keel block mirrored in both: binds ANY assistant/environment opening the repo to the Keel workflow | Phase 1, first action (or adoption) | When Keel's protocol block changes (between its delimiters only) — verified every session by the lock-freshness check (version stamp on the BEGIN delimiter) |
+| `.claude/skills/keel/` + `.agents/skills/keel/` | Embedded copy of the skill (optional, recommended), one tree per discovery convention — makes the repo self-sufficient | Phase 1, first action (with user approval) | Version-synced from the installed skill, one direction, both trees |
+| Assistant rules + subagents (`.claude/rules/`, `.claude/agents/`, and the other accepted tools' containers) | Optional native assistant config: path-scoped rules + reviewer subagents, generated from recorded decisions | Phase 2 close, if accepted at 0a (adoption: after its step 4) — per `references/assistant-config.md` | When a recorded decision changes their source — deliberately, never silently, every container in the same change |
+| Permission allow-lists, `.githooks/pre-commit`, MCP registration (per tool) | Optional: confirmed permission allow-lists, confidential-data commit gate (one per project), dev MCP servers | Phase 5 scaffold (gate at adoption step 2 if accepted) | Tooling/playground commands or the dev MCP set change |
 
 Everything else in `docs/` (specs, flows, design handoff, BUILD-SPEC, sprint files) is a **stable artifact**: written once at its phase, amended deliberately — a mid-project scope change follows "Scope changes" below — never casually rewritten. The state files above are the only ones that change constantly — keeping them small and the artifacts stable is what makes context cheap and cache-friendly.
 
@@ -45,7 +45,7 @@ Keep it to roughly one page. Detail lives in the linked files, never accumulated
 - Installed base: [fresh v1 / upgrades vX.Y in production with data]
 - Design system: [existing — source/location / founding — canonical, will live at X / one-off / n/a no UI]
 - Keel portability: [lock only / lock + embedded vX.Y.Z]
-- Claude config: [none / rules / rules+agents / full — per references/claude-config.md]
+- Assistant config: [none / rules / rules+agents / full] (tools: [claude, codex, copilot, cursor, gemini, windsurf, ...]) — per references/assistant-config.md
 - Keel baseline: [vX.Y.Z — last Keel version this project was reconciled to]
 - Website intent: [yes — own domain|subdomain / no]
 - Client budget: [yes / no — asked once at Phase 1 step 10; yes → docs/budget.md at Phase 2 close]
@@ -230,25 +230,28 @@ Scope moves mid-project — a feature is added, dropped, or redefined after its 
 
 Boundary: Design Requests exist for GAPS in an existing handoff — a scope change is never smuggled through a DR.
 
-## Portability across environments — the CLAUDE.md lock and the embedded skill
+## Portability across environments — the lock and the embedded skill
 
-A Keel project moves between environments and assistants: the Claude app, Cowork, Claude Code in VS Code / terminal, sometimes other AIs entirely. The state files make the project resumable; this section makes the WORKFLOW itself travel with the repo, so whatever opens the project is bound to Keel — even if the Keel skill is not installed there.
+A Keel project moves between environments and assistants: the Claude app, Cowork, Claude Code in VS Code / terminal, OpenAI Codex, GitHub Copilot, Cursor, Gemini CLI, Windsurf, sometimes other AIs entirely. The state files make the project resumable; this section makes the WORKFLOW itself travel with the repo, so whatever opens the project is bound to Keel — even if the Keel skill is not installed there.
 
 Two mechanisms, created at Phase 1 step 0a (and during adoption step 2):
 
-### 1. The `CLAUDE.md` lock (mandatory)
+### 1. The lock — `CLAUDE.md` + `AGENTS.md` (mandatory, both)
 
-The project root carries a `CLAUDE.md` with the Keel block below. Claude Code, Cowork and the Claude app read the project's `CLAUDE.md` automatically — that is what makes this the lock: it is read before anything else, in every environment, by every session, without depending on any skill being installed. If `CLAUDE.md` already exists, insert the block between its delimiters without touching the rest; the delimiters make it safely updatable later.
+The project root carries the Keel block below in TWO files, always: `CLAUDE.md` (Claude Code, Cowork and the Claude app read it automatically) and `AGENTS.md` (the open agent-instructions standard — Codex, Copilot, Cursor, Windsurf, opencode, Zed, Warp, JetBrains Junie, Kiro, Cline and most other tools read it automatically). That is what makes this the lock: it is read before anything else, in every environment, by every session, without depending on any skill being installed. Both files carry the SAME block — created together, refreshed together, stamped together. If either file already exists, insert the block between its delimiters without touching the rest; the delimiters make it safely updatable later.
+
+One tool needs a third step: **Gemini CLI reads `GEMINI.md`, not `AGENTS.md`, by default.** If the user works with Gemini CLI, ask once and record the pick: mirror the same block in `GEMINI.md` (a third copy of the lock, refreshed with the others), or commit a `.gemini/settings.json` whose `context.fileName` includes `AGENTS.md` (no third copy to maintain). Either satisfies the lock.
 
 ```
-<!-- KEEL:BEGIN — v2.1.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
+<!-- KEEL:BEGIN — v3.0.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
 # Keel protocol (mandatory for ANY assistant working in this repository)
 
 This project is governed by the Keel workflow. Before reading code or changing ANYTHING:
 
 1. Read the FULL Keel `SKILL.md` FIRST, before anything else in this repository —
    from the installed `keel` skill if present, otherwise from the embedded copy
-   at `.claude/skills/keel/SKILL.md` — and follow it literally, starting by
+   at `.claude/skills/keel/SKILL.md` or `.agents/skills/keel/SKILL.md` — and
+   follow it literally, starting by
    executing its maintenance block (`references/keel-maintenance.md` — update
    check, lock freshness). Remembering the protocol from an earlier chat, or
    having this lock in context, does NOT count as having read it: a session that
@@ -274,7 +277,7 @@ This project is governed by the Keel workflow. Before reading code or changing A
    pushing it is a serious security risk, and exclude it via `.gitignore` (already
    tracked: untrack it too; ever pushed: purge history AND rotate the credential)
    before committing anything. If ending mid-work, produce the continuation prompt
-   from `.claude/skills/keel/references/project-state.md`.
+   from the embedded skill's `references/project-state.md`.
 5. Work with execution discipline, whatever model or environment is running:
    - Batch independent tool calls in ONE parallel block; never run sequentially what
      does not depend on a previous result.
@@ -298,34 +301,33 @@ between the delimiters only, with the user's OK, restamped with the running
 version. The stamp alone decides; no content comparison is needed.
 
 If neither the skill nor the embedded copy is available: STOP and tell the user to
-install Keel (or restore `.claude/skills/keel/`) before continuing.
+install Keel (or restore the embedded copy at `.claude/skills/keel/` /
+`.agents/skills/keel/`) before continuing.
 <!-- KEEL:END -->
 ```
 
-If the user also works with non-Claude assistants, mirror the same block in `AGENTS.md` (the multi-agent convention file) so those tools are bound too.
-
-**Version stamp and freshness.** The `KEEL:BEGIN` delimiter carries the version of the Keel that last wrote the block (`KEEL:BEGIN — vX.Y.Z do not remove: …`); every write and every refresh stamps it with the RUNNING Keel version — when inserting the canonical block above, replace its stamp with the running version if they differ. The check is stamp-only, by design: stamp equal to the running version → the block is current, nothing else to read; stamp different or missing (blocks written before v1.11.0 carry no stamp) → rewrite the block between the delimiters from this canonical copy, restamped — never a content comparison. Match delimiters by the `KEEL:BEGIN` prefix, never by exact text. The lock-freshness check in SKILL.md's maintenance block (`references/keel-maintenance.md`) runs this in every session; the refresh asks the user's OK (or rides the post-update reconciliation's batched plan). The same applies to the `AGENTS.md` mirror when the project keeps one. The canonical block above keeps its own stamp equal to the skill's current version as part of the skill's release hygiene — the repository's release linter checks it — so a literal copy never seeds a stale stamp.
+**Version stamp and freshness.** The `KEEL:BEGIN` delimiter carries the version of the Keel that last wrote the block (`KEEL:BEGIN — vX.Y.Z do not remove: …`); every write and every refresh stamps it with the RUNNING Keel version — when inserting the canonical block above, replace its stamp with the running version if they differ. The check is stamp-only, by design: stamp equal to the running version → the block is current, nothing else to read; stamp different or missing (blocks written before v1.11.0 carry no stamp) → rewrite the block between the delimiters from this canonical copy, restamped — never a content comparison. Match delimiters by the `KEEL:BEGIN` prefix, never by exact text. The lock-freshness check in SKILL.md's maintenance block (`references/keel-maintenance.md`) runs this in every session; the refresh asks the user's OK (or rides the post-update reconciliation's batched plan). It applies to BOTH lock files — `CLAUDE.md` and `AGENTS.md` are refreshed together — and to the `GEMINI.md` mirror when the project keeps one. The canonical block above keeps its own stamp equal to the skill's current version as part of the skill's release hygiene — the repository's release linter checks it — so a literal copy never seeds a stale stamp.
 
 ### 2. The embedded skill copy (recommended — ask the user once)
 
-Copy the installed skill into the repo at `.claude/skills/keel/` (SKILL.md + references/, verbatim). Consequences: Claude Code loads it automatically as a project-level skill; any other environment can read it as plain files via the lock's step 2; the repo is self-sufficient — a collaborator or a future session needs nothing pre-installed. Ask the user once at creation (it adds ~150 KB of markdown to the repo); record the choice in the project card.
+Copy the installed skill into the repo in TWO trees: `.claude/skills/keel/` (Claude Code loads it automatically as a project-level skill; Cursor, Copilot/VS Code, Cline, opencode, Amp, Warp and Junie also discover this tree) and `.agents/skills/keel/` (the open Agent Skills discovery convention — Codex, Cursor, Gemini CLI, Zed, Warp, Amp, opencode and Windsurf discover it natively). Both trees are identical, byte for byte (SKILL.md + references/, verbatim). Consequences: virtually every tool loads Keel as a project skill on its own; any other environment reads it as plain files via the lock's step 1; the repo is self-sufficient — a collaborator or a future session needs nothing pre-installed. Ask the user once at creation (the pair adds ~300 KB of markdown to the repo; a user who wants only one tree may choose so — record which); record the choice in the project card.
 
 Rules for the embedded copy:
 
-- **Copy the WHOLE skill — every file, verified — never a partial copy.** Copy from the installed skill's own directory, file for file: `SKILL.md` AND the complete `references/` tree (every `phase-*.md`, every template, `project-state.md`, `adoption.md`, `accessibility.md`, and the entire `references/security/` folder), plus `CHANGELOG.md`, `LICENSE`, and `NOTICE`. A partial copy is the single most common failure here and it silently breaks the workflow in the target environment — a missing phase reference makes that phase unrunnable, so the skill never really reaches the other tool. This is therefore a **verified** operation, not fire-and-forget:
-  1. **Copy everything at once.** Prefer a recursive copy of the entire `keel/` folder into `.claude/skills/keel/` (e.g. `cp -R`), not a hand-picked file list — hand-picking is how files get left behind.
-  2. **Verify against the source manifest.** After copying, list what actually landed in `.claude/skills/keel/` and compare it file-for-file against the source directory: same file set, nothing missing, nothing zero-bytes. `SKILL.md` must sit at `.claude/skills/keel/SKILL.md` (not nested one level deeper), and every reference the source has must be present.
+- **Copy the WHOLE skill — every file, verified — never a partial copy.** Copy from the installed skill's own directory, file for file: `SKILL.md` AND the complete `references/` tree (every `phase-*.md`, every template, `project-state.md`, `adoption.md`, `accessibility.md`, and the entire `references/security/` folder), plus `CHANGELOG.md`, `LICENSE`, and `NOTICE`. A partial copy is the single most common failure here and it silently breaks the workflow in the target environment — a missing phase reference makes that phase unrunnable, so the skill never really reaches the other tool. This is therefore a **verified** operation, not fire-and-forget, applied to EACH embedded tree:
+  1. **Copy everything at once.** Prefer a recursive copy of the entire `keel/` folder into the target tree (e.g. `cp -R`), not a hand-picked file list — hand-picking is how files get left behind.
+  2. **Verify against the source manifest.** After copying, list what actually landed in the tree and compare it file-for-file against the source directory: same file set, nothing missing, nothing zero-bytes. `SKILL.md` must sit at the tree's root (`.claude/skills/keel/SKILL.md`, `.agents/skills/keel/SKILL.md` — not nested one level deeper), and every reference the source has must be present.
   3. **If anything is missing or wrong, retry the copy, then verify again.**
-  4. **If it still fails after the retry, STOP and tell the user plainly** — name exactly which files did not arrive and why the copy could not complete from this environment — and ask them to move the `keel/` folder into `.claude/skills/keel/` themselves. Never leave a half-copied skill in place as if it worked: an embedded skill that reaches other tools with files missing is a defect, not a partial success. Record the outcome (complete / user-completed) in the project card.
-  If this environment cannot access the installed skill's files at all, do not reconstruct reference files from memory — tell the user to copy the `keel/` folder from the release into `.claude/skills/keel/` manually, then verify as above once they have.
-- **Sync by version, one direction.** The embedded copy's `SKILL.md` frontmatter carries its version. If the installed skill is newer than the embedded copy, update the embedded copy (tell the user); if the embedded copy is newer than what's installed, tell the user to update their installed skill. Never hand-edit the embedded copy. A version sync is also a full-tree copy — apply the same verify → retry → tell-user protocol above so an update can't silently drop a file either.
-- **It never ships.** `.claude/`, `CLAUDE.md` and `AGENTS.md` are repo-only: Phase 7 marks them `export-ignore` so they stay out of the distributable package.
+  4. **If it still fails after the retry, STOP and tell the user plainly** — name exactly which files did not arrive and why the copy could not complete from this environment — and ask them to move the `keel/` folder into place themselves. Never leave a half-copied skill in place as if it worked: an embedded skill that reaches other tools with files missing is a defect, not a partial success. Record the outcome (complete / user-completed) in the project card.
+  If this environment cannot access the installed skill's files at all, do not reconstruct reference files from memory — tell the user to copy the `keel/` folder from the release into both trees manually, then verify as above once they have.
+- **Sync by version, one direction, both trees together.** Each embedded copy's `SKILL.md` frontmatter carries its version. If the installed skill is newer than an embedded tree, update that tree (tell the user); if an embedded tree is newer than what's installed, tell the user to update their installed skill. The two trees must never diverge from each other — a sync that touches one touches both. Never hand-edit an embedded copy. A version sync is also a full-tree copy — apply the same verify → retry → tell-user protocol above so an update can't silently drop a file either.
+- **It never ships.** `.claude/`, `.agents/`, `CLAUDE.md`, `AGENTS.md` (and `GEMINI.md` when kept) are repo-only: Phase 7 marks them `export-ignore` so they stay out of the distributable package.
 
 Project card line: `Keel portability: [lock only / lock + embedded vX.Y.Z]`.
 
-### 3. Native Claude Code configuration (optional)
+### 3. Native assistant configuration (optional)
 
-Beyond the lock and the embedded skill, a project may carry `.claude/rules/`, `.claude/agents/`, `.claude/settings.json`, a confidential-data pre-commit gate (`.githooks/pre-commit`), and `.mcp.json`, generated by Keel from the project's own recorded decisions. Only Claude Code loads these natively — the lock remains the universal mechanism, and nothing critical to the workflow lives only there. Offered once at Phase 1 step 0a / adoption step 2; materialized at Phase 2 close and the Phase 5 scaffold; recorded in the project card (`Claude config:` line); covered by the same Phase 7 export-ignore. Full definition: `references/claude-config.md`.
+Beyond the lock and the embedded skill, a project may carry native config for its accepted assistants — path-scoped rules, reviewer subagents, permission allow-lists, a confidential-data pre-commit gate (`.githooks/pre-commit`), and MCP registrations, generated by Keel from the project's own recorded decisions, one container per tool (`.claude/`, `.github/instructions/` + `.github/agents/`, `.cursor/`, `.gemini/`, `.windsurf/`, `.codex/`, nested context files). Each tool loads only its own — the lock remains the universal mechanism, and nothing critical to the workflow lives only there. Offered once at Phase 1 step 0a / adoption step 2; materialized at Phase 2 close and the Phase 5 scaffold; recorded in the project card (`Assistant config:` line, tools listed); covered by the same Phase 7 export-ignore. Full definition: `references/assistant-config.md`.
 
 ## Post-update reconciliation — after a Keel update, bring the PROJECT up to date
 
@@ -343,7 +345,7 @@ Never skip it silently. If the user defers it, record `Reconciliation pending vX
 1. **Re-read the governing files from the NEW copy.** After an update, the `SKILL.md` and the current phase's reference in context belong to the old version — re-read both, and read the new `MANIFEST.md` (the parity manifest): its Table 2 names every skill file changed since the project's baseline (the exact re-read list), its Table 1 drives step 3's parity check, and its Table 3 is the per-version action list — the concrete actions to apply, so the reconciliation applies a delta instead of interpreting the changelog. This is the single exception to the read-once rule (context & cache discipline, rule 2).
 2. **Diff the versions via the changelog.** Read every new `CHANGELOG.md` entry after the baseline version, oldest → newest. The changelog is written to make this cheap — never re-read every reference to find what changed.
 3. **Extract what touches the PROJECT, not only the assistant's behavior.** From each entry: files/directories the project should now have; project-card lines that now exist; changes to the lock block (between its `KEEL:BEGIN/END` delimiters); questions a phase now asks that were never asked here; new one-time verifications or gates. Behavior-only changes need nothing — they apply by themselves from the new references. Then run `MANIFEST.md` Table 1 as the ABSOLUTE parity check: everything required at or before the project's current phase (conditions per the project card) must exist — anything missing joins the plan, whatever version introduced it.
-4. **Present ONE batched catch-up plan.** What would be created or refreshed, which new questions need answers, what the new version requires versus what is optional. The user approves, trims, or defers. Optional mechanisms stay optional: reconciliation asks their never-asked question (e.g. the Claude config package for a project older than v1.10.0) — it never force-installs.
+4. **Present ONE batched catch-up plan.** What would be created or refreshed, which new questions need answers, what the new version requires versus what is optional. The user approves, trims, or defers. Optional mechanisms stay optional: reconciliation asks their never-asked question (e.g. the assistant config package for a project older than v1.10.0) — it never force-installs.
 5. **Apply.** Refresh the lock block between its delimiters (user OK — the existing safely-updatable mechanism); create missing files/directories from their templates; add new project-card lines without touching the rest; ask the batched questions and record their D-entries; run new one-time verifications where they apply.
 6. **Record.** One D-entry — `Keel vX → vY reconciliation: applied …; declined …` — update `Keel baseline:` to the running version, and update PROGRESS.md at the moment, as always.
 

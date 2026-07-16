@@ -66,7 +66,7 @@ Close the table with: **total (range)** → **planning figure with margin** ("pl
 Never assume any of these; ask them together when producing the firm budget (at the preliminary estimate, ask only for what the user wants included):
 
 1. **Hourly rate and currency** for the developer's hours (one rate by default; per-segment rates only if the user wants them).
-2. **AI access mode**: subscription (Claude Pro/Max — no marginal per-token cost) or **API pay-per-token**; and which model(s) will be used (e.g. a top model for planning, a mid model for code).
+2. **AI access mode**: subscription (Claude Pro/Max, ChatGPT Plus/Pro, Gemini AI plans or similar — no marginal per-token cost) or **API pay-per-token**; and which model(s) will be used (e.g. a top model for planning, a mid model for code).
 3. **Contingency %** (default 20–30%).
 4. **Budget language** — the budget is a client-facing deliverable: ask which language the client reads and write `docs/budget.md` in it (the internal `docs/estimate.md` stays in English per SKILL.md "Token economy").
 5. **Taxes**: amounts are stated tax-exclusive with a note (e.g. "+ IVA / VAT") unless the user says otherwise. Keel does not compute tax regimes.
@@ -79,10 +79,10 @@ With `Client budget: no` on the project card there is no budget and no client: n
 
 Two modes:
 
-- **Subscription** (Claude Pro/Max or similar): the marginal token cost of this project is ≈ 0 — the user already pays a flat monthly fee. Record the mode in the estimate; the **default recommendation** is not to bill the AI as a separate line (it is not an extra expense), and the supervision hours are already billed as developer hours. Whether to bill it anyway (as tooling overhead) is the user's call in Step 6.
+- **Subscription** (Claude Pro/Max, ChatGPT Plus/Pro, Gemini AI plans or similar): the marginal token cost of this project is ≈ 0 — the user already pays a flat monthly fee. Record the mode in the estimate; the **default recommendation** is not to bill the AI as a separate line (it is not an extra expense), and the supervision hours are already billed as developer hours. Whether to bill it anyway (as tooling overhead) is the user's call in Step 6.
 - **API pay-per-token**: estimate and price it:
   1. **Estimate total tokens** per project size — order of magnitude, state as ±50% and round up: small (≤5 slices) ≈ 5–15M total tokens; medium (6–15 slices) ≈ 15–40M; large (16+ slices) ≈ 40–100M+. Input tokens typically run 3–8× output tokens (state re-reads, iteration); Keel's fixed reading order and stable artifacts keep the effective input cost near the low end thanks to prompt caching (cache reads are ~0.1× input price on Anthropic).
-  2. **Verify current prices before quoting — ALWAYS.** Model prices change. Check the provider's official pricing page (Anthropic: `https://platform.claude.com/docs/en/about-claude/pricing`; other providers: their own page) with the web tool. If the environment has no web access, use the fallback table below, state its date in the estimate, and say the price should be re-verified.
+  2. **Verify current prices before quoting — ALWAYS.** Model prices change. Check the provider's official pricing page (Anthropic: `https://platform.claude.com/docs/en/about-claude/pricing`; OpenAI: `https://platform.openai.com/docs/pricing`; Google: `https://ai.google.dev/gemini-api/docs/pricing`; other providers: their own page) with the web tool. If the environment has no web access, use the fallback table below, state its date in the estimate, and say the price should be re-verified.
   3. Compute: `input tokens × input price + output tokens × output price`, with the cached-input share stated as an assumption. Give a cost **range**, not a point.
 
 Fallback table — Anthropic API, **verified July 2026** (per million tokens; cache read ≈ 0.1× input; batch −50%):
@@ -196,7 +196,7 @@ Running total: [input] / [output] — updated with each row.
 
 How to get the numbers, in order of preference:
 
-1. **Measured** — whatever the environment exposes: a session cost/usage counter (e.g. Claude Code's `/cost`), API usage logs, or the provider's console/dashboard (ask the user to read it out when exact figures matter).
+1. **Measured** — whatever the environment exposes: a session cost/usage counter (e.g. Claude Code's `/cost`, Codex's `/status`, Gemini CLI's `/stats`), API usage logs, or the provider's console/dashboard (ask the user to read it out when exact figures matter).
 2. **Estimated** — when nothing is exposed (typical in subscription apps): estimate from the volume actually produced and read (≈ 4 characters per token in English), state the method, round up. Never leave the row blank because measurement was unavailable — and never present an estimated row as measured.
 
 At release, Phase 7 runs the **final reconciliation** as part of its artifacts: total the ledger by model, price it at verified current prices, compute the deviation vs the estimate (tokens and cost; hours too if the user tracked them), report it to the user plainly, and record the calibration lesson — every finished project makes the next project's estimate better.

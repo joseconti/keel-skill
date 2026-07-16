@@ -76,9 +76,9 @@ The code map and conventions are what keep multi-chat development coherent: a fr
 
 The Testing block is decided in this much detail now for one reason: the coding agent must deliver code that works on first run. Anything a compile, a boot, or a basic test would have caught must never survive to a hand-over — and that is only enforceable in Phase 5 if the frameworks, commands, playground recipe, seed data and per-flow exercises were fixed here, not improvised there.
 
-### 4a. Materialize the Claude config rules and agents (if accepted at step 0a)
+### 4a. Materialize the assistant config rules and agents (if accepted at step 0a)
 
-If the project card records `Claude config:` with rules and/or agents accepted, this is the moment to generate them — their sources (the §Conventions above and the loaded security profile) are now fixed. Load `references/claude-config.md` and produce `.claude/rules/` (path-scoped to the code map's source globs) and `.claude/agents/` per its templates; record a D-entry in `docs/decisions.md`. Settings, the pre-commit gate, and `.mcp.json` wait for the Phase 5 scaffold.
+If the project card records `Assistant config:` with rules and/or agents accepted, this is the moment to generate them — their sources (the §Conventions above and the loaded security profile) are now fixed. Load `references/assistant-config.md` and produce the rules (path-scoped to the code map's source globs) and the subagents in EVERY accepted tool's container per its matrix and templates; record a D-entry in `docs/decisions.md`. Permissions, the pre-commit gate, and the MCP registration wait for the Phase 5 scaffold.
 
 ### 5. Decide precisely what needs design
 
@@ -157,7 +157,7 @@ ALWAYS use this template:
 - Every multi-step/branching journey has a flow file.
 - Data model, integrations, and permissions are specified.
 - `docs/03-technical-plan.md` complete per its template: stack with exact versions, support matrix, architecture, code map, conventions (prefix, naming, error handling, logging), testing approach with run commands, version touchpoints, license-compatibility rule. Significant choices recorded in `docs/decisions.md`.
-- If the project card accepted Claude config rules/agents: `.claude/rules/` and `.claude/agents/` generated per `references/claude-config.md`, path-scoped, recorded in `docs/decisions.md`.
+- If the project card accepted assistant config rules/agents: the rules and subagents generated in every accepted tool's container per `references/assistant-config.md`, path-scoped, identical in substance, recorded in `docs/decisions.md`.
 - The design split is explicit, including external-setup items, foreseen external assets, per-screen accessibility requirements, and target devices/viewports with exact breakpoints — each on its own template line, carried into the Phase 3 brief.
 - Zero unresolved open questions.
 - The adversarial spec review (step 6a) ran before the firm estimate — fresh context (subagent when available, strict self-check otherwise), the full checklist verified mechanically — and every finding was fixed in the spec.

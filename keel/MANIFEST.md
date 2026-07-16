@@ -1,4 +1,4 @@
-# Keel Manifest — v2.1.0
+# Keel Manifest — v3.0.0
 
 One file, three tables, one purpose: looking ONLY at this file, a session can tell (1) whether a project contains everything Keel requires at its current phase, (2) which skill files changed in which Keel version — so after an update it knows exactly what to re-read, without interpreting the changelog — and (3) what concrete actions each version asks of an existing project (the reconciliation delta).
 
@@ -13,9 +13,9 @@ Verification is phase-aware and condition-aware: read the project card and phase
 | `docs/PROGRESS.md` | Living state: project card, phase status, position, deferred items (template: `references/project-state.md`) | Phase 1 step 0a | Always |
 | `docs/decisions.md` | Append-only decision log (same template source) | Phase 1 step 0a | Always |
 | `docs/lessons-learned.md` | Append-only problem→solution log (same) | Phase 1 step 0a | Always |
-| `CLAUDE.md` (repo root) | The portability lock: Keel block between `KEEL:BEGIN/END`, stamped `— vX.Y.Z` | Phase 1 step 0a | Always |
-| `AGENTS.md` | Mirror of the lock block | Phase 1 step 0a | Only if the user works with non-Claude assistants |
-| `.claude/skills/keel/` | Embedded copy of the whole skill, version-synced | Phase 1 step 0a | Only if embed accepted (card: `Keel portability:`) |
+| `CLAUDE.md` + `AGENTS.md` (repo root) | The portability lock: the same Keel block between `KEEL:BEGIN/END` in both files, stamped `— vX.Y.Z` | Phase 1 step 0a | Always |
+| `GEMINI.md` or `context.fileName` in `.gemini/settings.json` | Gemini CLI's lock mirror (the recorded pick) | Phase 1 step 0a | Only if the user works with Gemini CLI |
+| `.claude/skills/keel/` + `.agents/skills/keel/` | Embedded copy of the whole skill, version-synced, both trees identical | Phase 1 step 0a | Only if embed accepted (card: `Keel portability:`) |
 | `docs/00-competitive-landscape.md` | Competitive scan artifacts | Phase 1 step 0 | Unless the scan was skipped on record |
 | `docs/01-discovery.md` | Discovery document (verdict + user decision recorded) | Phase 1 | Always |
 | `docs/estimate.md` | Estimate v1 preliminary → firm (per `references/estimation-budget.md`) | Phase 1 close | Always |
@@ -24,22 +24,22 @@ Verification is phase-aware and condition-aware: read the project card and phase
 | `docs/03-technical-plan.md` | Stack, architecture, code map, conventions, testing plan (frameworks + commands + playground recipe) | Phase 2 | Always |
 | `docs/flows/` | One file per multi-step/branching journey | Phase 2 | Always |
 | `docs/budget.md` | Client-facing budget, approved | Phase 2 close | Only if `Client budget: yes` (card line, asked at Phase 1 step 10) |
-| `.claude/rules/` | Path-scoped rules from the plan + security profile (`references/claude-config.md`) | Phase 2 close | Only if accepted (card: `Claude config:`) |
-| `.claude/agents/` | Reviewer/verifier subagents (same source) | Phase 2 close | Only if accepted (card: `Claude config:`) |
+| Assistant rules — one container per accepted tool (`.claude/rules/`, `.cursor/rules/`, `.github/instructions/`, `.windsurf/rules/`, nested context files for Codex/Gemini) | Path-scoped rules from the plan + security profile (`references/assistant-config.md`) | Phase 2 close | Only if accepted (card: `Assistant config:`) |
+| Assistant subagents — per capable tool (`.claude/agents/`, `.github/agents/`, `.cursor/agents/`, `.gemini/agents/`) | Reviewer/verifier subagents (same source) | Phase 2 close | Only if accepted (card: `Assistant config:`) |
 | `docs/design/DESIGN-BRIEF.md` | Brief handed to Design (user-approved, bracket-clean) | Phase 3 | UI projects only |
 | `docs/design/design-handoff/` | The returned handoff per `references/handoff-contract.md` (Design's delivery, or the recorded no-Design branch) — holds NOTHING else, ever (contract rule 10: wholesale-replaceable) | Phase 4 start | UI projects only |
 | `docs/BUILD-SPEC.md` | Consolidated faithful-build contract (§1 is the evidence table) | Phase 4 | UI projects only |
 | `docs/design/design-requests/` | Numbered DR register | Phase 4 | When the first Design Request appears |
-| `.gitignore` + `.gitattributes` | Hygiene boundaries (full rules at Phase 7); `.gitignore` ALWAYS includes `CLAUDE.local.md`, `.claude/settings.local.json`, and `.keel-update-check` (the machine-local update-check throttle stamp) | Phase 5 scaffold | Always |
+| `.gitignore` + `.gitattributes` | Hygiene boundaries (full rules at Phase 7); `.gitignore` ALWAYS includes `CLAUDE.local.md`, `.claude/settings.local.json`, and `.keel-update-check` (the machine-local update-check throttle stamp), plus the accepted tools' personal files (`AGENTS.override.md`, `.gemini/.env`, `.gemini/tmp/`) | Phase 5 scaffold | Always |
 | `docs/sprints/` | One file per sprint | Phase 5 | Always |
 | `docs/05-test-points.md` | Test-point log, all columns including evidence (commands + output + commit) | Phase 5 | Always |
 | `docs/api/INDEX.md` | One line per public surface | Phase 5 first slice | Always |
 | `docs/playground.md` | Playground access + try-it instructions + seed/reset commands + `last verified:` stamp | Phase 5 scaffold | If the project can be run |
 | `scripts/keel-verify` | The project's own release linter (`references/phase-5-development.md`) | Phase 5 scaffold | If the project can be run |
-| `.githooks/pre-commit` | Confidential-data gate (+ `core.hooksPath` set) | Phase 5 scaffold | Only if accepted (card: `Claude config:`) |
-| `.claude/settings.json` | Minimal confirmed permission allow-list | Phase 5 scaffold | Only if accepted (card: `Claude config:`) |
-| CI workflow (e.g. `.github/workflows/ci.yml`) | The plan's verified commands + secret scan + keel-verify (`references/claude-config.md`) | Phase 5 scaffold | Only if accepted (card: `Claude config:`) and the forge has CI |
-| `.mcp.json` (repo root) | Development MCP servers, env expansion only | Phase 5 scaffold | Only if the technical plan defines dev MCP servers |
+| `.githooks/pre-commit` | Confidential-data gate (+ `core.hooksPath` set) — one per project, tool-agnostic | Phase 5 scaffold | Only if accepted (card: `Assistant config:`) |
+| Permission allow-lists — per capable tool (`.claude/settings.json`, `.codex/rules/`, `tools.allowed` in `.gemini/settings.json`, `.cursor/cli.json`) | Minimal confirmed allow-list from the plan's verified commands | Phase 5 scaffold | Only if accepted (card: `Assistant config:`) |
+| CI workflow (e.g. `.github/workflows/ci.yml`) | The plan's verified commands + secret scan + keel-verify (`references/assistant-config.md`) | Phase 5 scaffold | Only if accepted (card: `Assistant config:`) and the forge has CI |
+| MCP registration — per capable tool (`.mcp.json`, `.cursor/mcp.json`, `.vscode/mcp.json`, `[mcp_servers]` in `.codex/config.toml`, `mcpServers` in `.gemini/settings.json`) | Development MCP servers, env expansion only | Phase 5 scaffold | Only if the technical plan defines dev MCP servers |
 | `docs/architecture.md` | Consolidated architecture | Phase 6 | Always |
 | `docs/api/`, `docs/usage/`, `docs/reference/` | Full documentation layout (api/ grows from Phase 5) | Phase 6 | Always (reference/ per project type) |
 | `docs/security.md` | Consolidated security posture per the loaded profile(s) | Phase 6 | Always |
@@ -54,7 +54,7 @@ Verification is phase-aware and condition-aware: read the project card and phase
 | `docs/old/` | Archive (move, never delete) | First sprint close | When archiving starts |
 | `docs/04-adoption-audit.md` | Gap audit vs Keel standards | Adoption step 5 | Adopted projects only |
 
-Project-card lines that must exist (inside `docs/PROGRESS.md`): the full card per the `references/project-state.md` template, including `Keel portability:`, `Claude config:` (since v1.10.0), `Keel baseline:` (since v1.10.0), `Client budget:` and `User guide:` (both since v2.0.0).
+Project-card lines that must exist (inside `docs/PROGRESS.md`): the full card per the `references/project-state.md` template, including `Keel portability:`, `Assistant config:` (introduced v1.10.0 as `Claude config:`; renamed with the tools list in v3.0.0), `Keel baseline:` (since v1.10.0), `Client budget:` and `User guide:` (both since v2.0.0).
 
 ## Table 2 — Skill files and the Keel version that last changed them
 
@@ -62,23 +62,23 @@ After an update, re-read `SKILL.md`, the current phase's reference, and THIS fil
 
 | Skill file | Last changed in |
 |---|---|
-| `SKILL.md` | v2.1.0 |
-| `MANIFEST.md` | v2.1.0 |
-| `CHANGELOG.md` | v2.1.0 |
-| `references/keel-maintenance.md` | v2.0.0 |
-| `references/playground-recipes.md` | v2.0.0 |
+| `SKILL.md` | v3.0.0 |
+| `MANIFEST.md` | v3.0.0 |
+| `CHANGELOG.md` | v3.0.0 |
+| `references/keel-maintenance.md` | v3.0.0 |
+| `references/playground-recipes.md` | v3.0.0 |
 | `references/maintenance.md` | v2.0.0 |
-| `references/claude-config.md` | v2.0.0 |
-| `references/phase-5-development.md` | v2.0.0 |
-| `references/phase-7-release.md` | v2.0.0 |
-| `references/project-state.md` | v2.1.0 |
-| `references/phase-1-discovery.md` | v2.0.0 |
-| `references/phase-2-functional-spec.md` | v2.0.0 |
-| `references/adoption.md` | v1.10.0 |
-| `references/estimation-budget.md` | v2.0.0 |
-| `references/phase-6-documentation.md` | v2.0.0 |
+| `references/assistant-config.md` | v3.0.0 |
+| `references/phase-5-development.md` | v3.0.0 |
+| `references/phase-7-release.md` | v3.0.0 |
+| `references/project-state.md` | v3.0.0 |
+| `references/phase-1-discovery.md` | v3.0.0 |
+| `references/phase-2-functional-spec.md` | v3.0.0 |
+| `references/adoption.md` | v3.0.0 |
+| `references/estimation-budget.md` | v3.0.0 |
+| `references/phase-6-documentation.md` | v3.0.0 |
 | `references/phase-3-design-handoff.md` | v2.1.0 |
-| `references/phase-4-faithful-build.md` | v2.1.0 |
+| `references/phase-4-faithful-build.md` | v3.0.0 |
 | `references/handoff-contract.md` | v2.1.0 |
 | `references/design-brief-template.md` | v2.0.0 |
 | `references/design-request-template.md` | v2.0.0 |
@@ -88,9 +88,9 @@ After an update, re-read `SKILL.md`, the current phase's reference, and THIS fil
 | `references/phase-8-section-catalogue.md` | v2.0.0 |
 | `references/phase-8-domain-decision.md` | v2.0.0 |
 | `references/phase-8-design-direction.md` | v2.0.0 |
-| `references/phase-8-launch-checklist.md` | v2.0.0 |
+| `references/phase-8-launch-checklist.md` | v3.0.0 |
 | `references/phase-8-technical-seo.md` | v2.0.0 |
-| `references/accessibility.md` | v2.0.0 |
+| `references/accessibility.md` | v3.0.0 |
 | `references/security/wordpress.md` | v2.0.0 |
 | `references/security/web-app.md` | v2.0.0 |
 | `references/security/mcp-server.md` | v2.0.0 |
@@ -112,6 +112,7 @@ What the reconciliation APPLIES, version by version, for every version newer tha
 | v1.13.0 | None structural. |
 | v2.0.0 | Ask the `Client budget:` question if it was never asked and add the card line. On runnable projects, generate `scripts/keel-verify` and add seed/reset to the playground at (or after) the Phase 5 scaffold. If the Claude config package is accepted and the forge has CI, offer the CI workflow. If the project has UI, the next handoff audit or re-audit uses the evidence-table `docs/BUILD-SPEC.md` §1. If Phase 7 is done, set the PROGRESS.md position to "maintenance" and work per `references/maintenance.md`. If website intent is recorded, plan `launch-report.md` and `operations.md` at the next launch or freshness pass. On runnable projects, the debug-log system with its on/off switch (Phase 5 scaffold spec) is added at the next sprint kickoff or maintenance change. The reconciliation itself ASKS whether to create the full end-user guide now (`guide/` — the Phase 6 section, with its language and packaging questions) and records the answer on the new `User guide:` card line; creating it on a released project is a normal maintenance change. The lock-block stamp refreshes through the normal freshness check. |
 | v2.1.0 | None structural. Behavioral: nothing is ever written into `docs/design/design-handoff/` again — user-generated assets and acquired fonts go to the PROJECT's tree (contract rule 10). If the current handoff already contains foreign files, move each to its correct home (project tree or `docs/`) at the next Phase 4 touch, restoring the wholesale-replaceable state. |
+| v3.0.0 | The multi-assistant generalization. Ask once which assistants work on this repo (if never asked) and rename the project card line `Claude config:` → `Assistant config: [none / rules / rules+agents / full] (tools: ...)`, keeping the recorded acceptance level. Create the missing `AGENTS.md` lock mirror (same block, same stamp) through the normal lock-freshness refresh; if the user works with Gemini CLI, ask its mirror question (a `GEMINI.md` copy, or `context.fileName` in `.gemini/settings.json`) and record the pick. If the skill is embedded, add the second tree so `.claude/skills/keel/` + `.agents/skills/keel/` both exist (verified full-copy protocol; they sync together from now on). If the assistant config package is accepted, offer materializing the containers for the newly named tools from the same recorded sources (per `references/assistant-config.md`); add the accepted tools' personal files to `.gitignore` (`AGENTS.override.md`, `.gemini/.env`, `.gemini/tmp/`); if the pre-commit gate is installed, update its embedded-skill exemption to cover `.agents/skills/*` (a recorded gate change). At the next Phase 7 touch, extend the export-ignore set to every generated assistant config tree. |
 
 ## Maintenance (part of EVERY release — no exceptions)
 

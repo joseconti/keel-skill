@@ -78,7 +78,7 @@ A fail is a defect like any other: it enters the normal defect flow, never a "po
 
 ## Platform sections
 
-Every "Verify with" list below splits the same way: the **automated passes** (axe-core, pa11y, Lighthouse, Accessibility Inspector, Accessibility Insights, Accessibility Scanner) are run BY the assistant where the environment allows, with the command and its result recorded; the **manual passes** (keyboard-only, real assistive technology) route through the guided loop above. When a subagent environment exists, the `a11y-auditor` agent (`references/claude-config.md`) runs the automated pass and prepares the guided-loop script.
+Every "Verify with" list below splits the same way: the **automated passes** (axe-core, pa11y, Lighthouse, Accessibility Inspector, Accessibility Insights, Accessibility Scanner) are run BY the assistant where the environment allows, with the command and its result recorded; the **manual passes** (keyboard-only, real assistive technology) route through the guided loop above. When a subagent environment exists, the `a11y-auditor` agent (`references/assistant-config.md`) runs the automated pass and prepares the guided-loop script.
 
 ### Web / HTML
 
