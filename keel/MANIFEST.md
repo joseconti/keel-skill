@@ -1,4 +1,4 @@
-# Keel Manifest — v3.0.0
+# Keel Manifest — v3.1.0
 
 One file, three tables, one purpose: looking ONLY at this file, a session can tell (1) whether a project contains everything Keel requires at its current phase, (2) which skill files changed in which Keel version — so after an update it knows exactly what to re-read, without interpreting the changelog — and (3) what concrete actions each version asks of an existing project (the reconciliation delta).
 
@@ -62,21 +62,21 @@ After an update, re-read `SKILL.md`, the current phase's reference, and THIS fil
 
 | Skill file | Last changed in |
 |---|---|
-| `SKILL.md` | v3.0.0 |
-| `MANIFEST.md` | v3.0.0 |
-| `CHANGELOG.md` | v3.0.0 |
+| `SKILL.md` | v3.1.0 |
+| `MANIFEST.md` | v3.1.0 |
+| `CHANGELOG.md` | v3.1.0 |
 | `references/keel-maintenance.md` | v3.0.0 |
 | `references/playground-recipes.md` | v3.0.0 |
 | `references/maintenance.md` | v2.0.0 |
-| `references/assistant-config.md` | v3.0.0 |
-| `references/phase-5-development.md` | v3.0.0 |
-| `references/phase-7-release.md` | v3.0.0 |
-| `references/project-state.md` | v3.0.0 |
+| `references/assistant-config.md` | v3.1.0 |
+| `references/phase-5-development.md` | v3.1.0 |
+| `references/phase-7-release.md` | v3.1.0 |
+| `references/project-state.md` | v3.1.0 |
 | `references/phase-1-discovery.md` | v3.0.0 |
 | `references/phase-2-functional-spec.md` | v3.0.0 |
 | `references/adoption.md` | v3.0.0 |
 | `references/estimation-budget.md` | v3.0.0 |
-| `references/phase-6-documentation.md` | v3.0.0 |
+| `references/phase-6-documentation.md` | v3.1.0 |
 | `references/phase-3-design-handoff.md` | v2.1.0 |
 | `references/phase-4-faithful-build.md` | v3.0.0 |
 | `references/handoff-contract.md` | v2.1.0 |
@@ -113,6 +113,7 @@ What the reconciliation APPLIES, version by version, for every version newer tha
 | v2.0.0 | Ask the `Client budget:` question if it was never asked and add the card line. On runnable projects, generate `scripts/keel-verify` and add seed/reset to the playground at (or after) the Phase 5 scaffold. If the Claude config package is accepted and the forge has CI, offer the CI workflow. If the project has UI, the next handoff audit or re-audit uses the evidence-table `docs/BUILD-SPEC.md` §1. If Phase 7 is done, set the PROGRESS.md position to "maintenance" and work per `references/maintenance.md`. If website intent is recorded, plan `launch-report.md` and `operations.md` at the next launch or freshness pass. On runnable projects, the debug-log system with its on/off switch (Phase 5 scaffold spec) is added at the next sprint kickoff or maintenance change. The reconciliation itself ASKS whether to create the full end-user guide now (`guide/` — the Phase 6 section, with its language and packaging questions) and records the answer on the new `User guide:` card line; creating it on a released project is a normal maintenance change. The lock-block stamp refreshes through the normal freshness check. |
 | v2.1.0 | None structural. Behavioral: nothing is ever written into `docs/design/design-handoff/` again — user-generated assets and acquired fonts go to the PROJECT's tree (contract rule 10). If the current handoff already contains foreign files, move each to its correct home (project tree or `docs/`) at the next Phase 4 touch, restoring the wholesale-replaceable state. |
 | v3.0.0 | The multi-assistant generalization. Ask once which assistants work on this repo (if never asked) and rename the project card line `Claude config:` → `Assistant config: [none / rules / rules+agents / full] (tools: ...)`, keeping the recorded acceptance level. Create the missing `AGENTS.md` lock mirror (same block, same stamp) through the normal lock-freshness refresh; if the user works with Gemini CLI, ask its mirror question (a `GEMINI.md` copy, or `context.fileName` in `.gemini/settings.json`) and record the pick. If the skill is embedded, add the second tree so `.claude/skills/keel/` + `.agents/skills/keel/` both exist (verified full-copy protocol; they sync together from now on). If the assistant config package is accepted, offer materializing the containers for the newly named tools from the same recorded sources (per `references/assistant-config.md`); add the accepted tools' personal files to `.gitignore` (`AGENTS.override.md`, `.gemini/.env`, `.gemini/tmp/`); if the pre-commit gate is installed, update its embedded-skill exemption to cover `.agents/skills/*` (a recorded gate change). At the next Phase 7 touch, extend the export-ignore set to every generated assistant config tree. |
+| v3.1.0 | If the assistant config package is accepted: regenerate `code-reviewer` (new comments check) and the `code-style` rule (new comments line) in every capable container from the same recorded sources. Where the `User guide:` card line is yes and `guide/` exists, generate the `guide-qa` subagent in each capable container at the next Phase 6 or maintenance touch. Nothing else structural. |
 
 ## Maintenance (part of EVERY release — no exceptions)
 

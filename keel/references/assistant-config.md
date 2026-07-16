@@ -29,7 +29,7 @@ Do not block on this question: if the user defers, record `Assistant config: non
 | Piece | Generated from | Created at | Updated when |
 |-------|----------------|-----------|--------------|
 | Rules (one container per accepted tool) | `docs/03-technical-plan.md` §Conventions + the loaded security profile + Keel quality gates | Phase 2 close (adoption: after its step 4) | A recorded decision changes a source — same change, every container, never silently |
-| Subagents (per capable tool) | Same sources + `docs/api/INDEX.md` discipline | Phase 2 close (adoption: after its step 4); `launch-verifier` only with website intent — or at Phase 8 start on first need | Same rule |
+| Subagents (per capable tool) | Same sources + `docs/api/INDEX.md` discipline | Phase 2 close (adoption: after its step 4); `launch-verifier` only with website intent — or at Phase 8 start on first need; `guide-qa` only when the end-user guide decision is yes — at Phase 6 on first need | Same rule |
 | Permission allow-lists (per capable tool) | Technical plan §Tooling commands + playground commands | Phase 5 scaffold, ALWAYS confirmed with the user | Tooling/playground commands change |
 | `.githooks/pre-commit` (one per project) | SKILL.md "Confidential data never reaches Git" | Phase 5 scaffold (adoption: immediately, with approval) | The gate's patterns need tightening (recorded) |
 | CI workflow (one per project, e.g. `.github/workflows/ci.yml`) | Technical plan §Tooling commands — the same verified source as the allow-lists | Phase 5 scaffold, if the forge supports CI | The plan's verified commands change |
@@ -74,6 +74,7 @@ Source of truth: docs/03-technical-plan.md §Conventions. On any conflict, the p
 - Error handling: [the ONE recorded strategy]. Never mix strategies.
 - Logging: [mechanism + levels]; never log secrets.
 - Base language of source strings: English ([i18n mechanism + text domain per the plan]).
+- Comments: every public surface carries its docblock in [the platform's convention — e.g. PHPDoc / JSDoc / docstrings] (purpose, params, return); comment the why on non-obvious decisions, not the what. English by default, per the recorded language policy.
 ```
 
 **`security`** — the loaded profile, distilled to its DO/DON'T core (about ten bullets maximum — e.g. for WordPress: sanitize input, escape output at print time, nonce + capability on every state change, `$wpdb->prepare`, ABSPATH guard, no secrets in code or logs). End with: `Full profile: the Keel security reference for this project type governs; this file is the reminder, not the standard.`
@@ -102,13 +103,13 @@ Per-container adaptation (content identical, header differs):
 - **Windsurf** — `.windsurf/rules/<name>.md` with `trigger: glob` and `globs: [the same globs]`.
 - **Codex / Gemini CLI** — no glob mechanism exists: place ONE nested context file (`AGENTS.md` for Codex, the project's context filename for Gemini) in each top-level source directory from the code map (e.g. `includes/`, `src/`), containing the three rules' content concatenated, headed by `Scope: this directory's code.` Do NOT also duplicate the content into the root lock — nested files load only when that directory is touched, which is the whole point.
 
-## Subagents — seven project verifiers, defined once
+## Subagents — eight project verifiers, defined once
 
 The canonical definitions are markdown files with YAML frontmatter (`name`, `description`, `tools`). Give them read-only tools (`Read, Grep, Glob`) — they flag, they never fix; the verifiers that must EXECUTE to verify (run the playground, fetch the deployed site, run accessibility tooling) add `Bash`/`WebFetch` on top and still never write. Do NOT pin a `model:` (model names age; inherit the session's). The `description` must say WHEN to use the agent — every tool that supports project subagents delegates based on it.
 
 Materialize into each capable container from the matrix: `.claude/agents/*.md` (Claude Code — and Cursor reads this tree natively, so when Cursor is accepted ALONGSIDE Claude, one tree serves both; generate `.cursor/agents/` only when Cursor is accepted without Claude), `.github/agents/<name>.agent.md` (Copilot), `.gemini/agents/*.md` (Gemini CLI). The frontmatter keys are near-identical across the three (name, description, tools); adapt mechanically, never fork the body. Codex has no markdown project subagents — its sessions run the checks inline (the fallback below); optionally, delegation-only roles can be declared in `.codex/config.toml` if the user wants them. Windsurf: inline fallback.
 
-All of them materialize together at Phase 2 close (adoption: after its step 4), except `launch-verifier`: generated only when Phase 1 recorded website intent — or at Phase 8 start on first need. The conditional agents (`design-fidelity-auditor`, `playground-qa`, `launch-verifier`, `a11y-auditor`) are generated only for projects meeting their condition — an agent the project can never use is noise, not coverage.
+All of them materialize together at Phase 2 close (adoption: after its step 4), except `launch-verifier` — generated only when Phase 1 recorded website intent, or at Phase 8 start on first need — and `guide-qa` — generated at Phase 6 on first need, once the end-user guide decision is yes (the decision does not exist earlier). The conditional agents (`design-fidelity-auditor`, `playground-qa`, `launch-verifier`, `a11y-auditor`, `guide-qa`) are generated only for projects meeting their condition — an agent the project can never use is noise, not coverage.
 
 **`code-reviewer.md`**:
 
@@ -121,7 +122,7 @@ tools: Read, Grep, Glob
 
 You review code for [Project name] against its recorded contracts. You flag; you never rewrite.
 
-Check in order: (1) conventions per docs/03-technical-plan.md §Conventions — prefix, naming, error handling, logging; (2) reuse — no near-duplicate of anything in docs/api/INDEX.md; (3) i18n — no hardcoded or concatenated user-facing strings; (4) accessibility on UI slices, per the project's targeted level; (5) docs — every new public surface has its doc AND its INDEX.md row; (6) extension points on extensible types.
+Check in order: (1) conventions per docs/03-technical-plan.md §Conventions — prefix, naming, error handling, logging; (2) reuse — no near-duplicate of anything in docs/api/INDEX.md; (3) i18n — no hardcoded or concatenated user-facing strings; (4) accessibility on UI slices, per the project's targeted level; (5) docs — every new public surface has its doc AND its INDEX.md row; (6) extension points on extensible types; (7) comments — every public surface in the diff carries its docblock per the platform's convention (purpose, params, return), non-obvious decisions carry a why comment, and comment language follows the recorded policy (English by default).
 
 Report: file:line — what fails — which recorded rule it violates. Order by severity. If everything passes, say so in one line.
 ```
@@ -138,7 +139,9 @@ Report: file:line — what fails — which recorded rule it violates. Order by s
 
 **`a11y-auditor.md`** — UI and website projects; skeleton plus `Bash` (it runs tooling, it never edits). description: "Runs the automated accessibility pass and prepares the guided assistive-technology script. Use before Phase 4's definition of done and at the Phase 8 launch checklist." Body: run the automated pass (axe-core / pa11y / the platform inspectors) across the screens or the full sitemap URL list, recording command + result; prepare the step-by-step script for the guided assistive-technology pass the user will run (the guided loop in `references/accessibility.md`). Report findings by severity; automated coverage is partial by design — the guided pass closes the rest.
 
-This file DEFINES the agents; the phase references INVOKE them: Phase 4 Step 7, Phase 5 test points and sprint closes, the Phase 7 gate, the Phase 8 launch checklist. If the environment provides no subagents (Codex, Windsurf, or any tool without them), the session runs the same checks inline and says so — the check never disappears with the mechanism.
+**`guide-qa.md`** — projects with an end-user guide (the Phase 6 decision is yes, not declined); same skeleton, read-only. description: "Verifies the end-user guide (guide/) against the product's capability and settings lists, with fresh context. Use at the Phase 6 guide check and at the Phase 7 gate when the guide ships in the package." Body: receive ONLY `guide/` plus the v1 capability list (`docs/01-discovery.md` / `docs/02-functional-spec.md`) and the settings list (`docs/usage/configuration.md`); verify: (1) mechanical coverage — every capability and every setting has its guide section, and troubleshooting covers the debug-log switch; (2) every internal link and image resolves inside `guide/` — nothing external, per the offline rule; (3) every task's steps are followable exactly as written — no step assumes context the guide never gave; (4) per-locale orthography is perfect and secondary locales mirror the principal's structure; (5) the guide's own HTML meets the accessibility basics (semantic structure, heading outline, alt text on every image). Report each gap as a Phase 6 defect — the guide, never the reader, gets fixed.
+
+This file DEFINES the agents; the phase references INVOKE them: Phase 4 Step 7, Phase 5 test points and sprint closes, the Phase 6 guide check, the Phase 7 gate, the Phase 8 launch checklist. If the environment provides no subagents (Codex, Windsurf, or any tool without them), the session runs the same checks inline and says so — the check never disappears with the mechanism.
 
 ## Permission allow-lists — minimal, ALWAYS confirmed
 

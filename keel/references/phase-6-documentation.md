@@ -107,6 +107,8 @@ Build rules:
 - **Per-locale correct.** Every locale meets the same orthography standard as everything else (SKILL.md "Writing quality"); secondary locales are translations of the principal and are kept in sync with it.
 - **Kept current.** Once the guide exists, every feature or behavior change updates it in the same slice/sprint that changes the behavior (the Phase 5 docs-at-creation discipline extends to it), and the maintenance freshness duty (`references/maintenance.md`) includes it.
 
+**The guide check is independent.** When the environment provides subagents (per `references/assistant-config.md`), the completeness check runs as a fresh-context pass: **`guide-qa`** receives ONLY `guide/` plus the capability and settings lists and reports coverage gaps, links or images that do not resolve, steps that assume context the guide never gave, per-locale orthography faults, and misses in the guide's own accessibility basics. The session that wrote the guide never self-certifies it when an independent pass is available; without subagents, the same checks run inline and say so. Findings are Phase 6 defects — fixed before the phase closes; the guide, never the reader, gets fixed.
+
 ## Rules
 
 - **This phase consolidates.** Per Phase 5, every public surface was documented at the moment it was created with a runnable example. If a surface is undocumented here, it is a Phase 5 defect — fix the slice, do not retroactively invent docs from the code.
@@ -121,10 +123,10 @@ Build rules:
 ## Definition of done
 
 - The full `docs/` layout exists and is populated.
-- Every public API/class/function/hook is documented with a runnable example, and `docs/api/INDEX.md` matches the docs one-to-one (no orphan rows, no missing rows).
+- Every public API/class/function/hook is documented with a runnable example, and `docs/api/INDEX.md` matches the docs one-to-one (no orphan rows, no missing rows) — verified by `docs-verifier` when the environment provides subagents, inline otherwise.
 - architecture.md (consolidating the key entries of `docs/decisions.md`), usage/, security.md, accessibility.md complete and reconciled with the as-built code.
 - Repo README.md present: short front door linking into `docs/`.
-- The end-user guide decision is recorded (`User guide:` card line + decisions.md), and — unless declined — `guide/` exists with its navigable index in the chosen language(s), passing the mechanical coverage check: every v1 feature and every setting has its guide section. If it ships, it is placeholder-clean; if not, `/guide/` is export-ignored.
+- The end-user guide decision is recorded (`User guide:` card line + decisions.md), and — unless declined — `guide/` exists with its navigable index in the chosen language(s), passing the mechanical coverage check (run by `guide-qa` when the environment provides subagents, inline otherwise): every v1 feature and every setting has its guide section. If it ships, it is placeholder-clean; if not, `/guide/` is export-ignored.
 - No undocumented public surface; no unlabeled placeholder.
 - `docs/PROGRESS.md` updated.
 

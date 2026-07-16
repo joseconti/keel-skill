@@ -288,3 +288,15 @@ Major release: **Keel becomes multi-assistant.** Everything the workflow used to
 - **Phase 5 plan mode names its equivalents** (Claude Code, Cursor, Gemini CLI's plan approval mode) with the same no-plan-mode fallback; the scaffold completes the package per tool; the subagent hooks in Phases 4/5/7/8 and the accessibility reference now point at `references/assistant-config.md`.
 - **`references/estimation-budget.md`:** subscription mode names the other flat-fee plans (ChatGPT Plus/Pro, Gemini AI plans), the price-verification step carries the OpenAI and Google official pricing pages next to Anthropic's, and the measured-usage examples add Codex `/status` and Gemini CLI `/stats` beside Claude Code `/cost`.
 - **SKILL.md:** the portability paragraph, the shared-templates entry and the reference index describe the dual lock, the dual embed and the generalized package; the token-economy line no longer assumes the coding assistant is Claude Code.
+
+## 3.1.0
+
+The verification loop closes over the end-user guide, and code comments become a reviewed contract.
+
+### Added
+- **`guide-qa` — the eighth verifier subagent (`references/assistant-config.md`).** Conditional like its siblings: generated at Phase 6 on first need, once the end-user guide decision is yes (the decision does not exist earlier). Fresh context, read-only: it receives ONLY `guide/` plus the capability and settings lists, and verifies mechanical coverage (every capability and every setting has its guide section, troubleshooting covers the debug-log switch), that every internal link and image resolves (the offline rule), that every task's steps are followable exactly as written, per-locale orthography, and the guide's own accessibility basics. The session that wrote the guide no longer self-certifies it: Phase 6 runs `guide-qa` at the guide check, and the Phase 7 gate re-runs it on the exact release candidate when the guide ships in the package — inline with the standing fallback when the environment has no subagents.
+- **Comments are a reviewed contract.** The `code-style` rule gains its comments line and `code-reviewer` gains check (7): every public surface in the diff carries its docblock per the platform's convention (purpose, params, return), non-obvious decisions carry a why comment, and comment language follows the recorded policy (English by default). Phase 5's slice loop writes them at creation — "Comment the code as you write it", never backfilled later — exactly like docs and accessibility.
+
+### Changed
+- **Phase 6 definition of done:** the `docs/api/INDEX.md` one-to-one check is delegated to `docs-verifier` when the environment provides subagents (inline otherwise), and the guide's mechanical coverage check names `guide-qa` as its runner.
+- **MANIFEST Table 3** carries the v3.1.0 reconciliation delta: on projects with the assistant config package accepted, regenerate `code-reviewer` and the `code-style` rule in every capable container; where the `User guide:` card line is yes and `guide/` exists, generate `guide-qa` at the next Phase 6 or maintenance touch.
