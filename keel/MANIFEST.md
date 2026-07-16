@@ -1,4 +1,4 @@
-# Keel Manifest — v1.12.1
+# Keel Manifest — v1.13.0
 
 One file, two tables, one purpose: looking ONLY at this file, a session can tell (1) whether a project contains everything Keel requires at its current phase, and (2) which skill files changed in which Keel version — so after an update it knows exactly what to re-read, without interpreting the changelog.
 
@@ -52,14 +52,14 @@ After an update, re-read `SKILL.md`, the current phase's reference, and THIS fil
 
 | Skill file | Last changed in |
 |---|---|
-| `SKILL.md` | v1.12.1 |
-| `MANIFEST.md` | v1.12.1 |
-| `CHANGELOG.md` | v1.12.1 |
+| `SKILL.md` | v1.13.0 |
+| `MANIFEST.md` | v1.13.0 |
+| `CHANGELOG.md` | v1.13.0 |
 | `references/claude-config.md` | v1.12.1 |
 | `references/phase-5-development.md` | v1.12.1 |
 | `references/phase-7-release.md` | v1.12.1 |
 | `references/project-state.md` | v1.12.0 |
-| `references/phase-1-discovery.md` | v1.10.0 |
+| `references/phase-1-discovery.md` | v1.13.0 |
 | `references/phase-2-functional-spec.md` | v1.10.0 |
 | `references/adoption.md` | v1.10.0 |
 | `references/estimation-budget.md` | v1.7.0 |

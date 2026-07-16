@@ -110,6 +110,8 @@ Ask the user, in batched questions, only what you can't infer:
 - What's the single most important outcome it must deliver?
 - Is this a new project or a feature/extension of an existing one? If extending, what does it plug into?
 
+**A vague idea is a valid entry — build the ramp, don't raise the bar.** Many users arrive with no development background and something as thin as "I want something to organize my recipes". That is a normal Phase 1 entry, not a defect to push back on. When the idea is vague, or the user visibly cannot answer these questions in their own terms: do not interrogate — propose. Offer 2–3 concrete interpretations of what the idea could be (grounded in the step 0 scan where it helps), each described in one plain-language line — what it would do, for whom — using the interactive question tool if available, and let the user pick or correct one. Infer everything inferable from what they said and from the scan; ask only what remains. Never stall the phase on a question the user cannot answer: turn it into options with a recommended default instead (per SKILL.md "How to run a phase", every question must be answerable by a non-developer).
+
 ### 2. Fix the project type (this drives everything)
 
 Pin down exactly one primary type (note a secondary if it genuinely spans):
@@ -122,9 +124,17 @@ Pin down exactly one primary type (note a secondary if it genuinely spans):
 
 The type selects: the security profile (load it now — see SKILL.md "Security routing"), the project structure, the release/packaging rules, and whether design is needed at all. Fixing the type — and its target platform(s) — also selects the accessibility toolkit: load `references/accessibility.md` now too (see SKILL.md "Accessibility") and apply it from here on, exactly like the security profile.
 
-### 3. Feature discussion
+### 3. Proposed v1 — the assistant proposes, the user reacts
 
-Draft a feature list with the user. For each feature capture: what it does, who uses it, priority (must / should / could), and any hard constraint. Separate **v1 scope** from **later**. Push back gently on scope creep — a tight v1 is a feature, not a limitation.
+Never ask the user to build a feature list from a blank page. By this point Phase 1 has already produced everything needed to propose one: the unified feature list (table stakes), the external-demand list (differentiator candidates), the AI/MCP added-value proposals (step 0.d), the honest assessment, and the user's own idea. Assemble them into a **proposed v1** and present it unprompted — always, without waiting to be asked — as a draft for the user to react to, never as a decision already made:
+
+- **The proposed feature table.** For each feature: what it does, who uses it, priority (must / should / could), and **why it is in** — `table stakes (competitors X, Y)`, `differentiator (source)`, `AI/MCP added value (step 0.d)`, or `user's idea`. The why is what lets a non-developer judge each row on its merits.
+- **An explicit "Later" list.** Everything deliberately left out of v1, so cutting is visible and painless — deferred, not lost.
+- **Tight by default.** A tight v1 is a feature, not a limitation. Keep the proposal minimal, and explicitly invite the user to REMOVE items — removing is as valid a reaction as adding. The proposal is a starting point, not an anchor: the user's corrections always win.
+
+If the user already arrived with a defined feature list or scope of their own, do not re-propose from scratch — present the **diff against the scan** instead: table stakes they are missing, items of theirs that belong in Later, differentiator candidates they may want. Same honesty, zero condescension.
+
+Then iterate until the **v1 / Later** split is agreed, capturing any hard constraint per feature, and push back gently on scope creep along the way.
 
 ### 4. Constraints and non-negotiables
 
@@ -225,11 +235,11 @@ ALWAYS use this template:
 ## Project type
 - Primary: [type]   Secondary: [type or none]
 - Security profile loaded: [filename]
-## Feature list
-| Feature | What it does | Users | Priority | Constraint |
+## Feature list (proposed by the assistant in step 3, agreed with the user)
+| Feature | What it does | Users | Priority | Why in v1 (table stakes / differentiator / AI-MCP added value / user's idea) | Constraint |
 ## Scope
 - v1: ...
-- Later: ...
+- Later: ... (deliberately deferred — visible, not lost)
 ## Honest assessment
 - [the truthful evaluation of the idea, grounded in the competitive landscape: weaknesses, prior art, scope realism — and the verdict]
 ## Constraints & non-negotiables
@@ -283,7 +293,7 @@ ALWAYS use this template:
 - The "Competitive landscape & opportunity" section of `docs/01-discovery.md` lists table-stakes, differentiator candidates, and AI/MCP layer proposals labelled as added-value or forced-filler (with forced-filler dropped).
 - The idea received an honest assessment, grounded in the competitive landscape, and the verdict is recorded (not default praise).
 - Project type is fixed and the matching security profile has been loaded.
-- v1 scope is explicit and the user agreed to it.
+- A proposed v1 was presented unprompted (or, when the user arrived with a defined scope of their own, the diff against the scan was), each feature carrying its why; the v1 scope is explicit and the user agreed to it.
 - Installed-base/upgrade reality is recorded; if there's an installed base, the migration obligation is noted.
 - External dependencies are listed with exact version, source, and fail-safe behavior.
 - The license is decided and recorded (it gates dependency adoption in Phase 5).
