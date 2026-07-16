@@ -15,7 +15,7 @@ Confusing these is a common defect: a dev file ends up shipped, or a needed runt
 
 ### 1. `.gitignore`
 
-Generate per project type. Always exclude: secrets/credentials, `.env*`, local config with tokens, dependency dirs (`vendor/`, `node_modules/`), build artifacts, logs, OS files (`.DS_Store`), editor dirs (`.idea/`, `.vscode/` unless intentionally shared), personal assistant config (`CLAUDE.local.md`, `.claude/settings.local.json`). Add type-specific entries:
+Generate per project type. Always exclude: secrets/credentials, `.env*`, local config with tokens, dependency dirs (`vendor/`, `node_modules/`), build artifacts, logs, OS files (`.DS_Store`), editor dirs (`.idea/`, `.vscode/` unless intentionally shared), personal assistant config (`CLAUDE.local.md`, `.claude/settings.local.json`), and the update-check throttle stamp (`.keel-update-check`). Add type-specific entries:
 - WordPress plugin: build dirs, `vendor/` if committing only built deps, local WP test env.
 - MCP server / web app (e.g. Fly.io): `.env`, deploy secrets, local data volumes.
 - Library/component: build output, coverage, packaging artifacts.

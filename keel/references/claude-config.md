@@ -211,6 +211,6 @@ Hard rule: NEVER a literal secret in this file — environment expansion (`${VAR
 - `settings.json`, if accepted: allow-list built only from verified plan/playground commands and explicitly confirmed by the user before writing.
 - The pre-commit gate, if accepted: installed (`.githooks/pre-commit` + `core.hooksPath`), VERIFIED by blocking a synthetic secret, and its collaborator setup line documented.
 - `.mcp.json` exists only if the plan defines dev MCP servers, carries no literal secret, and was confirmed.
-- `.gitignore` includes `CLAUDE.local.md` and `.claude/settings.local.json` (this entry is unconditional — it applies even when the whole package was declined).
+- `.gitignore` includes `CLAUDE.local.md`, `.claude/settings.local.json`, and `.keel-update-check` (this entry is unconditional — it applies even when the whole package was declined).
 - Phase 7's export-ignore covers `.claude/`, `.githooks/`, and `.mcp.json`; nothing from this package ships.
 - Every generated piece is reflected in the project card and `docs/decisions.md`; no piece is ever regenerated silently.

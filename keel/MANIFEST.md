@@ -1,4 +1,4 @@
-# Keel Manifest — v1.12.0
+# Keel Manifest — v1.12.1
 
 One file, two tables, one purpose: looking ONLY at this file, a session can tell (1) whether a project contains everything Keel requires at its current phase, and (2) which skill files changed in which Keel version — so after an update it knows exactly what to re-read, without interpreting the changelog.
 
@@ -29,7 +29,7 @@ Verification is phase-aware and condition-aware: read the project card and phase
 | `docs/design/DESIGN-BRIEF.md` | Brief handed to Design | Phase 3 | UI projects only |
 | `docs/BUILD-SPEC.md` | Consolidated faithful-build contract | Phase 4 | UI projects only |
 | `docs/design/design-requests/` | Numbered DR register | Phase 4 | When the first Design Request appears |
-| `.gitignore` + `.gitattributes` | Hygiene boundaries (full rules at Phase 7); `.gitignore` ALWAYS includes `CLAUDE.local.md` and `.claude/settings.local.json` | Phase 5 scaffold | Always |
+| `.gitignore` + `.gitattributes` | Hygiene boundaries (full rules at Phase 7); `.gitignore` ALWAYS includes `CLAUDE.local.md`, `.claude/settings.local.json`, and `.keel-update-check` (the machine-local update-check throttle stamp) | Phase 5 scaffold | Always |
 | `docs/sprints/` | One file per sprint | Phase 5 | Always |
 | `docs/05-test-points.md` | Test-point log, all columns | Phase 5 | Always |
 | `docs/api/INDEX.md` | One line per public surface | Phase 5 first slice | Always |
@@ -52,15 +52,15 @@ After an update, re-read `SKILL.md`, the current phase's reference, and THIS fil
 
 | Skill file | Last changed in |
 |---|---|
-| `SKILL.md` | v1.12.0 |
-| `MANIFEST.md` | v1.12.0 |
-| `CHANGELOG.md` | v1.12.0 |
+| `SKILL.md` | v1.12.1 |
+| `MANIFEST.md` | v1.12.1 |
+| `CHANGELOG.md` | v1.12.1 |
+| `references/claude-config.md` | v1.12.1 |
+| `references/phase-5-development.md` | v1.12.1 |
+| `references/phase-7-release.md` | v1.12.1 |
 | `references/project-state.md` | v1.12.0 |
-| `references/claude-config.md` | v1.11.0 |
 | `references/phase-1-discovery.md` | v1.10.0 |
 | `references/phase-2-functional-spec.md` | v1.10.0 |
-| `references/phase-5-development.md` | v1.10.0 |
-| `references/phase-7-release.md` | v1.10.0 |
 | `references/adoption.md` | v1.10.0 |
 | `references/estimation-budget.md` | v1.7.0 |
 | `references/phase-6-documentation.md` | v1.7.0 |

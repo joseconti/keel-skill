@@ -2,13 +2,13 @@
 name: keel
 license: GPL-3.0-or-later
 metadata:
-  version: 1.12.0
+  version: 1.12.1
 description: Use this skill for ANY new software project from idea to release — websites, WordPress/WooCommerce plugins, MCP servers, web apps, components, or libraries. Multi-phase workflow: discovery with competitive scan, functional spec with flows, design handoff to Claude Design, faithful build with zero deviation, development with test points and a real-testing playground, full docs/, per-platform security, non-negotiable accessibility, release hygiene, AI-time estimates with client budgets, and a forge issue log. Trigger when the user starts a new project or feature, says "I have an idea for a plugin/site/app", "let's plan this project", mentions a design handoff, asks for docs or security review, asks what a project will cost or take (quote/budget), works forge issues (GitHub/GitLab/...), prepares a release, resumes an in-progress Keel project (any repo with docs/PROGRESS.md), or applies Keel to an EXISTING project (adoption). Phases load references on demand; living state makes projects resumable across chats.
 ---
 
 # Keel — project lifecycle (idea → release)
 
-**Keel v1.12.0** — Licensed under GPL-3.0-or-later. *Keel* is the structural backbone laid down first, on which the whole project is built.
+**Keel v1.12.1** — Licensed under GPL-3.0-or-later. *Keel* is the structural backbone laid down first, on which the whole project is built.
 
 ## Token economy — everything is created in English by default (READ FIRST)
 
@@ -24,11 +24,13 @@ Therefore **everything Keel creates is written in English by default** — every
 
 ## Version reporting
 
-If the user asks which version of Keel they have or are using (e.g. "what version is this skill", "which Keel version do I have"), state it plainly from the frontmatter: "You're using Keel v1.12.0." Keep the version in the frontmatter (`metadata.version`), this line, `CHANGELOG.md`, and the `MANIFEST.md` header in sync whenever the skill is updated; the frontmatter is the source of truth.
+If the user asks which version of Keel they have or are using (e.g. "what version is this skill", "which Keel version do I have"), state it plainly from the frontmatter: "You're using Keel v1.12.1." Keep the version in the frontmatter (`metadata.version`), this line, `CHANGELOG.md`, and the `MANIFEST.md` header in sync whenever the skill is updated; the frontmatter is the source of truth.
 
 ## Update check (start of every session)
 
 Keel is distributed from `https://github.com/joseconti/keel-skill` (releases: `https://github.com/joseconti/keel-skill/releases`). Once per session, when Keel is invoked and before the entry-mode decision, check whether a newer release exists. Reading this section IS the cue: run the check the moment you read it, before any project work. In a Keel project's repo the `CLAUDE.md` lock makes this its step 1 — the full read of this SKILL.md comes BEFORE even the state files, at every session start — precisely so this check runs in every session, whether or not the skill auto-triggered. The check is best-effort and must never block, delay, or interrupt the work: if any step fails (no network, no fetch mechanism, API error), skip silently, continue with the running version, and do not retry in this session.
+
+**Throttle — at most one remote check per 24 hours per project.** The remote lookup (step 1) is the slow part, so it is rate-limited through a tiny machine-local stamp at the project root: `.keel-update-check`, one line — the UTC timestamp of the last attempt and its outcome (e.g. `2026-07-16T10:20:00Z — checked; running v1.12.1; latest v1.12.1`). Before step 1, read it: less than 24 hours old → skip the remote lookup silently. Missing, unparsable, or 24 hours old or more → run it, then REWRITE the stamp with the current UTC timestamp and outcome — after EVERY attempt, success or failure, so a flaky network cannot re-impose the wait on every chat. The throttle covers ONLY the remote lookup: step 2's copy-vs-copy comparison (installed vs embedded — local, no network) still runs every session, and steps 2–3 run in full whenever the remote lookup ran. Never throttled either: the full SKILL.md read, the stamp-only lock-freshness check, and the `Keel baseline:` comparison — all local and free. An explicit user request to check for a new version always bypasses the throttle. The stamp is machine-local state, NEVER committed — it joins the unconditional `.gitignore` entries (`CLAUDE.local.md`, `.claude/settings.local.json`); if it is missing from `.gitignore`, add it. Outside a project (no repo yet), check without the throttle.
 
 1. **Detect the latest version.** Preferred method (works in any environment with git, no API and no auth): `git ls-remote --tags https://github.com/joseconti/keel-skill.git` → take the highest semver tag. Strip the leading `v` and compare segment by segment as numbers (`1.10.0` > `1.9.0`) — never as strings; ignore tags that are not `vX.Y.Z`. Fallbacks, in order: GET `https://api.github.com/repos/joseconti/keel-skill/releases/latest` (field `tag_name`) with a web-fetch tool, or fetch the releases page. If the environment provides no mechanism at all, skip.
 2. **Compare against EVERY copy in play, not only the running one:** the environment's install AND, when the session is working inside a project that embeds the skill, the project's `.claude/skills/keel/` (each copy's frontmatter `metadata.version` — the source of truth). A copy can be behind even when the running one is current — in Cowork it is common that the app install is up to date while the opened project's embedded copy is not; that embedded copy must still be updated. All copies at the latest version → say nothing and continue.
