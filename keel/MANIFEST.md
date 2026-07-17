@@ -1,4 +1,4 @@
-# Keel Manifest — v3.1.0
+# Keel Manifest — v3.2.0
 
 One file, three tables, one purpose: looking ONLY at this file, a session can tell (1) whether a project contains everything Keel requires at its current phase, (2) which skill files changed in which Keel version — so after an update it knows exactly what to re-read, without interpreting the changelog — and (3) what concrete actions each version asks of an existing project (the reconciliation delta).
 
@@ -45,7 +45,8 @@ Verification is phase-aware and condition-aware: read the project card and phase
 | `docs/security.md` | Consolidated security posture per the loaded profile(s) | Phase 6 | Always |
 | `docs/accessibility.md` | Accessibility record: automated results + guided assistive-technology pass, per item | Phase 6 | Always |
 | `README.md` (repo root) | The repository's front door | Phase 6 | Always |
-| `guide/` (repo root) | End-user HTML guide: navigable index + one page per topic, one dir per locale, full capability coverage | Phase 6 | Unless declined (card: `User guide:`) |
+| `guide/` (repo root) | End-user HTML guide built on the canonical docs theme (`references/guide-theme.md`): navigable index + one page per topic, one dir per locale, full capability coverage; optionally the developer portal (`guide/{locale}/dev/`) | Phase 6 | Unless declined (card: `User guide:`) |
+| `guide/_theme/` + `guide/brand/` + per-page `<meta name="keel-docs-theme">` | The vendored theme unit (checksum-intact vs the theme release), the project's brand layer (contrast contract verified), and the mechanical version marker — per `references/guide-theme.md` | Phase 6 | Unless declined (card: `User guide:`); version on the `Docs theme:` card line |
 | `docs/07-release.md` | Release record (incl. full-suite re-run on the candidate + keel-verify output) | Phase 7 | Always |
 | `<site-docs>/` (`docs/site/` or the site's own repo, per the recorded decision) | Phase 8 site set: `PRODUCT-BRIEF.md`, site discovery, spec, design docs | Phase 8 | Website intent only |
 | `<site-docs>/launch-report.md` | One row per launch check: command/tool, result, date | Phase 8 launch | Website intent only |
@@ -54,7 +55,7 @@ Verification is phase-aware and condition-aware: read the project card and phase
 | `docs/old/` | Archive (move, never delete) | First sprint close | When archiving starts |
 | `docs/04-adoption-audit.md` | Gap audit vs Keel standards | Adoption step 5 | Adopted projects only |
 
-Project-card lines that must exist (inside `docs/PROGRESS.md`): the full card per the `references/project-state.md` template, including `Keel portability:`, `Assistant config:` (introduced v1.10.0 as `Claude config:`; renamed with the tools list in v3.0.0), `Keel baseline:` (since v1.10.0), `Client budget:` and `User guide:` (both since v2.0.0).
+Project-card lines that must exist (inside `docs/PROGRESS.md`): the full card per the `references/project-state.md` template, including `Keel portability:`, `Assistant config:` (introduced v1.10.0 as `Claude config:`; renamed with the tools list in v3.0.0), `Keel baseline:` (since v1.10.0), `Client budget:` and `User guide:` (both since v2.0.0), and `Docs theme:` (since v3.2.0 — set when the theme is vendored at Phase 6).
 
 ## Table 2 — Skill files and the Keel version that last changed them
 
@@ -62,21 +63,22 @@ After an update, re-read `SKILL.md`, the current phase's reference, and THIS fil
 
 | Skill file | Last changed in |
 |---|---|
-| `SKILL.md` | v3.1.0 |
-| `MANIFEST.md` | v3.1.0 |
-| `CHANGELOG.md` | v3.1.0 |
+| `SKILL.md` | v3.2.0 |
+| `MANIFEST.md` | v3.2.0 |
+| `CHANGELOG.md` | v3.2.0 |
 | `references/keel-maintenance.md` | v3.0.0 |
 | `references/playground-recipes.md` | v3.0.0 |
-| `references/maintenance.md` | v2.0.0 |
-| `references/assistant-config.md` | v3.1.0 |
+| `references/maintenance.md` | v3.2.0 |
+| `references/guide-theme.md` | v3.2.0 |
+| `references/assistant-config.md` | v3.2.0 |
 | `references/phase-5-development.md` | v3.1.0 |
-| `references/phase-7-release.md` | v3.1.0 |
-| `references/project-state.md` | v3.1.0 |
+| `references/phase-7-release.md` | v3.2.0 |
+| `references/project-state.md` | v3.2.0 |
 | `references/phase-1-discovery.md` | v3.0.0 |
 | `references/phase-2-functional-spec.md` | v3.0.0 |
 | `references/adoption.md` | v3.0.0 |
 | `references/estimation-budget.md` | v3.0.0 |
-| `references/phase-6-documentation.md` | v3.1.0 |
+| `references/phase-6-documentation.md` | v3.2.0 |
 | `references/phase-3-design-handoff.md` | v2.1.0 |
 | `references/phase-4-faithful-build.md` | v3.0.0 |
 | `references/handoff-contract.md` | v2.1.0 |
@@ -114,6 +116,7 @@ What the reconciliation APPLIES, version by version, for every version newer tha
 | v2.1.0 | None structural. Behavioral: nothing is ever written into `docs/design/design-handoff/` again — user-generated assets and acquired fonts go to the PROJECT's tree (contract rule 10). If the current handoff already contains foreign files, move each to its correct home (project tree or `docs/`) at the next Phase 4 touch, restoring the wholesale-replaceable state. |
 | v3.0.0 | The multi-assistant generalization. Ask once which assistants work on this repo (if never asked) and rename the project card line `Claude config:` → `Assistant config: [none / rules / rules+agents / full] (tools: ...)`, keeping the recorded acceptance level. Create the missing `AGENTS.md` lock mirror (same block, same stamp) through the normal lock-freshness refresh; if the user works with Gemini CLI, ask its mirror question (a `GEMINI.md` copy, or `context.fileName` in `.gemini/settings.json`) and record the pick. If the skill is embedded, add the second tree so `.claude/skills/keel/` + `.agents/skills/keel/` both exist (verified full-copy protocol; they sync together from now on). If the assistant config package is accepted, offer materializing the containers for the newly named tools from the same recorded sources (per `references/assistant-config.md`); add the accepted tools' personal files to `.gitignore` (`AGENTS.override.md`, `.gemini/.env`, `.gemini/tmp/`); if the pre-commit gate is installed, update its embedded-skill exemption to cover `.agents/skills/*` (a recorded gate change). At the next Phase 7 touch, extend the export-ignore set to every generated assistant config tree. |
 | v3.1.0 | If the assistant config package is accepted: regenerate `code-reviewer` (new comments check) and the `code-style` rule (new comments line) in every capable container from the same recorded sources. Where the `User guide:` card line is yes and `guide/` exists, generate the `guide-qa` subagent in each capable container at the next Phase 6 or maintenance touch. Nothing else structural. |
+| v3.2.0 | Add the `Docs theme:` card line (n/a until a theme is vendored). Where `User guide:` is yes and `guide/` predates the canonical theme (improvised HTML): at the next Phase 6 or maintenance touch, OFFER rebuilding `guide/` on the theme per `references/guide-theme.md` and ask the never-asked developer-portal questions (render `docs/`? ships or repo-only?), recording the answers — regenerating a released project's guide is a normal maintenance change. Regenerate `guide-qa` (new check 6 + inputs) in every capable container where it exists. |
 
 ## Maintenance (part of EVERY release — no exceptions)
 

@@ -55,6 +55,10 @@ Every product release — a hotfix patch included — triggers the site mini-che
 
 `<site-docs>/operations.md` holds the renewal and monitoring duties — domain renewal, TLS, `security.txt` `Expires` (rotate before expiry), uptime monitoring, backups. Check it whenever a maintenance session touches the site, and honor its dates.
 
+## Docs-theme freshness (when the project carries `guide/`)
+
+The freshness duty includes the guide's theme: check whether `keel-docs-theme` has a newer release than the project card's `Docs theme:` line (latest release of `github.com/joseconti/keel-docs-theme`; no network → skip silently, or ask the user as courier if the check matters now). Newer release → OFFER the update, never impose it: what the new version brings (the theme's changelog), what updating means (wholesale re-vendor of `_theme/`, checksum re-verification, `guide-qa` re-run — per `references/guide-theme.md`). The user's yes/no is recorded; a decline is re-offered at the next freshness pass, never nagged mid-work. A theme update is never silent and never partial.
+
 ## State discipline
 
 Maintenance changes nothing about the state system:
