@@ -1,4 +1,4 @@
-# Keel Manifest — v3.2.1
+# Keel Manifest — v3.3.0
 
 One file, three tables, one purpose: looking ONLY at this file, a session can tell (1) whether a project contains everything Keel requires at its current phase, (2) which skill files changed in which Keel version — so after an update it knows exactly what to re-read, without interpreting the changelog — and (3) what concrete actions each version asks of an existing project (the reconciliation delta).
 
@@ -55,7 +55,7 @@ Verification is phase-aware and condition-aware: read the project card and phase
 | `docs/old/` | Archive (move, never delete) | First sprint close | When archiving starts |
 | `docs/04-adoption-audit.md` | Gap audit vs Keel standards | Adoption step 5 | Adopted projects only |
 
-Project-card lines that must exist (inside `docs/PROGRESS.md`): the full card per the `references/project-state.md` template, including `Keel portability:`, `Assistant config:` (introduced v1.10.0 as `Claude config:`; renamed with the tools list in v3.0.0), `Keel baseline:` (since v1.10.0), `Client budget:` and `User guide:` (both since v2.0.0), and `Docs theme:` (since v3.2.0 — set when the theme is vendored at Phase 6).
+Project-card lines that must exist (inside `docs/PROGRESS.md`): the full card per the `references/project-state.md` template, including `Keel portability:`, `Assistant config:` (introduced v1.10.0 as `Claude config:`; renamed with the tools list in v3.0.0), `Keel baseline:` (since v1.10.0), `Client budget:` and `User guide:` (both since v2.0.0), `Docs theme:` (since v3.2.0 — set when the theme is vendored at Phase 6), and `Models:` (since v3.3.0 — the role→model map, set when the assistant-config package includes agents; `n/a` otherwise).
 
 ## Table 2 — Skill files and the Keel version that last changed them
 
@@ -63,17 +63,17 @@ After an update, re-read `SKILL.md`, the current phase's reference, and THIS fil
 
 | Skill file | Last changed in |
 |---|---|
-| `SKILL.md` | v3.2.1 |
-| `MANIFEST.md` | v3.2.1 |
-| `CHANGELOG.md` | v3.2.1 |
+| `SKILL.md` | v3.3.0 |
+| `MANIFEST.md` | v3.3.0 |
+| `CHANGELOG.md` | v3.3.0 |
 | `references/keel-maintenance.md` | v3.0.0 |
 | `references/playground-recipes.md` | v3.0.0 |
 | `references/maintenance.md` | v3.2.0 |
 | `references/guide-theme.md` | v3.2.1 |
-| `references/assistant-config.md` | v3.2.0 |
+| `references/assistant-config.md` | v3.3.0 |
 | `references/phase-5-development.md` | v3.1.0 |
 | `references/phase-7-release.md` | v3.2.1 |
-| `references/project-state.md` | v3.2.1 |
+| `references/project-state.md` | v3.3.0 |
 | `references/phase-1-discovery.md` | v3.0.0 |
 | `references/phase-2-functional-spec.md` | v3.0.0 |
 | `references/adoption.md` | v3.0.0 |
@@ -118,6 +118,7 @@ What the reconciliation APPLIES, version by version, for every version newer tha
 | v3.1.0 | If the assistant config package is accepted: regenerate `code-reviewer` (new comments check) and the `code-style` rule (new comments line) in every capable container from the same recorded sources. Where the `User guide:` card line is yes and `guide/` exists, generate the `guide-qa` subagent in each capable container at the next Phase 6 or maintenance touch. Nothing else structural. |
 | v3.2.0 | Add the `Docs theme:` card line (n/a until a theme is vendored). Where `User guide:` is yes and `guide/` predates the canonical theme (improvised HTML): at the next Phase 6 or maintenance touch, OFFER rebuilding `guide/` on the theme per `references/guide-theme.md` and ask the never-asked developer-portal questions (render `docs/`? ships or repo-only?), recording the answers — regenerating a released project's guide is a normal maintenance change. Regenerate `guide-qa` (new check 6 + inputs) in every capable container where it exists. |
 | v3.2.1 | None structural — release-asset verification (Phase 7) and the theme fallback warning (`guide-theme.md`) are behavioral; re-reading per Table 2 is enough. |
+| v3.3.0 | Add the `Models:` card line. If the assistant config package is accepted WITH agents (`rules+agents` or `full`): settle the role→model map (orchestrator / reviewer / mechanical) with the user per `references/assistant-config.md` ("Model binding"), record it as a D-entry and on the card line, and materialize each capable container's native model field at the next Phase 2-close or maintenance touch. If no agents (or the package is not accepted): set the card line to `n/a` and do nothing else. Nothing else structural. |
 
 ## Maintenance (part of EVERY release — no exceptions)
 

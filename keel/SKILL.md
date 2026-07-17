@@ -2,13 +2,13 @@
 name: keel
 license: GPL-3.0-or-later
 metadata:
-  version: 3.2.1
+  version: 3.3.0
 description: Use this skill for ANY new software project from idea to release — websites, WordPress/WooCommerce plugins, MCP servers, web apps, components, or libraries — and for maintaining what it built (hotfixes, dependency updates, new features). Trigger when the user starts a new project or feature, says "I have an idea for a plugin/site/app", "let's plan this project", brings only a vague one-line idea with no technical background (Keel shapes it and proposes the v1 unprompted), mentions a design handoff, asks for docs or a security review of a Keel project, asks what a project will cost (quote/budget), works forge issues (GitHub/GitLab/...), prepares a release or a hotfix, resumes an in-progress Keel project (any repo with docs/PROGRESS.md), or adopts Keel in an EXISTING project. Do NOT trigger for one-off scripts, quick code questions, or repos not managed by Keel unless the user wants to adopt them. Phases load references on demand; living state makes projects resumable across chats.
 ---
 
 # Keel — project lifecycle (idea → release)
 
-**Keel v3.2.1** — Licensed under GPL-3.0-or-later. *Keel* is the structural backbone laid down first, on which the whole project is built.
+**Keel v3.3.0** — Licensed under GPL-3.0-or-later. *Keel* is the structural backbone laid down first, on which the whole project is built.
 
 ## Skill maintenance — update check & version policy (READ AND EXECUTE FIRST)
 
@@ -181,7 +181,7 @@ Ending a session mid-work (any phase): append the session's row to `docs/token-l
 - `references/playground-recipes.md` — the per-platform playground recipes (wp-env, MCP Inspector, Playwright, clean consumer project) with seed data and gate zero. Consulted at Phase 2 §4 (Testing) and stood up at the Phase 5 scaffold.
 - `references/maintenance.md` — the post-release lifecycle: triage, hotfix path, rollback, dependency/CVE duty, recurring features, site freshness. Loaded on Resume when Phase 7 is done.
 - `references/estimation-budget.md` — the AI-time estimation & client-budget procedure (preliminary at Phase 1 close, firm at Phase 2 close, recomputed on scope changes; client budget only when one exists).
-- `references/assistant-config.md` — the optional native assistant config package for the project (path-scoped rules, reviewer and verifier subagents, permission allow-lists, the confidential-data pre-commit gate, MCP registration, CI — one container per accepted tool: Claude Code, Codex, Copilot, Cursor, Gemini CLI, Windsurf). Offered once at Phase 1 step 0a / adoption step 2; rules and agents materialize at Phase 2 close; permissions, gate, MCP, and CI at the Phase 5 scaffold.
+- `references/assistant-config.md` — the optional native assistant config package for the project (path-scoped rules, reviewer and verifier subagents, per-role model binding, permission allow-lists, the confidential-data pre-commit gate, MCP registration, CI — one container per accepted tool: Claude Code, Codex, Copilot, Cursor, Gemini CLI, Windsurf). Offered once at Phase 1 step 0a / adoption step 2; rules and agents materialize at Phase 2 close; permissions, gate, MCP, and CI at the Phase 5 scaffold.
 - `MANIFEST.md` (skill root) — the parity manifest: everything a Keel project must contain (phase- and condition-aware, Table 1), which skill files changed in which version (Table 2 — the re-read map), and the per-version action list (Table 3 — the reconciliation delta). First input of the post-update reconciliation; usable any time for a full audit.
 - `references/handoff-contract.md` — the exact `design-handoff/` structure that flows Design → Build. Used by Phases 3 and 4. Read before either.
 - `references/design-brief-template.md` — the brief to give Design (Phase 3).

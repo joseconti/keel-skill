@@ -22,6 +22,8 @@ Assistant config: [none / rules / rules+agents / full] (tools: claude, codex, co
 
 (`full` = rules + agents + permissions + pre-commit gate + MCP registration and the CI workflow when applicable. The gate and CI are tool-agnostic — one each per project, never one per assistant.) Record a D-entry in `docs/decisions.md` with what was accepted. In the same breath, tell the user once that every tool has PERSONAL, non-committed config — `CLAUDE.local.md` and `.claude/settings.local.json` (Claude), a per-directory `AGENTS.override.md` (Codex), user-level directories under `~` (all tools): Keel never creates them (they are the user's own), but always adds the repo-resident ones to `.gitignore` so they can never be committed by accident (see "Personal files and `.gitignore`" below).
 
+When the package includes agents (`rules+agents` or `full`), settle the **model map** in the same conversation — which model plays each role (`orchestrator` / `reviewer` / `mechanical`) — per "Model binding" below: propose it, record it on the card's `Models:` line and as a D-entry, and move on. If no agents are taken, there is no map to set.
+
 Do not block on this question: if the user defers, record `Assistant config: none (deferred)` and move on — the package can be added later from this reference at any phase boundary. Tools not in the accepted list get NOTHING generated: a config tree no tool will read is noise, not coverage. Adding a tool later is a normal recorded change — generate its containers from the same sources at the next phase boundary, and add its card entry.
 
 ## Pieces, sources, and timing
@@ -34,6 +36,7 @@ Do not block on this question: if the user defers, record `Assistant config: non
 | `.githooks/pre-commit` (one per project) | SKILL.md "Confidential data never reaches Git" | Phase 5 scaffold (adoption: immediately, with approval) | The gate's patterns need tightening (recorded) |
 | CI workflow (one per project, e.g. `.github/workflows/ci.yml`) | Technical plan §Tooling commands — the same verified source as the allow-lists | Phase 5 scaffold, if the forge supports CI | The plan's verified commands change |
 | MCP registration (per capable tool) | Technical plan — ONLY if it defines development MCP servers | Phase 5 scaffold, confirmed | The dev MCP set changes |
+| Model binding (reviewer + mechanical subagents, per capable tool) | The project's role→model map (card `Models:`), captured at the 0a offer | Phase 2 close, with the subagents | The user changes the map, or a configured model becomes unavailable |
 
 Everything in the table is repo-only: Phase 7 marks every generated config tree `export-ignore` alongside the existing workflow files, so none of it ships in the distributable.
 
@@ -45,6 +48,7 @@ Everything in the table is repo-only: Phase 7 marks every generated config tree 
 | Subagents | `.claude/agents/*.md` | — (inline fallback; optional `[agents.<name>]` roles in `.codex/config.toml`) | `.github/agents/*.agent.md` | `.cursor/agents/*.md` — also reads `.claude/agents/` natively | `.gemini/agents/*.md` | — (inline fallback) |
 | Permission allow-list | `.claude/settings.json` | `.codex/rules/*.rules` (trusted projects only) | — (not committable) | `.cursor/cli.json` | `tools.allowed` in `.gemini/settings.json` | — (not committable) |
 | MCP servers | `.mcp.json` (repo root) | `[mcp_servers]` in `.codex/config.toml` | `.vscode/mcp.json` | `.cursor/mcp.json` | `mcpServers` in `.gemini/settings.json` | — (user-level only) |
+| Model binding, per role | `model:` in `.claude/agents/*.md` | `[agents.<name>]` in `.codex/config.toml` | `model:` in `.github/agents/*.agent.md` | reads `.claude/agents/` natively (else `.cursor/agents/*.md`) | `model:` in `.gemini/agents/*.md` | — (inline fallback, session model) |
 
 Notes the generators must respect:
 
@@ -105,7 +109,7 @@ Per-container adaptation (content identical, header differs):
 
 ## Subagents — eight project verifiers, defined once
 
-The canonical definitions are markdown files with YAML frontmatter (`name`, `description`, `tools`). Give them read-only tools (`Read, Grep, Glob`) — they flag, they never fix; the verifiers that must EXECUTE to verify (run the playground, fetch the deployed site, run accessibility tooling) add `Bash`/`WebFetch` on top and still never write. Do NOT pin a `model:` (model names age; inherit the session's). The `description` must say WHEN to use the agent — every tool that supports project subagents delegates based on it.
+The canonical definitions are markdown files with YAML frontmatter (`name`, `description`, `tools`). Give them read-only tools (`Read, Grep, Glob`) — they flag, they never fix; the verifiers that must EXECUTE to verify (run the playground, fetch the deployed site, run accessibility tooling) add `Bash`/`WebFetch` on top and still never write. Do NOT hand-write a `model:` string here and NEVER put a model name in the skill — the model is chosen per project, by ROLE, and materialized into each container's native model field from the project's recorded map (see "Model binding" below). The `description` must say WHEN to use the agent — every tool that supports project subagents delegates based on it.
 
 Materialize into each capable container from the matrix: `.claude/agents/*.md` (Claude Code — and Cursor reads this tree natively, so when Cursor is accepted ALONGSIDE Claude, one tree serves both; generate `.cursor/agents/` only when Cursor is accepted without Claude), `.github/agents/<name>.agent.md` (Copilot), `.gemini/agents/*.md` (Gemini CLI). The frontmatter keys are near-identical across the three (name, description, tools); adapt mechanically, never fork the body. Codex has no markdown project subagents — its sessions run the checks inline (the fallback below); optionally, delegation-only roles can be declared in `.codex/config.toml` if the user wants them. Windsurf: inline fallback.
 
@@ -142,6 +146,30 @@ Report: file:line — what fails — which recorded rule it violates. Order by s
 **`guide-qa.md`** — projects with an end-user guide (the Phase 6 decision is yes, not declined); same skeleton, read-only. description: "Verifies the end-user guide (guide/) against the product's capability and settings lists, with fresh context. Use at the Phase 6 guide check and at the Phase 7 gate when the guide ships in the package." Body: receive ONLY `guide/` plus the v1 capability list (`docs/01-discovery.md` / `docs/02-functional-spec.md`), the settings list (`docs/usage/configuration.md`), the project card's `Docs theme:` line, the theme release's `checksums.txt`, and `docs/api/INDEX.md` when the developer portal exists; verify: (1) mechanical coverage — every capability and every setting has its guide section, and troubleshooting covers the debug-log switch; (2) every internal link and image resolves inside `guide/` — nothing external, per the offline rule; (3) every task's steps are followable exactly as written — no step assumes context the guide never gave; (4) per-locale orthography is perfect and secondary locales mirror the principal's structure; (5) the guide's own HTML meets the accessibility basics (semantic structure, heading outline, alt text on every image); (6) the canonical-theme checks per `references/guide-theme.md` — every page carries `<meta name="keel-docs-theme">` equal to the project card's `Docs theme:` line, `guide/_theme/` matches the theme release's `checksums.txt` (SHA-256 recomputed; an edited `_theme/` is a defect whose fix goes upstream to the theme repo, never a local fork), and dev-portal coverage vs `docs/api/INDEX.md` is one-to-one when the portal exists. Report each gap as a Phase 6 defect — the guide, never the reader, gets fixed.
 
 This file DEFINES the agents; the phase references INVOKE them: Phase 4 Step 7, Phase 5 test points and sprint closes, the Phase 6 guide check, the Phase 7 gate, the Phase 8 launch checklist. If the environment provides no subagents (Codex, Windsurf, or any tool without them), the session runs the same checks inline and says so — the check never disappears with the mechanism.
+
+## Model binding — abstract roles, concrete models per project
+
+Keel runs on many assistants, each with its own model names (Claude's `haiku`/`sonnet`/`opus`, OpenAI's GPT and o-series, Gemini's Pro/Flash, and so on) that keep changing. So **the skill never names a model.** It assigns every agent an abstract ROLE by the kind of work it does; the concrete model behind each role is chosen once per project, in the assistant's own config, from what the user actually has. Same define-once / materialize-per-tool pattern as rules and subagents — one more column in the matrix.
+
+**Three roles, by work type:**
+
+- **orchestrator** — the session driver and the judgment-heavy phases (Discovery, functional/technical plan, architecture, design decisions). Wants the strongest model available.
+- **reviewer** — `code-reviewer`, `security-auditor`, `design-fidelity-auditor`. Real judgment, but a mid model handles it; escalate a single audit to the strongest only when that audit demands it.
+- **mechanical** — `docs-verifier`, `playground-qa`, `launch-verifier`, `a11y-auditor`, `guide-qa`, plus any search/exploration agent. They compare, run tooling, and report; the cheapest capable model is the correct one.
+
+**Recommend, don't interrogate.** When the config package is offered (Phase 1 step 0a / adoption step 2) and at least `rules+agents` is taken, ask in the same breath which models the accepted tool(s) expose — or which tiers the user has — then PROPOSE a role→model map with a one-line reason per role and let the user confirm or override. If the user does not engage, apply the tool's sensible default (strongest → orchestrator, mid → reviewer, cheapest → mechanical) and record it. Never block on this.
+
+**Say why honestly.** On a flat subscription (Claude, ChatGPT, and the like) the marginal token cost is ≈ 0, so dropping a role to a cheaper model buys SPEED and rate-limit headroom, not money — say that. On API or metered billing it is direct spend. Recommend on the axis that actually applies to the user's billing, never a euro saving that a subscription does not produce.
+
+**Persist in three places, each with its job:**
+
+1. `docs/decisions.md` — a D-entry with the chosen map and the reasoning (the audit trail).
+2. The project card `Models:` line (`references/project-state.md`) — so every session reads the map on resume without re-deriving it.
+3. The tool's native agent config — the ONLY place a concrete model name appears: `model:` in `.claude/agents/*.md`, an `[agents.<name>]` entry in `.codex/config.toml`, `model:` in `.github/agents/*.agent.md` and `.gemini/agents/*.md`. The **orchestrator** model is simply the session model the user launches the tool with (Keel does not set it); the binding governs the **reviewer** and **mechanical** subagents.
+
+**Never let a concrete model name reach the skill, the lock (`CLAUDE.md`/`AGENTS.md`), or any file that travels** — those stay portable across tools. Model names live only in the project-local agent configs and the project card. A "—" subagents cell (Codex, Windsurf) has no binding to materialize: the inline fallback runs on the session model, exactly as it already does.
+
+**Re-confirm only on demand or on failure.** The map is recorded once. Revisit it only when the user asks, or when a configured model errors as unavailable — then warn and re-map, recording the change. Re-asking every session is the noise Keel avoids.
 
 ## Permission allow-lists — minimal, ALWAYS confirmed
 
