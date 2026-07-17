@@ -59,6 +59,7 @@ Before tagging:
 
 - Tag the release.
 - Produce the distributable package and verify its contents one more time against the intended boundary.
+- **A forge release that publishes downloadable assets (a consumption zip, checksums, builds) is verified AFTER publishing, never assumed.** Check the attachments for real — `gh release view <tag>` or the forge API's assets list, confirming each expected asset's name AND size — NEVER by reading the rendered release page: the release body may DESCRIBE its assets, and a description is not an attachment. When the environment has no network or no `gh`, the user runs `gh release view <tag>` from their terminal (or opens the release) and reports the assets list back. Record the verification (asset names + sizes) in `docs/07-release.md`. Missing assets → the release is not shipped: attach them (`gh release upload <tag> <files>` or the release's Edit page) and re-verify.
 - **License ships correctly:** the LICENSE file is in the package, file headers carry the license where the platform convention expects it, and every bundled dependency's license is compatible and honored (the Phase 1 decision, checked per dependency in Phase 5).
 - Produce/refresh the end-user README and any required store/marketplace metadata. For WordPress.org plugins specifically: `readme.txt` valid (`Requires at least`, `Tested up to` — current WP version actually tested, `Requires PHP`, `Stable tag` = this release), plugin main-file headers in sync, and the assets the listing needs (banner, icon, screenshots with captions).
 - Note the release in `docs/` (e.g. append to changelog and a short release note).
@@ -94,6 +95,7 @@ Before tagging:
 - No `⚠ unverified` item rode into the tag: each was re-attempted in the real environment or explicitly accepted by the user in `docs/decisions.md`; zero placeholder copy in the distributable; performance budgets verified on the candidate.
 - If the environment provides subagents: `security-auditor` reviewed the final tree, findings fixed or accepted on the record — otherwise its unavailability recorded.
 - If the end-user guide shipped in the package: `guide-qa` re-verified it on the candidate (coverage, links, placeholder-clean, theme checks) — or the environment's lack of subagents recorded.
+- If the release publishes downloadable assets: their real attachment was verified post-publication (names + sizes via `gh release view` / the forge API, recorded in `docs/07-release.md`) — never assumed from the rendered release page.
 - Maintenance handoff noted: PROGRESS.md's position is "maintenance" and future work follows `references/maintenance.md`.
 - Accessibility verification passed on the actual distributable for anything with a UI (automated + real assistive-tech), meeting the Phase 1 targeted level or with the shortfall honestly recorded in `docs/accessibility.md`.
 - If `docs/issues.md` exists: the issues this release closes are marked resolved with complete entries and the shipping version recorded.

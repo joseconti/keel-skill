@@ -314,3 +314,11 @@ The guide gets its canonical face: `guide/` is now built on **keel-docs-theme**,
 
 ### Changed
 - **MANIFEST Table 1** adds the vendored-theme row (`guide/_theme/` + `guide/brand/` + per-page version meta, unless the guide was declined); **Table 3** carries the v3.2.0 reconciliation delta: add the `Docs theme:` card line; where a pre-theme `guide/` exists, offer rebuilding it on the canonical theme at the next Phase 6 or maintenance touch (asking the never-asked developer-portal questions); regenerate `guide-qa` in every capable container where it exists.
+
+## 3.2.1
+
+Release-asset verification closes the loop the canonical theme opened — found in the field on keel-docs-theme v1.0.0's very first consumer: the release body DESCRIBED its assets, none were actually attached, and the publishing session had verified the rendered page instead of the attachments.
+
+### Added
+- **Phase 7: a forge release that publishes downloadable assets is verified AFTER publishing, never assumed.** `gh release view <tag>` or the forge API's assets list, confirming each expected asset's name AND size — never the rendered release page (a body that describes assets is not an attachment). When the environment has no network or no `gh`, the user runs the check from their terminal and reports back. The verification (names + sizes) is recorded in `docs/07-release.md`; missing assets mean the release is NOT shipped — upload (`gh release upload`) and re-verify. Added to the phase's definition of done.
+- **`guide-theme.md`: the empty-assets branch warns the maintainer.** When the theme's latest release lists no downloadable assets (checked via `gh`/the API, not the page), the clone-at-tag + `scripts/package.sh` fallback is used — it produces the identical stamped package — AND the user is told explicitly that the theme release is incomplete so it gets fixed upstream. The fallback never becomes the silent norm.

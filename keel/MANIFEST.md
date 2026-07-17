@@ -1,4 +1,4 @@
-# Keel Manifest — v3.2.0
+# Keel Manifest — v3.2.1
 
 One file, three tables, one purpose: looking ONLY at this file, a session can tell (1) whether a project contains everything Keel requires at its current phase, (2) which skill files changed in which Keel version — so after an update it knows exactly what to re-read, without interpreting the changelog — and (3) what concrete actions each version asks of an existing project (the reconciliation delta).
 
@@ -63,17 +63,17 @@ After an update, re-read `SKILL.md`, the current phase's reference, and THIS fil
 
 | Skill file | Last changed in |
 |---|---|
-| `SKILL.md` | v3.2.0 |
-| `MANIFEST.md` | v3.2.0 |
-| `CHANGELOG.md` | v3.2.0 |
+| `SKILL.md` | v3.2.1 |
+| `MANIFEST.md` | v3.2.1 |
+| `CHANGELOG.md` | v3.2.1 |
 | `references/keel-maintenance.md` | v3.0.0 |
 | `references/playground-recipes.md` | v3.0.0 |
 | `references/maintenance.md` | v3.2.0 |
-| `references/guide-theme.md` | v3.2.0 |
+| `references/guide-theme.md` | v3.2.1 |
 | `references/assistant-config.md` | v3.2.0 |
 | `references/phase-5-development.md` | v3.1.0 |
-| `references/phase-7-release.md` | v3.2.0 |
-| `references/project-state.md` | v3.2.0 |
+| `references/phase-7-release.md` | v3.2.1 |
+| `references/project-state.md` | v3.2.1 |
 | `references/phase-1-discovery.md` | v3.0.0 |
 | `references/phase-2-functional-spec.md` | v3.0.0 |
 | `references/adoption.md` | v3.0.0 |
@@ -117,6 +117,7 @@ What the reconciliation APPLIES, version by version, for every version newer tha
 | v3.0.0 | The multi-assistant generalization. Ask once which assistants work on this repo (if never asked) and rename the project card line `Claude config:` → `Assistant config: [none / rules / rules+agents / full] (tools: ...)`, keeping the recorded acceptance level. Create the missing `AGENTS.md` lock mirror (same block, same stamp) through the normal lock-freshness refresh; if the user works with Gemini CLI, ask its mirror question (a `GEMINI.md` copy, or `context.fileName` in `.gemini/settings.json`) and record the pick. If the skill is embedded, add the second tree so `.claude/skills/keel/` + `.agents/skills/keel/` both exist (verified full-copy protocol; they sync together from now on). If the assistant config package is accepted, offer materializing the containers for the newly named tools from the same recorded sources (per `references/assistant-config.md`); add the accepted tools' personal files to `.gitignore` (`AGENTS.override.md`, `.gemini/.env`, `.gemini/tmp/`); if the pre-commit gate is installed, update its embedded-skill exemption to cover `.agents/skills/*` (a recorded gate change). At the next Phase 7 touch, extend the export-ignore set to every generated assistant config tree. |
 | v3.1.0 | If the assistant config package is accepted: regenerate `code-reviewer` (new comments check) and the `code-style` rule (new comments line) in every capable container from the same recorded sources. Where the `User guide:` card line is yes and `guide/` exists, generate the `guide-qa` subagent in each capable container at the next Phase 6 or maintenance touch. Nothing else structural. |
 | v3.2.0 | Add the `Docs theme:` card line (n/a until a theme is vendored). Where `User guide:` is yes and `guide/` predates the canonical theme (improvised HTML): at the next Phase 6 or maintenance touch, OFFER rebuilding `guide/` on the theme per `references/guide-theme.md` and ask the never-asked developer-portal questions (render `docs/`? ships or repo-only?), recording the answers — regenerating a released project's guide is a normal maintenance change. Regenerate `guide-qa` (new check 6 + inputs) in every capable container where it exists. |
+| v3.2.1 | None structural — release-asset verification (Phase 7) and the theme fallback warning (`guide-theme.md`) are behavioral; re-reading per Table 2 is enough. |
 
 ## Maintenance (part of EVERY release — no exceptions)
 
