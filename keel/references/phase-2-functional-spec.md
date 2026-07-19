@@ -66,6 +66,7 @@ ALWAYS use this template for `docs/03-technical-plan.md`:
 - Regression rule: every bug fixed gets a test pinning the fix (linked from lessons-learned)
 ## Tooling commands
 - lint / test / build / package: the exact commands (verified end-to-end at Phase 5 scaffold)
+- Front-end asset build (only if the project ships JS/CSS): the exact minify command/script that regenerates every `*.min.*` from its committed unminified source — run locally by the working assistant, never CI/forge. Source and minified live as a pair in the same dir (`name.js`+`name.min.js`, `name.css`+`name.min.css`); the minified file is never hand-edited. Per SKILL.md "Build assets — source first, minified for production"
 ## Version touchpoints
 - Every place the project's version string lives (e.g. plugin header, readme.txt Stable tag, a VERSION constant, package.json) — Phase 7 syncs ALL of them on release
 ## License & dependency compatibility
@@ -157,6 +158,7 @@ ALWAYS use this template:
 - Every multi-step/branching journey has a flow file.
 - Data model, integrations, and permissions are specified.
 - `docs/03-technical-plan.md` complete per its template: stack with exact versions, support matrix, architecture, code map, conventions (prefix, naming, error handling, logging), testing approach with run commands, version touchpoints, license-compatibility rule. Significant choices recorded in `docs/decisions.md`.
+- If the project ships front-end JS/CSS: the technical plan names the build/minify script that regenerates every `*.min.*` from its committed source (run locally, never CI/forge) and records the source→minified pairing convention — per SKILL.md "Build assets — source first, minified for production". Projects with no front-end assets, or a different pipeline recorded in `docs/decisions.md`, note it as such.
 - If the project card accepted assistant config rules/agents: the rules and subagents generated in every accepted tool's container per `references/assistant-config.md`, path-scoped, identical in substance, recorded in `docs/decisions.md`.
 - The design split is explicit, including external-setup items, foreseen external assets, per-screen accessibility requirements, and target devices/viewports with exact breakpoints — each on its own template line, carried into the Phase 3 brief.
 - Zero unresolved open questions.
