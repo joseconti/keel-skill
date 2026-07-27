@@ -15,6 +15,15 @@ Goal: turn the agreed v1 scope into a precise functional specification with flow
 
 For each v1 feature from `docs/01-discovery.md`, write testable requirements: inputs, processing, outputs, preconditions, postconditions, error conditions. "The user can X" is not enough — specify what happens on success, on empty, on invalid, on permission failure. These become test points in Phase 5.
 
+**A requirement may be carried by a reference artifact, not only by prose.** Where something higher-fidelity than a description already exists, attach it and point the requirement at it instead of paraphrasing it: a detailed test suite that acts as the executable spec, a function or module from another codebase to port, a working HTML mockup of the behavior. A file written in code states exactly what prose can only approximate, and it cannot drift from itself. When one is used, the prose requirement stays — reduced to what the file cannot say about itself: what is in scope, what must be matched exactly, what must deliberately change. Nothing here weakens the six parts above or the acceptance criteria; a reference raises fidelity, it never replaces the contract, and where artifact and spec disagree the spec governs.
+
+Three conditions, none optional:
+
+- **It lives in the repo.** Copy the file into `docs/spec-references/` (or, for a visual mockup, `docs/design/references/`) and commit it. A path to the user's disk, or to an artifact in another chat, resolves for nobody: not the next session, not the reviewing subagent, not the developer six months from now. The spec cites the in-repo path — Keel's whole resume model depends on the repo being self-sufficient. The confidential-data check runs on it like any other commit: third-party fixtures and test configs are exactly where real personal data and live credentials hide, so they are scrubbed before the artifact is committed, or it is not committed at all.
+- **A tests-as-spec suite is also wired to actually run.** The committed copy in `docs/spec-references/` is the pristine as-delivered record; a working copy goes into the project's own test tree under a named directory and is added to the technical plan's test command, so the suite executes in every run and at the Phase 7 gate. A suite nobody executes is not an acceptance contract, it is a document.
+- **Ported code carries its provenance.** Source, author, license, and verified compatibility with the project's Phase 1 license, recorded in its `## Reference artifacts` row and as a D-entry in `docs/decisions.md`. Code whose license is incompatible or unknown is NOT ported — it is re-specified in prose and written fresh. This matters doubly for GPL projects and anything bound for WordPress.org.
+- **It is registered.** Each artifact gets its row in the `## Reference artifacts` section of the spec template with its path, kind, and what must be matched.
+
 ### 2. Flows
 
 Identify every journey that has more than one step or any branching: e.g. install/activation, auth/login, the core task, admin configuration, error/recovery, external-system interaction. For each, write `docs/flows/<flow-name>.md` with:
@@ -89,6 +98,7 @@ This is the bridge to Phase 3. Produce a clear split:
 - **No design needed:** backend, jobs, CLI, pure logic.
 - **External software the user must configure by hand** (Unity, hosting panel, OAuth console, SaaS settings, DNS, payment gateway): list each. These become the `SPEC/external-setup.md` requirements in Phase 3 and the guided walkthrough in Phase 4.
 - **Assets Design likely can't produce** (photographic images, complex illustrations, 3D renders): flag any you can already foresee. These become `SPEC/external-assets.md` requirements in Phase 3 and the guided one-asset-at-a-time generation loop in Phase 4.
+- **Rich references the user already holds:** an HTML mockup or prototype of a screen, an artifact generated in another Claude chat, a built page whose behavior should be matched. Copy each into `docs/design/references/`, commit it, and list it per screen by its in-repo path — it travels verbatim into the Phase 3 brief as reference material and is never paraphrased into a description, which is exactly what loses the fidelity that made it worth having. Registered here for the design split and in `## Reference artifacts` when it also carries a functional requirement; the file is the same one.
 - **Target devices/viewports and exact breakpoints** (per screen): which devices/viewports each screen must serve and the exact breakpoint values — numbers, not adjectives. The Phase 3 design brief requires exact breakpoints per screen and copies these values verbatim; nothing else upstream captures them, so they are fixed here. Propose recommended defaults (e.g. 360 / 768 / 1280 px) and let the user react.
 
 For every screen that needs design, also record its **accessibility requirements** (semantic structure and heading order, keyboard/assistive-tech operability, contrast, focus order and visible focus, error identification, target size, reduced-motion) — these become part of what Design must specify in Phase 3, per `references/accessibility.md`. Accessibility is not deferred to the build; it is specified with the screen.
@@ -113,6 +123,20 @@ Before any number is closed, the spec gets an adversarial review from fresh cont
 
 Findings fix the spec NOW — a hole closed here costs minutes; the same hole found later is a Design Request or a Phase 5 rework.
 
+**Rubric pass — verifying shape, not only completeness.** The checklist above is mechanical: it catches what is *missing*, never what is *badly shaped*. A spec can pass every item above and still describe an API that third parties will curse for years. So, once, here, put this question to the user — in their language, and in these terms:
+
+> Some things can't be ticked off a list: whether other developers will find this pleasant to build on, whether the screens look like one product, whether the wording sounds like you. We can write down what "good" means for one of those, and the reviewer will check the spec against it. **Recommended: yes for a plugin, an MCP server or a library** — once it ships, the way other people hook into it can't be changed without breaking their sites. For anything else, usually not worth it.
+
+"Whatever you think" is a valid answer: apply the default, record it, move on. Asking and recording the answer is the requirement; taking a rubric is not.
+
+A **rubric** is a short recorded set of criteria for ONE domain, stating in concrete terms what good and bad look like there (`references/accessibility.md` is the shape to imitate — it is exactly this, for accessibility). If the user takes one, write it with them into `docs/rubrics/<domain>.md`, record a D-entry, and have the reviewer score the spec against it in this same step, reporting where it falls short. Three rules govern it, wherever it is applied:
+
+- **Recorded, never improvised.** A reviewer that invents its own quality bar mid-run has not verified anything — it has substituted its taste for the user's. No rubric on record means no rubric pass.
+- **The reviewer flags; it never rewrites.** A rubric adds criteria, never write access.
+- **The spec wins.** Where a rubric and something already fixed disagree, the fixed artifact governs and the disagreement is raised as a question (a Design Request when it is design-side), never resolved unilaterally.
+
+Do it now, at authoring time, and never later: an API shape corrected in the spec costs minutes; the same correction after release is a breaking change for every site that installed it. When the project carries assistant subagents, the verifier side is defined in `references/assistant-config.md` ("Domain rubrics"); without them the same pass runs inline, exactly like the review above.
+
 ### 7. Firm estimate & client budget (close of spec — AI-time based)
 
 With the real scope now fixed (requirements, flows, screens, slices implied by the technical plan, integrations, external-setup items) and the spec hardened by the step 6a review, close the numbers. Follow `references/estimation-budget.md` end to end: recompute the itemized AI hours and vibe coder hours from the actual spec; compute the AI cost (verified per-token prices if API; ≈ 0 marginal on subscription); append **Estimate v[N] (firm)** to `docs/estimate.md`. The client budget is conditioned on the Phase 1 project-card line — read it, never re-ask it:
@@ -131,6 +155,9 @@ ALWAYS use this template:
 
 ## Functional requirements
 - per feature: inputs / processing / outputs / pre / post / errors
+## Reference artifacts
+(only if any — a spec carried by a file instead of prose; the file lives in the repo)
+- [in-repo path] — [kind: tests-as-spec / code to port / HTML mockup] — [what must be matched exactly, what must deliberately change, what is out of scope] — [for ported code: source, author, license, compatibility verified — D-entry]
 ## Data model
 ## Integrations (with auth, limits, failure handling)
 ## Permissions matrix
@@ -144,6 +171,7 @@ ALWAYS use this template:
 - External manual setup: [...]
 - Foreseen external assets (Design likely can't produce): [...]
 - Per-screen accessibility requirements: [...]
+- Rich references held by the user (HTML mockups, prototypes, artifacts): [in-repo path per screen, committed under docs/design/references/ — the Phase 3 brief ships the files themselves]
 - Target devices/viewports and exact breakpoints: [per screen — the Phase 3 brief copies these values verbatim]
 ## Acceptance criteria (per feature — include accessibility conditions for every UI feature)
 ## Estimate & budget
@@ -162,7 +190,7 @@ ALWAYS use this template:
 - If the project card accepted assistant config rules/agents: the rules and subagents generated in every accepted tool's container per `references/assistant-config.md`, path-scoped, identical in substance, recorded in `docs/decisions.md`.
 - The design split is explicit, including external-setup items, foreseen external assets, per-screen accessibility requirements, and target devices/viewports with exact breakpoints — each on its own template line, carried into the Phase 3 brief.
 - Zero unresolved open questions.
-- The adversarial spec review (step 6a) ran before the firm estimate — fresh context (subagent when available, strict self-check otherwise), the full checklist verified mechanically — and every finding was fixed in the spec.
+- The adversarial spec review (step 6a) ran before the firm estimate — fresh context (subagent when available, strict self-check otherwise), the full checklist verified mechanically — and every finding was fixed in the spec. The rubric question (§6a) was put to the user and its answer recorded — either a rubric in `docs/rubrics/` whose pass ran with its findings resolved, or a recorded "none for this project".
 - Firm estimate appended to `docs/estimate.md` per `references/estimation-budget.md`, and the client budget approved — `docs/budget.md` in the client's language (itemized per segment, developer and AI blocks separate, totals and terms), explicitly approved by the user with the approval recorded in `docs/decisions.md` — or recorded as not applicable (no client: `Client budget: no` on the project card). Client acceptance itself is the user's business — it does not gate Phase 3.
 - `docs/PROGRESS.md` updated (phase status, artifacts, next action).
 

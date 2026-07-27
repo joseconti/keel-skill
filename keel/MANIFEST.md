@@ -1,4 +1,4 @@
-# Keel Manifest — v3.4.0
+# Keel Manifest — v3.5.0
 
 One file, three tables, one purpose: looking ONLY at this file, a session can tell (1) whether a project contains everything Keel requires at its current phase, (2) which skill files changed in which Keel version — so after an update it knows exactly what to re-read, without interpreting the changelog — and (3) what concrete actions each version asks of an existing project (the reconciliation delta).
 
@@ -24,6 +24,9 @@ Verification is phase-aware and condition-aware: read the project card and phase
 | `docs/03-technical-plan.md` | Stack, architecture, code map, conventions, testing plan (frameworks + commands + playground recipe) | Phase 2 | Always |
 | `docs/flows/` | One file per multi-step/branching journey | Phase 2 | Always |
 | `docs/budget.md` | Client-facing budget, approved | Phase 2 close | Only if `Client budget: yes` (card line, asked at Phase 1 step 10) |
+| `docs/spec-references/` | Reference artifacts carrying a requirement (tests-as-spec, ported code with its provenance/license) | Phase 2 | Only if the spec records any (`## Reference artifacts`) |
+| `docs/rubrics/` | Recorded judgment criteria per domain, applied at the Phase 2 §6a review | Phase 2 | Only if a rubric domain was accepted at §6a |
+| `docs/design/references/` | Rich visual references (HTML mockups, prototypes, artifacts) shipped with the Phase 3 brief — input to Design, never a build source | Phase 2 | Only if the user holds any |
 | Assistant rules — one container per accepted tool (`.claude/rules/`, `.cursor/rules/`, `.github/instructions/`, `.windsurf/rules/`, nested context files for Codex/Gemini) | Path-scoped rules from the plan + security profile (`references/assistant-config.md`) | Phase 2 close | Only if accepted (card: `Assistant config:`) |
 | Assistant subagents — per capable tool (`.claude/agents/`, `.github/agents/`, `.cursor/agents/`, `.gemini/agents/`) | Reviewer/verifier subagents (same source) | Phase 2 close | Only if accepted (card: `Assistant config:`) |
 | `docs/design/DESIGN-BRIEF.md` | Brief handed to Design (user-approved, bracket-clean) | Phase 3 | UI projects only |
@@ -64,26 +67,26 @@ After an update, re-read `SKILL.md`, the current phase's reference, and THIS fil
 
 | Skill file | Last changed in |
 |---|---|
-| `SKILL.md` | v3.4.0 |
-| `MANIFEST.md` | v3.4.0 |
-| `CHANGELOG.md` | v3.4.0 |
+| `SKILL.md` | v3.5.0 |
+| `MANIFEST.md` | v3.5.0 |
+| `CHANGELOG.md` | v3.5.0 |
 | `references/keel-maintenance.md` | v3.0.0 |
 | `references/playground-recipes.md` | v3.0.0 |
 | `references/maintenance.md` | v3.2.0 |
 | `references/guide-theme.md` | v3.2.1 |
-| `references/assistant-config.md` | v3.3.0 |
-| `references/phase-5-development.md` | v3.4.0 |
-| `references/phase-7-release.md` | v3.4.0 |
-| `references/project-state.md` | v3.3.0 |
-| `references/phase-1-discovery.md` | v3.0.0 |
-| `references/phase-2-functional-spec.md` | v3.4.0 |
+| `references/assistant-config.md` | v3.5.0 |
+| `references/phase-5-development.md` | v3.5.0 |
+| `references/phase-7-release.md` | v3.5.0 |
+| `references/project-state.md` | v3.5.0 |
+| `references/phase-1-discovery.md` | v3.5.0 |
+| `references/phase-2-functional-spec.md` | v3.5.0 |
 | `references/adoption.md` | v3.0.0 |
 | `references/estimation-budget.md` | v3.0.0 |
-| `references/phase-6-documentation.md` | v3.2.0 |
-| `references/phase-3-design-handoff.md` | v2.1.0 |
-| `references/phase-4-faithful-build.md` | v3.0.0 |
+| `references/phase-6-documentation.md` | v3.5.0 |
+| `references/phase-3-design-handoff.md` | v3.5.0 |
+| `references/phase-4-faithful-build.md` | v3.5.0 |
 | `references/handoff-contract.md` | v2.1.0 |
-| `references/design-brief-template.md` | v2.0.0 |
+| `references/design-brief-template.md` | v3.5.0 |
 | `references/design-request-template.md` | v2.0.0 |
 | `references/build-spec-template.md` | v2.0.0 |
 | `references/phase-8-website.md` | v2.0.0 |
@@ -121,6 +124,7 @@ What the reconciliation APPLIES, version by version, for every version newer tha
 | v3.2.1 | None structural — release-asset verification (Phase 7) and the theme fallback warning (`guide-theme.md`) are behavioral; re-reading per Table 2 is enough. |
 | v3.3.0 | Add the `Models:` card line. If the assistant config package is accepted WITH agents (`rules+agents` or `full`): settle the role→model map (orchestrator / reviewer / mechanical) with the user per `references/assistant-config.md` ("Model binding"), record it as a D-entry and on the card line, and materialize each capable container's native model field at the next Phase 2-close or maintenance touch. If no agents (or the package is not accepted): set the card line to `n/a` and do nothing else. Nothing else structural. |
 | v3.4.0 | The build-assets source-first contract. On projects that ship front-end JS/CSS: at the next sprint kickoff or maintenance touch, ensure every shipped `*.min.*` has its unminified source committed beside it and a local build/minify script exists (`scripts/…`, run by the working assistant, never CI/forge); never hand-edit a minified file. If a project currently hand-maintains its minified assets, regenerate them once from source and adopt the script. Projects with no front-end assets, or that record a different pipeline in `docs/decisions.md`, set this n/a. Nothing else structural. |
+| v3.5.0 | Two actions. **(1) Docs follow the code, all three operations.** From the next slice or maintenance touch, a public surface that is *changed* has its `docs/api/` or `docs/reference/` entry and its example updated in the same slice, and one that is *removed* is resolved rather than deleted in silence: entry and INDEX row deleted if it was never released, or marked deprecated/removed with its replacement (plus a D-entry) if it was. No retroactive sweep of existing docs is required — but any stale entry found while working is fixed then, not noted for later. **(2) The rubric question (Phase 2 §6a) is asked once if it never was**, and its answer recorded — a rubric in `docs/rubrics/` or an explicit "none for this project"; for a released project, adopting one later is a normal maintenance change. Reference artifacts (Phase 2 `## Reference artifacts`, `docs/spec-references/`, `docs/design/references/`) are opt-in and create no obligation for a project that holds none. Nothing else structural. |
 
 ## Maintenance (part of EVERY release — no exceptions)
 

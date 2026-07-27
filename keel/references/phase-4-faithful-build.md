@@ -13,6 +13,7 @@ Read `references/handoff-contract.md`, `references/build-spec-template.md`, and 
 5. Code adapts to the design — never the design to the code.
 6. Missing → ask Design (Design Request), not yourself.
 7. `docs/design/design-handoff/` is untouchable: it holds Design's delivery and nothing else — nothing is ever written into it (contract rule 10). Everything the build produces lives in the project tree or `docs/`, so the delivery can always be swapped wholesale.
+8. A Phase 2 reference mockup is input to Design only — never a build source. `docs/BUILD-SPEC.md` plus the delivery (Design's, or the recorded no-Design branch) are the only things the build follows; a mockup under `docs/design/references/` that disagrees with them is ignored — and if it looks *more* right, that is a Design Request, not a reason to take its markup.
 
 State these back to the user when the phase starts.
 

@@ -39,9 +39,9 @@ Also make the workflow portable across environments (the user may continue this 
 
 If the project already has real code but no Keel state, this is not Phase 1 — it is an adoption: switch to `references/adoption.md`.
 
-### 0. Competitive scan (always first — before any other step)
+### 0. Competitive scan (first — before any other step of a NEW project)
 
-The honest assessment in this phase is only as good as the assistant's view of the landscape. Before asking what the idea is supposed to do, scan for what already exists. The output of this step feeds the honest assessment, the feature list, the v1 scope decision, and any optional AI/MCP layer proposal — all of which are weaker or guesswork if this step is skipped.
+The honest assessment in this phase is only as good as the assistant's view of the landscape. Before asking what the idea is supposed to do, scan for what already exists. The output of this step feeds the honest assessment, the feature list, the v1 scope decision, and any optional AI/MCP layer proposal — all of which are weaker or guesswork if this step is skipped. (In adoption it is recommended-but-optional — see `references/adoption.md`.)
 
 Always ask the user upfront: **"Which competitors / similar projects do you already know about?"** The user's own list is a useful seed; combine it with the automated research below.
 
