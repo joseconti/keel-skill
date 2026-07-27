@@ -50,7 +50,7 @@ Create the Keel artifacts describing what exists — filling everything inferabl
 
 - `docs/01-discovery.md` — retroactive, using the normal template, headed **"Adopted project — reconstructed as-built"**. Contains the step 3 answers and the inventory's findings.
 - `docs/02-functional-spec.md` — the REAL features, main flows, data model, integrations, permissions. Depth rule: enough to work safely now; deepen per area when that area is next touched (**progressive backfill**), rather than halting the project for weeks of retro-documentation. Unverified inferences labeled.
-- `docs/03-technical-plan.md` — the real stack and versions, the real code map (every path, one line), the **observed** conventions, the real test/build/lint commands (verified by running them in step 1), the real version touchpoints, the license-compatibility rule applied to the existing dependency list.
+- `docs/03-technical-plan.md` — the real stack and versions, the real code map (every path, one line, each row marked `[E]` since it exists — an adopted project starts almost entirely `[E]`, and anything the audit says must still be built is `[A]`), the **change map** built from the change types this codebase actually has (per `references/phase-2-functional-spec.md` step 4b — in an adopted project it is often the single most valuable artifact produced, because the "what else do I have to touch" knowledge currently lives only in the maintainer's head), the **observed** conventions, the real test/build/lint commands (verified by running them in step 1), the real version touchpoints, the license-compatibility rule applied to the existing dependency list.
 - `docs/api/INDEX.md` — **complete**, one line per existing public surface. This one is not progressive: it is cheap, and the Phase 5 reuse rule depends on it. Full per-surface docs (`docs/api/`, `docs/reference/`) are backfilled progressively — each surface gets its complete doc the first time a slice touches it — unless the user explicitly wants a documentation sprint now.
 - `docs/issues.md` — if the forge has issues: the initial inventory (open issues at least; closed history optional), per `references/project-state.md`. Entries are added as issues are actually worked, from here on.
 - If there is a pre-existing UI with no design handoff: do NOT invent a retroactive BUILD-SPEC. Record in PROGRESS.md that the UI predates Keel and has no design contract; the current look is the baseline. From the next UI change on, the normal rules apply (a redesign goes through Phases 3–4; small changes respect the baseline and the design-system decision from step 3).
@@ -68,6 +68,8 @@ Audit the as-built reality against Keel's standards and record every gap honestl
 - **Extensibility** (extensible types): missing filters/actions per the Phase 5 density rule.
 - **Docs:** public surfaces with no documentation (now visible via INDEX).
 - **Hygiene:** `.gitignore`/`.gitattributes` gaps, tracked secrets (critical), version-touchpoint mismatches, changelog ordering.
+- **Known traps:** run the self-audit from `references/anti-patterns.md` against the real tree — every answer evidenced by a command or an artifact, never by reading the code and forming an impression. This is where adoption pays off fastest: a project that predates Keel has usually accumulated several of these silently (a declared tool nothing runs, a documented command that no longer exists, a version pinned in five places, a documented hook that is never fired, a generated file nobody imports), and each one is a concrete finding rather than a vague "needs tidying".
+- **Threat model:** produce `docs/threat-model.md` from the loaded profile and the real code, with every control at its HONEST delivery state — an adopted project typically has more `TO BUILD` than `IN PLACE`, and writing that down accurately is the point. The "Not defended" table converts what was silent into decisions the user can weigh.
 
 For each gap: what, where, severity, and the standard it fails. Then **prioritize with the user** into three buckets, recorded in the file and mirrored in PROGRESS.md: fix now (a remediation sprint), fix when touched (bound to the area's next slice), accepted (recorded with the reason — honest, not hidden).
 
@@ -83,6 +85,8 @@ Mark Phases 1–2 as **"adopted (as-built)"** in PROGRESS.md's phase table, set 
 - `docs/01-discovery.md`, `docs/02-functional-spec.md`, `docs/03-technical-plan.md` exist as-built, with every unverified inference labeled.
 - `docs/api/INDEX.md` complete for every existing public surface; progressive backfill rule recorded for full per-surface docs.
 - `docs/04-adoption-audit.md` complete, every gap prioritized with the user (now / when touched / accepted), mirrored in PROGRESS.md.
+- The `references/anti-patterns.md` self-audit was run against the real tree with every answer evidenced, and its findings are gaps in the audit like any other.
+- `docs/threat-model.md` exists with controls at their honest delivery state and a "Not defended" table — no control described in the present tense that is not `IN PLACE` with its evidence.
 - If the forge has issues: `docs/issues.md` exists with the initial inventory.
 - No code was changed (except a user-approved critical remediation, recorded).
 - PROGRESS.md shows Phases 1–2 "adopted (as-built)", the current position, and an executable next action.

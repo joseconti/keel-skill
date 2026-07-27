@@ -1,8 +1,10 @@
 # Estimation & Budget — AI-time based (cross-cutting)
 
+> **Every figure in this file, and every duration the assistant ever states anywhere — in a doc, in a table, or in plain conversation — is AI development time plus the vibe coder's supervision time. Never human-team development time.** The gap between the two is orders of magnitude, not a margin: the same work is hours here and months in a traditional team. An unqualified duration is read as the human one, so the unit is named every time it is given. A human-team comparison appears only when it is explicitly useful, explicitly labelled, and placed BESIDE the AI figure — never instead of it. This is the SKILL.md unbreakable rule; this file is its procedure.
+
 Load this reference at these moments, and only these:
 
-- **Close of Phase 1 (Discovery)** → produce the **preliminary estimate** (ranges), so the user can answer a client quickly.
+- **Close of Phase 1 (Discovery)** → produce the **preliminary estimate** (ranges), so the user can answer a client quickly. Its per-feature inputs already exist: the Phase 1 §3a confrontation costed every competitor functionality the user accepted, in this same model — reuse those numbers instead of re-deriving them.
 - **Close of Phase 2 (Functional spec + technical plan)** → produce the **firm estimate** — and, when the project card says `Client budget: yes`, the **client-facing budget**.
 - **Any recorded scope change after a budget exists** → recompute and issue a new budget version (see "Scope changes").
 - **Adoption / existing projects**: when the user needs to quote a piece of planned work (remediation sprint, new feature) to a client, run the same procedure on that scope.

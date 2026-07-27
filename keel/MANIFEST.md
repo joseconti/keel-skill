@@ -1,4 +1,4 @@
-# Keel Manifest — v3.5.0
+# Keel Manifest — v4.0.0
 
 One file, three tables, one purpose: looking ONLY at this file, a session can tell (1) whether a project contains everything Keel requires at its current phase, (2) which skill files changed in which Keel version — so after an update it knows exactly what to re-read, without interpreting the changelog — and (3) what concrete actions each version asks of an existing project (the reconciliation delta).
 
@@ -21,7 +21,8 @@ Verification is phase-aware and condition-aware: read the project card and phase
 | `docs/estimate.md` | Estimate v1 preliminary → firm (per `references/estimation-budget.md`) | Phase 1 close | Always |
 | `docs/token-ledger.md` | Actual token usage, one row per session | Phase 1 close | Always |
 | `docs/02-functional-spec.md` | Functional contract (incl. design split with foreseen assets, per-screen a11y, breakpoints) | Phase 2 | Always |
-| `docs/03-technical-plan.md` | Stack, architecture, code map, conventions, testing plan (frameworks + commands + playground recipe) | Phase 2 | Always |
+| `docs/03-technical-plan.md` | Stack, architecture, code map with `[E]`/`[A]`/`[G]` markers, change map, conventions, testing plan (frameworks + commands + playground recipe) | Phase 2 | Always |
+| `docs/threat-model.md` | Assumptions, defended controls each carrying a delivery state (`IN PLACE`/`TO BUILD`/`MANUAL`/`VERIFY`), and the "Not defended" table of deliberate omissions with their consequences (`references/phase-2-functional-spec.md` §4c) | Phase 2 | Always |
 | `docs/flows/` | One file per multi-step/branching journey | Phase 2 | Always |
 | `docs/budget.md` | Client-facing budget, approved | Phase 2 close | Only if `Client budget: yes` (card line, asked at Phase 1 step 10) |
 | `docs/spec-references/` | Reference artifacts carrying a requirement (tests-as-spec, ported code with its provenance/license) | Phase 2 | Only if the spec records any (`## Reference artifacts`) |
@@ -67,21 +68,21 @@ After an update, re-read `SKILL.md`, the current phase's reference, and THIS fil
 
 | Skill file | Last changed in |
 |---|---|
-| `SKILL.md` | v3.5.0 |
-| `MANIFEST.md` | v3.5.0 |
-| `CHANGELOG.md` | v3.5.0 |
+| `SKILL.md` | v4.0.0 |
+| `MANIFEST.md` | v4.0.0 |
+| `CHANGELOG.md` | v4.0.0 |
 | `references/keel-maintenance.md` | v3.0.0 |
 | `references/playground-recipes.md` | v3.0.0 |
 | `references/maintenance.md` | v3.2.0 |
 | `references/guide-theme.md` | v3.2.1 |
 | `references/assistant-config.md` | v3.5.0 |
-| `references/phase-5-development.md` | v3.5.0 |
-| `references/phase-7-release.md` | v3.5.0 |
-| `references/project-state.md` | v3.5.0 |
-| `references/phase-1-discovery.md` | v3.5.0 |
-| `references/phase-2-functional-spec.md` | v3.5.0 |
-| `references/adoption.md` | v3.0.0 |
-| `references/estimation-budget.md` | v3.0.0 |
+| `references/phase-5-development.md` | v4.0.0 |
+| `references/phase-7-release.md` | v4.0.0 |
+| `references/project-state.md` | v4.0.0 |
+| `references/phase-1-discovery.md` | v4.0.0 |
+| `references/phase-2-functional-spec.md` | v4.0.0 |
+| `references/adoption.md` | v4.0.0 |
+| `references/estimation-budget.md` | v4.0.0 |
 | `references/phase-6-documentation.md` | v3.5.0 |
 | `references/phase-3-design-handoff.md` | v3.5.0 |
 | `references/phase-4-faithful-build.md` | v3.5.0 |
@@ -97,11 +98,12 @@ After an update, re-read `SKILL.md`, the current phase's reference, and THIS fil
 | `references/phase-8-launch-checklist.md` | v3.0.0 |
 | `references/phase-8-technical-seo.md` | v2.0.0 |
 | `references/accessibility.md` | v3.0.0 |
-| `references/security/wordpress.md` | v2.0.0 |
-| `references/security/web-app.md` | v2.0.0 |
-| `references/security/mcp-server.md` | v2.0.0 |
-| `references/security/library-component.md` | v2.0.0 |
-| `references/security/website.md` | v2.0.0 |
+| `references/anti-patterns.md` | v4.0.0 |
+| `references/security/wordpress.md` | v4.0.0 |
+| `references/security/web-app.md` | v4.0.0 |
+| `references/security/mcp-server.md` | v4.0.0 |
+| `references/security/library-component.md` | v4.0.0 |
+| `references/security/website.md` | v4.0.0 |
 | `LICENSE` | v1.0.0 |
 | `NOTICE` | v2.0.0 |
 
@@ -125,6 +127,7 @@ What the reconciliation APPLIES, version by version, for every version newer tha
 | v3.3.0 | Add the `Models:` card line. If the assistant config package is accepted WITH agents (`rules+agents` or `full`): settle the role→model map (orchestrator / reviewer / mechanical) with the user per `references/assistant-config.md` ("Model binding"), record it as a D-entry and on the card line, and materialize each capable container's native model field at the next Phase 2-close or maintenance touch. If no agents (or the package is not accepted): set the card line to `n/a` and do nothing else. Nothing else structural. |
 | v3.4.0 | The build-assets source-first contract. On projects that ship front-end JS/CSS: at the next sprint kickoff or maintenance touch, ensure every shipped `*.min.*` has its unminified source committed beside it and a local build/minify script exists (`scripts/…`, run by the working assistant, never CI/forge); never hand-edit a minified file. If a project currently hand-maintains its minified assets, regenerate them once from source and adopt the script. Projects with no front-end assets, or that record a different pipeline in `docs/decisions.md`, set this n/a. Nothing else structural. |
 | v3.5.0 | Two actions. **(1) Docs follow the code, all three operations.** From the next slice or maintenance touch, a public surface that is *changed* has its `docs/api/` or `docs/reference/` entry and its example updated in the same slice, and one that is *removed* is resolved rather than deleted in silence: entry and INDEX row deleted if it was never released, or marked deprecated/removed with its replacement (plus a D-entry) if it was. No retroactive sweep of existing docs is required — but any stale entry found while working is fixed then, not noted for later. **(2) The rubric question (Phase 2 §6a) is asked once if it never was**, and its answer recorded — a rubric in `docs/rubrics/` or an explicit "none for this project"; for a released project, adopting one later is a normal maintenance change. Reference artifacts (Phase 2 `## Reference artifacts`, `docs/spec-references/`, `docs/design/references/`) are opt-in and create no obligation for a project that holds none. Nothing else structural. |
+| v4.0.0 | Documentation and reality stop drifting by discipline and start drifting by failing a check. Five actions, all applicable at the next natural touch — none requires a retroactive sweep. **(1) Load `references/anti-patterns.md`** for this project's type from the next session (it joins the security profile and the accessibility reference as a Phase 1 selection), and run its self-audit once against the current tree, every answer evidenced by a command or an artifact; each failing answer becomes a normal work item (an adopted or released project usually surfaces several). **(2) Mark the code map.** Add the `[E]`/`[A]`/`[G]` state marker to every row of `docs/03-technical-plan.md`; an existing project is almost entirely `[E]`, so this is a cheap pass, and from then on a path that is not `[E]` is treated as absent. **(3) Build the change map** (`references/phase-2-functional-spec.md` §4b): one row per recurring change type in this project, each naming real paths and real commands. Build it from the change types the project actually has — on a mature project this is the highest-value artifact of the whole version, because that knowledge currently lives only in the maintainer's head. From then on every slice reads its row first and a new change type adds its row in the slice that discovered it. **(4) Create `docs/threat-model.md`** (§4c) from the loaded security profile's new "Deliberate omissions" section plus the project's reality, with every control at its HONEST delivery state — a released project typically has more `TO BUILD` than expected, and recording that accurately is the point; the "Not defended" table turns silent omissions into decisions. Any control currently described in the present tense that is not `IN PLACE` with evidence is corrected in the docs at the same time. **(5) Extend `scripts/keel-verify`** with the new checks (cited commands exist, internal doc links resolve, no orphan documents, `[E]` markers match disk, code fences balanced, suppression count reported) — on projects that have the script; on those that do not, it is created at the next scaffold or maintenance touch as usual. The `docs/lessons-learned.md` template gains symptom/cause/fix and a "Check added" field; existing entries are not rewritten, new ones use the new shape. **(6) The Phase 1 competitive confrontation (§3a) is offered once** on any project whose scope was set before it existed: present every competitor functionality and external demand against what the project actually has, with per-feature AI-time cost and demand evidence, and let the user decide row by row — on a released product this is a roadmap exercise rather than a scope one, and its "never" decisions are recorded so they stop being re-proposed. Skip it only where the scan itself was skipped and the user declines to run it. **(7) Every duration the assistant states is AI development time** (AI working hours + vibe coder supervision hours), named as such every time — no human-team figure, in any doc, table or conversation, unless explicitly labelled and placed beside the AI figure. Nothing to migrate; it governs from the next session. |
 
 ## Maintenance (part of EVERY release — no exceptions)
 

@@ -68,3 +68,27 @@ Load this when the project is an MCP server (standalone, or shipped inside anoth
 - Dependency audit (`npm audit` / `pip-audit` per stack).
 
 At a test point, the command and its result are the evidence recorded in `docs/05-test-points.md` — an unrecorded check did not happen.
+
+## Deliberate omissions (seed the "Not defended" table)
+
+This profile hardens what it covers and is silent on the rest. Silence is not protection, so the
+project's `docs/threat-model.md` (Phase 2 §4c) carries a "Not defended" table naming what is
+deliberately out of scope, its consequence, and what the user would add if their risk profile needs
+it. **An omission that is written down is a decision; an omission that is silent is a trap** — six
+months on, nobody can tell "we decided against it" from "we forgot".
+
+Start from these rows, keep the ones that apply, add the project's own, and move any row into the
+"Defended" table the moment the control actually ships with its evidence:
+
+| Not defended | Consequence | If you need it |
+|---|---|---|
+| Indirect prompt injection through content the server returns | If a tool result contains attacker-authored text, the model may treat it as instructions; labelling data as data reduces but does not eliminate this | Keep untrusted content out of tool results, or add provenance labelling and treat any action derived from it as unauthorized until re-confirmed |
+| The client's own tool-selection logic | The server cannot control which tool a model picks, or with what arguments | Authorize per call on the server; never let the model's request be the authorization |
+| A compromised client or host application | It holds the credentials it was given | Scope tokens narrowly, keep them short-lived, and make revocation possible |
+| Cost of the calls a client makes | Without a quota, an enthusiastic or scripted client discovers the limit through the invoice | Server-side metering per caller, enforced before the work is done, not after |
+| Content of the data the server exposes | The server returns what the underlying system holds, including anything sensitive already there | Filter or redact at the tool boundary, and record what is exposed in the data inventory |
+
+Every remaining control in the "Defended" table carries its delivery state — `IN PLACE` (built and
+verified), `TO BUILD` (a named slice), `MANUAL` (a human configures it) or `VERIFY` (only a real
+environment confirms it) — and only `IN PLACE` may be written in the present tense anywhere in the
+project's documentation.

@@ -71,3 +71,28 @@ Load this when the project type is a WordPress plugin or WooCommerce extension. 
 - `composer audit` / `npm audit` when the plugin bundles dependencies.
 
 At a test point, the command and its result are the evidence recorded in `docs/05-test-points.md` — an unrecorded check did not happen.
+
+## Deliberate omissions (seed the "Not defended" table)
+
+This profile hardens what it covers and is silent on the rest. Silence is not protection, so the
+project's `docs/threat-model.md` (Phase 2 §4c) carries a "Not defended" table naming what is
+deliberately out of scope, its consequence, and what the user would add if their risk profile needs
+it. **An omission that is written down is a decision; an omission that is silent is a trap** — six
+months on, nobody can tell "we decided against it" from "we forgot".
+
+Start from these rows, keep the ones that apply, add the project's own, and move any row into the
+"Defended" table the moment the control actually ships with its evidence:
+
+| Not defended | Consequence | If you need it |
+|---|---|---|
+| A compromised or malicious site administrator | An administrator can already execute PHP; no plugin-level control survives that | Nothing at the plugin level — it is the site's hosting and account-security problem |
+| Other plugins and the theme | They share the process, the database and the global scope; a hostile or broken one can alter this plugin's behaviour | Defensive prefixing, capability re-checks at each entry point, and no reliance on another plugin's sanitization |
+| Data at rest in the database | Options, meta and custom tables are stored as written; the platform offers no encryption layer | Encrypt the specific sensitive field in the plugin before storing, and own the key handling |
+| Brute force against wp-login and the REST API | Out of the plugin's scope; the platform's own surface | A dedicated security plugin, host-level rate limiting, or a WAF |
+| Supply chain of bundled dependencies beyond an audit | `composer audit` reports known advisories; it does not attest artifacts | Pin by hash where the ecosystem allows it and review dependency diffs on update |
+| PII in debug logs the site owner enables | The debug switch writes what the code logs, wherever the site puts its logs | Redact at the log call, never at the reader |
+
+Every remaining control in the "Defended" table carries its delivery state — `IN PLACE` (built and
+verified), `TO BUILD` (a named slice), `MANUAL` (a human configures it) or `VERIFY` (only a real
+environment confirms it) — and only `IN PLACE` may be written in the present tense anywhere in the
+project's documentation.

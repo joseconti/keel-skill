@@ -47,3 +47,28 @@ Load this when the project is a static, marketing, or product website — the Ph
 - Browser devtools (network panel) or a crawler pass over every page for mixed content.
 
 At a test point, the command and its result are the evidence — recorded in `docs/05-test-points.md` during development and `<site-docs>/launch-report.md` at launch; an unrecorded check did not happen.
+
+## Deliberate omissions (seed the "Not defended" table)
+
+This profile hardens what it covers and is silent on the rest. Silence is not protection, so the
+project's `docs/threat-model.md` (Phase 2 §4c) carries a "Not defended" table naming what is
+deliberately out of scope, its consequence, and what the user would add if their risk profile needs
+it. **An omission that is written down is a decision; an omission that is silent is a trap** — six
+months on, nobody can tell "we decided against it" from "we forgot".
+
+Start from these rows, keep the ones that apply, add the project's own, and move any row into the
+"Defended" table the moment the control actually ships with its evidence:
+
+| Not defended | Consequence | If you need it |
+|---|---|---|
+| Volumetric denial of service | The site becomes unavailable under a flood | CDN or WAF rate limiting in front of the origin |
+| Compromise of the host or the deploy account | Whoever controls the pipeline controls what is served | MFA on the host and forge accounts, and branch protection on the deployed branch |
+| Third-party embeds and their content | An embedded widget executes in the page's context and can change what it does after launch | Sandbox iframes, pin script sources, and keep the embed count near zero |
+| Form submissions from a determined abuser | Anti-spam measures raise the cost; they do not make abuse impossible | Server-side rate limiting per IP and per address, plus moderation before anything is published |
+| Content integrity between deploys | A static site serves whatever was last deployed, correct or not | Subresource integrity on external assets, and a post-deploy smoke check that the expected content is live |
+| Visitor privacy beyond the consent banner | Whatever the loaded third parties collect is collected | Remove the third party — the only real control — or self-host the equivalent |
+
+Every remaining control in the "Defended" table carries its delivery state — `IN PLACE` (built and
+verified), `TO BUILD` (a named slice), `MANUAL` (a human configures it) or `VERIFY` (only a real
+environment confirms it) — and only `IN PLACE` may be written in the present tense anywhere in the
+project's documentation.

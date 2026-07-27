@@ -113,14 +113,27 @@ Append-only; never trim.
 # Lessons Learned — [Project name]
 
 ## L-001 — [short title]
-- Problem: [what went wrong]
+- Symptom: [what was observed — the thing a future session would recognize]
+- Cause: [what was actually wrong, once diagnosed]
+- Fix: [what resolved it]
 - Where: [phase/slice/file]
-- What failed: [the attempt that didn't work]
-- Working solution: [what fixed it]
+- What failed first: [the attempt that didn't work — saves the next session from repeating it]
+- Check added: [the keel-verify check, test, or gate that now catches it — or "none possible: <reason>"]
 - Rule for next time: [one line a future session can apply directly]
 ```
 
-If a lesson came from a code bug, the fix gets a regression test in the same slice (Phase 5 rule) — the lesson entry links to it.
+The entry leads with **symptom → cause → fix** because that is how it gets read: a future session arrives holding a symptom, not a diagnosis, and an entry organized any other way is not found at the moment it would have helped.
+
+If a lesson came from a code bug, the fix gets a regression test in the same slice (Phase 5 rule) — the lesson entry links to it. And **"Check added" is a real field, not a formality**: whenever a lesson could have been caught mechanically, adding that check to `scripts/keel-verify` (or to the test suite) is part of closing the lesson, because a rule that lives only in prose is a rule that will be broken again by a session under pressure.
+
+**Where a lesson goes — two destinations, and the distinction is load-bearing:**
+
+| What happened | Destination |
+|---|---|
+| A problem specific to THIS project | `docs/lessons-learned.md` — this file. Memory. |
+| A trap that would bite ANY project of this class | Keel's `references/anti-patterns.md`. Prevention. |
+
+When something is clearly the second, propose codifying it into the skill — per SKILL.md, an improvement the user agrees to is codified into Keel, not only recorded in the project that found it. Recording it in both places is fine; recording a class-wide trap only in one project's log means the next project pays for it again.
 
 ## Design Request register (Phase 4)
 
@@ -245,7 +258,7 @@ The project root carries the Keel block below in TWO files, always: `CLAUDE.md` 
 One tool needs a third step: **Gemini CLI reads `GEMINI.md`, not `AGENTS.md`, by default.** If the user works with Gemini CLI, ask once and record the pick: mirror the same block in `GEMINI.md` (a third copy of the lock, refreshed with the others), or commit a `.gemini/settings.json` whose `context.fileName` includes `AGENTS.md` (no third copy to maintain). Either satisfies the lock.
 
 ```
-<!-- KEEL:BEGIN — v3.5.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
+<!-- KEEL:BEGIN — v4.0.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
 # Keel protocol (mandatory for ANY assistant working in this repository)
 
 This project is governed by the Keel workflow. Before reading code or changing ANYTHING:
@@ -271,7 +284,13 @@ This project is governed by the Keel workflow. Before reading code or changing A
    post-update reconciliation before continuing.
 3. Follow the recorded specs and design exactly: no reinterpretation, no silent
    deviation, no "improving" recorded decisions. Anything undefined → ask the user.
-   Design gaps → Design Request (Keel Phase 4).
+   Design gaps → Design Request (Keel Phase 4). Never claim something that was not
+   verified: the code map in `docs/03-technical-plan.md` is a TARGET tree, so a path
+   not marked `[E]` is absent until a slice creates it, and a control, check or test
+   is only described in the present tense once it is built and evidenced. A check
+   whose inputs do not exist yet is "not yet applicable", naming what is missing —
+   never "passed". Before changing anything, read the change map's row for that type
+   of change: it lists every artifact that must be touched.
 4. Update `docs/PROGRESS.md` and `docs/decisions.md` at the moment of every change.
    Commit at passed test points — never without first checking the staged files for
    confidential data (secrets, credentials, private keys, tokens, real personal or

@@ -60,3 +60,28 @@ Load this for SPAs, API backends, or hosted services (e.g. on Fly.io). Apply fro
 - Security headers checked with `curl -sI` against the running app.
 
 At a test point, the command and its result are the evidence recorded in `docs/05-test-points.md` — an unrecorded check did not happen.
+
+## Deliberate omissions (seed the "Not defended" table)
+
+This profile hardens what it covers and is silent on the rest. Silence is not protection, so the
+project's `docs/threat-model.md` (Phase 2 §4c) carries a "Not defended" table naming what is
+deliberately out of scope, its consequence, and what the user would add if their risk profile needs
+it. **An omission that is written down is a decision; an omission that is silent is a trap** — six
+months on, nobody can tell "we decided against it" from "we forgot".
+
+Start from these rows, keep the ones that apply, add the project's own, and move any row into the
+"Defended" table the moment the control actually ships with its evidence:
+
+| Not defended | Consequence | If you need it |
+|---|---|---|
+| A determined user on their own client | They can read the bundle, extract their own token and call the API directly; client-side validation is UX, never enforcement | Nothing client-side. Authorize every call server-side — attempting a client fix is the trap |
+| Volumetric denial of service | Instance limits convert a flood into unavailability rather than an unbounded bill, but the site is down | A WAF or CDN-level rate limiting in front of the app |
+| Account takeover through the user's email provider | Password reset is only as strong as the inbox behind it | Enforce MFA |
+| Supply-chain provenance | Dependencies are pinned and audited; artifacts are not attested and there is no SBOM | SBOM generation and artifact signing |
+| A malicious insider with production access | Least privilege and audit logs reduce the risk; an owner can still do anything | Separated duties and approval on production changes |
+| Data at rest beyond the provider's default encryption | Whatever the host encrypts is what is encrypted | Application-level encryption of the specific sensitive fields, with owned key rotation |
+
+Every remaining control in the "Defended" table carries its delivery state — `IN PLACE` (built and
+verified), `TO BUILD` (a named slice), `MANUAL` (a human configures it) or `VERIFY` (only a real
+environment confirms it) — and only `IN PLACE` may be written in the present tense anywhere in the
+project's documentation.

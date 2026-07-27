@@ -77,6 +77,8 @@ Based on (a)–(c), the assistant proposes:
 - **Differentiator candidates** — gaps users complain about that the new project could close. These are grounded in (c), not invented.
 - **AI / MCP / agentic layer proposals (optional).** Only when they add real, logical value (e.g. semantic search over the project's content, MCP exposure of operations a power user would actually script, an agent step that compresses a repetitive workflow). Each AI/MCP proposal is labelled explicitly as **"added value"** (with the reason it actually helps) or **"forced filler"** (AI for AI's sake). Forced filler is dropped, not softened — same honesty rule as the rest of Phase 1. If no AI/MCP layer is warranted, say so plainly.
 
+These three feed the **proposed v1** in step 3 and are then confronted against it, row by row, in step 3a — which is where the scope actually closes. Producing the lists and never putting them side by side with the plan is the failure this whole step exists to prevent, so the scan is not finished when the file is written; it is finished when every functionality in it has a recorded decision.
+
 #### Run the scan in subagents when the environment provides them
 
 When the environment provides subagents, run the scan in one — or several in parallel, one per competitor. Subagents return the drafted scan artifacts and conclusions, never raw dumps of pages or search results; the main session validates that every external-demand item resolves to a source before accepting the draft. This keeps the main session's context clean for the discovery conversation that follows.
@@ -148,7 +150,52 @@ Never ask the user to build a feature list from a blank page. By this point Phas
 
 If the user already arrived with a defined feature list or scope of their own, do not re-propose from scratch — present the **diff against the scan** instead: table stakes they are missing, items of theirs that belong in Later, differentiator candidates they may want. Same honesty, zero condescension.
 
-Then iterate until the **v1 / Later** split is agreed, capturing any hard constraint per feature, and push back gently on scope creep along the way.
+Then iterate until the **v1 / Later** split is agreed, capturing any hard constraint per feature, and push back gently on scope creep along the way — but do not close the scope here. Step 3a is where it actually closes, because the proposal is not trustworthy until it has been confronted, line by line, with everything the competition already has.
+
+### 3a. Confront the v1 against the competitive baseline (blocking — the scope closes here)
+
+The scan in step 0 produced the category's baseline; step 3 produced a proposal. Neither is worth much until they are put **side by side**, in full, and every difference is decided out loud. Skipping this is how a v1 ships missing something every competitor has had for three years — not because anyone decided to leave it out, but because nobody ever looked at the two lists together.
+
+#### The confrontation table
+
+Present it whole — **every** functionality from the unified feature list and the external-demand list, not a curated selection, because a curated selection is the assistant deciding on the user's behalf exactly what this step exists to prevent. One row per functionality:
+
+```markdown
+| # | Functionality | Who has it | Demand evidence | In the proposed v1? | Est. cost (AI h + dev h) | Assistant's recommendation |
+|---|---|---|---|---|---|---|
+| 1 | [what it does, in plain language] | [competitors X, Y — or "none: external demand"] | [top request in <link> / 4 of 5 competitors / 1-star reviews cite it — or "none found"] | [yes / no] | [rough range] | [include / defer / drop — with a one-line reason] |
+```
+
+Rules for the columns that carry the weight:
+
+- **Who has it** decides whether it is table stakes. A functionality present in nearly every competitor is a baseline the product is judged against on day one, whether or not anyone requested it.
+- **Demand evidence** is a citable source or the honest words "none found" — never a guess dressed as a finding. "Every competitor has it" and "users actively ask for it" are different arguments and both matter; a feature that every competitor has and nobody ever mentions is often cargo cult, and saying so is part of the job.
+- **Est. cost** is a rough per-feature range in the AI-time model of `references/estimation-budget.md`: **the AI's working hours plus the vibe coder's supervision hours — never what a human team would take.** This is the SKILL.md unbreakable rule applied here, and it is worth restating at this exact table because a feature-by-feature cost list is the most tempting place to slip into human-team thinking: a row that reads "3 weeks" when the real answer is "4 hours of AI time plus 1 hour of yours" does not just exaggerate, it inverts the decision — the user drops a feature that was cheap. Label the unit on the column and on every figure you say out loud. Rough is fine and must be marked as rough; the point is relative magnitude, so the user can see that row 7 costs four times row 3. These per-feature numbers feed the preliminary estimate in step 10, so the work is not repeated.
+- **Recommendation** is the assistant's honest position, and it is given on every row before the user chooses — including the uncomfortable ones. "Four competitors have this, nobody asks for it, it costs a lot: drop it" is exactly the kind of call this step exists for. The Phase 1 honesty rule is in full force: never pad the v1 to look generous, and never trim it to look disciplined.
+
+#### Then ask the user how they want to decide — three ways, and the recommendation is the third
+
+Put the question explicitly, with the three options laid out and their trade-offs stated in one line each:
+
+1. **Add everything.** Every gap becomes part of the scope. Fast to decide; it produces the biggest v1, the longest timeline and the highest cost, and it almost always drags in features nobody asked for. State the summed cost estimate when offering this, so "everything" is a number and not a mood.
+2. **Add a selection.** The user names the rows they want; the rest go to Later. Faster than the third option and appropriate when the user already knows the category well.
+3. **Go through them one by one — recommended.** The assistant walks the rows in order, one at a time, and for each one presents: what it does, who has it, the demand evidence, the estimated cost, and its recommendation. The user answers **in v1 / Later / never** and moves on. It takes longer and it is the option that produces a scope somebody actually chose, feature by feature, with the cost of each one visible at the moment of choosing.
+
+**Never assume the answer.** If the user says "whatever you think", that is a valid answer per the Phase 1 question rule: apply the assistant's recommendation column as written, tell the user that is what was applied, and record it as "default accepted" — do not quietly widen the scope beyond what was recommended.
+
+#### Record every decision, including the noes
+
+Each row ends with a decision, and every decision is written down with its reason — **especially the rejections**. A feature deliberately not built is a decision (`docs/decisions.md`); a feature nobody ever discussed is a gap that resurfaces mid-build as "how did we not think of this". This is the SKILL.md rule that a recorded omission is a decision and a silent one is a trap, applied to scope instead of to security.
+
+- **In v1** → the feature row is added to the feature list with its why and its constraint.
+- **Later** → the Later list, with the reason it is not now (cost, dependency, insufficient demand) so a future revisit starts from the argument rather than from scratch.
+- **Never** → recorded as a D-entry in `docs/decisions.md` with the reason. This one matters most: without it, the same feature is re-proposed by the next session, the next competitor scan, or the user themselves six months on, and the analysis is paid for twice.
+
+When the confrontation changes the scope materially — and it usually does — the honest assessment from earlier in this phase is revisited before the phase closes: a v1 that just doubled is a different proposition, and saying so is the point of the assessment.
+
+#### When there was no scan
+
+If step 0 was skipped or came back empty, this step still runs, against the nearest adjacent category's baseline, and its limitation is stated plainly: the confrontation is only as good as the landscape behind it. Recording "confronted against an incomplete landscape" is honest; running it silently against nothing and calling the scope closed is not.
 
 ### 4. Constraints and non-negotiables
 
@@ -165,6 +212,7 @@ State plainly to the user, now, that everything with a UI will be built accessib
 
 - **Confirm the target platform(s).** Accessibility tooling is platform-specific: web/HTML, WordPress/WooCommerce, iOS/iPadOS, Android, macOS, Windows, or a cross-platform framework (Flutter, React Native, MAUI, Electron/Tauri). Record which — a project may span several — so the matching section(s) of `references/accessibility.md` apply.
 - **Load `references/accessibility.md`** now (alongside the security profile) and keep it live through every later phase.
+- **Load `references/anti-patterns.md`** now too — the third file the project type selects. Read its universal section plus the section(s) matching this type, so the known traps of this class of project are prevented rather than rediscovered. It is consulted again at every sprint close, at the Phase 7 gate, and at adoption; its self-audit is the source of new `scripts/keel-verify` checks.
 - **State the targeted conformance level.** Default and recommended: WCAG 2.2 AA as the floor, AAA where feasible, plus EN 301 549 / the European Accessibility Act where they apply (the EAA has applied since 28 June 2025 and covers EU e-commerce and digital services — in scope for the user's market), plus each target platform's native accessibility API and assistive technologies. Aiming below AA is a conscious decision with a recorded reason — never a silent default.
 - This propagates downstream: Phase 2 acceptance criteria include accessibility conditions, the Phase 3 design brief requires Design to specify accessibility, Phase 5 gives every slice an accessibility test point, and Phase 7 has an accessibility release gate.
 
@@ -253,9 +301,15 @@ ALWAYS use this template:
 - Security profile loaded: [filename]
 ## Feature list (proposed by the assistant in step 3, agreed with the user)
 | Feature | What it does | Users | Priority | Why in v1 (table stakes / differentiator / AI-MCP added value / user's idea) | Constraint |
+## Competitive confrontation (step 3a — EVERY competitor functionality vs the proposed v1)
+- Decision mode chosen by the user: [add everything / add a selection / one by one (recommended)]
+| # | Functionality | Who has it | Demand evidence (cited, or "none found") | In proposed v1? | Est. cost (AI h + dev h, rough) | Recommendation | DECISION (v1 / Later / never) + reason |
+- Scope impact: [what the confrontation added or removed vs the step 3 proposal]
+- Honest assessment revisited after the confrontation? [yes/no — required when the scope changed materially]
 ## Scope
 - v1: ...
 - Later: ... (deliberately deferred — visible, not lost)
+- Never: ... (rejected on the record; each also a D-entry in decisions.md so it is not re-proposed)
 ## Honest assessment
 - [the truthful evaluation of the idea, grounded in the competitive landscape: weaknesses, prior art, scope realism]
 - Verdict: [proceed / adjust scope / do not build — with the reasoning]
@@ -278,6 +332,7 @@ ALWAYS use this template:
 ## Accessibility (non-negotiable — stated up front)
 - Target platform(s): [web / WordPress-Woo / iOS / Android / macOS / Windows / cross-platform framework — one or several]
 - Reference loaded: references/accessibility.md
+- Reference loaded: references/anti-patterns.md
 - Targeted level: [WCAG 2.2 AA floor + AAA where feasible; EN 301 549 / EAA if EU scope; native platform a11y APIs] (below AA only with a recorded reason)
 ## Project website intent
 - Will there be a project site? [yes / no]   If yes: own domain / subdomain of user's domain
@@ -313,11 +368,16 @@ ALWAYS use this template:
 - The idea received an honest assessment, grounded in the competitive landscape, and the closure protocol ran: the verdict (proceed / adjust scope / do not build) AND the user's decision are recorded (not default praise). Proceeding against a negative assessment → `docs/decisions.md` entry with the reason; parked/discarded → `Status: parked — <why>` in PROGRESS.md with all artifacts kept.
 - Project type is fixed and the matching security profile has been loaded.
 - A proposed v1 was presented unprompted (or, when the user arrived with a defined scope of their own, the diff against the scan was), each feature carrying its why; the v1 scope is explicit and the user agreed to it.
+- The competitive confrontation (step 3a) ran on the COMPLETE set of competitor functionalities and external demands — not a curated subset — each row carrying who has it, its demand evidence (cited or "none found"), a rough AI-time cost estimate and the assistant's recommendation.
+- The user was explicitly offered the three decision modes (add everything / add a selection / one by one) and chose one; the choice is recorded. "Whatever you think" was resolved by applying the recommendation column and recording it as default accepted, never by silently widening the scope.
+- Every row ended in a recorded decision: v1 features carry their why, deferred ones their reason, and rejected ones a D-entry in `docs/decisions.md` — so no rejected feature is re-proposed later as if it had never been considered.
+- If the confrontation changed the scope materially, the honest assessment was revisited before the phase closed.
 - Installed-base/upgrade reality is recorded; if there's an installed base, the migration obligation is noted.
 - External dependencies are listed with exact version, source, and fail-safe behavior.
 - The license is decided and recorded (it gates dependency adoption in Phase 5).
 - The multi-language vs single-language decision is made and recorded, with the target output locales and mechanism; the base/output language is recorded (English by default — always English for WordPress/WooCommerce, off-English only with a recorded reason); and the docs language (separate from the output language) is recorded (English by default — token economy; off-English only as an explicit user choice with the cost trade-off acknowledged).
 - Accessibility commitment recorded and stated to the user up front: target platform(s) captured, `references/accessibility.md` loaded, and the targeted conformance level stated (WCAG 2.2 AA floor by default; below AA only with a recorded reason).
+- `references/anti-patterns.md` loaded for this project type, alongside the security profile and the accessibility reference.
 - Project-website intent is captured (yes/no + domain choice).
 - "Design needed?" is answered.
 - If design is needed: the design-system decision is recorded (existing with source/location, founding with future home, or one-off with reason) in the discovery doc, `decisions.md`, and the project card — including the target surfaces/platforms the system must cover (marking which ship in this project vs which it anticipates for reuse).
