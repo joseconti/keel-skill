@@ -1,4 +1,4 @@
-# Keel Manifest — v4.0.0
+# Keel Manifest — v5.0.0
 
 One file, three tables, one purpose: looking ONLY at this file, a session can tell (1) whether a project contains everything Keel requires at its current phase, (2) which skill files changed in which Keel version — so after an update it knows exactly what to re-read, without interpreting the changelog — and (3) what concrete actions each version asks of an existing project (the reconciliation delta).
 
@@ -17,11 +17,11 @@ Verification is phase-aware and condition-aware: read the project card and phase
 | `GEMINI.md` or `context.fileName` in `.gemini/settings.json` | Gemini CLI's lock mirror (the recorded pick) | Phase 1 step 0a | Only if the user works with Gemini CLI |
 | `.claude/skills/keel/` + `.agents/skills/keel/` | Embedded copy of the whole skill, version-synced, both trees identical | Phase 1 step 0a | Only if embed accepted (card: `Keel portability:`) |
 | `docs/00-competitive-landscape.md` | Competitive scan artifacts | Phase 1 step 0 | Unless the scan was skipped on record |
-| `docs/01-discovery.md` | Discovery document (verdict + user decision recorded) | Phase 1 | Always |
+| `docs/01-discovery.md` | Discovery document (verdict + user decision recorded), including `## Environment & test drivers` — the §5a preflight: what is present, what is missing, what is impossible on this machine, the screen-stealing verdict per platform, and whether this session can run commands where the repo lives | Phase 1 | Always |
 | `docs/estimate.md` | Estimate v1 preliminary → firm (per `references/estimation-budget.md`) | Phase 1 close | Always |
 | `docs/token-ledger.md` | Actual token usage, one row per session | Phase 1 close | Always |
-| `docs/02-functional-spec.md` | Functional contract (incl. design split with foreseen assets, per-screen a11y, breakpoints) | Phase 2 | Always |
-| `docs/03-technical-plan.md` | Stack, architecture, code map with `[E]`/`[A]`/`[G]` markers, change map, conventions, testing plan (frameworks + commands + playground recipe) | Phase 2 | Always |
+| `docs/02-functional-spec.md` | Functional contract (incl. design split with foreseen assets, per-screen a11y, breakpoints); every acceptance criterion carries its stable `AC-nn` ID | Phase 2 | Always |
+| `docs/03-technical-plan.md` | Stack, architecture, code map with `[E]`/`[A]`/`[G]` markers, change map, conventions, testing plan (frameworks + commands + playground recipe + **driver per surface with its headless verdict, element-addressability convention, division of labour with tags, static-analysis commands, accessibility automation, read-back duty**) and **`## Environment requirements`** (the source `scripts/keel-doctor` compiles from) | Phase 2 | Always |
 | `docs/threat-model.md` | Assumptions, defended controls each carrying a delivery state (`IN PLACE`/`TO BUILD`/`MANUAL`/`VERIFY`), and the "Not defended" table of deliberate omissions with their consequences (`references/phase-2-functional-spec.md` §4c) | Phase 2 | Always |
 | `docs/flows/` | One file per multi-step/branching journey | Phase 2 | Always |
 | `docs/budget.md` | Client-facing budget, approved | Phase 2 close | Only if `Client budget: yes` (card line, asked at Phase 1 step 10) |
@@ -36,10 +36,12 @@ Verification is phase-aware and condition-aware: read the project card and phase
 | `docs/design/design-requests/` | Numbered DR register | Phase 4 | When the first Design Request appears |
 | `.gitignore` + `.gitattributes` | Hygiene boundaries (full rules at Phase 7); `.gitignore` ALWAYS includes `CLAUDE.local.md`, `.claude/settings.local.json`, and `.keel-update-check` (the machine-local update-check throttle stamp), plus the accepted tools' personal files (`AGENTS.override.md`, `.gemini/.env`, `.gemini/tmp/`) | Phase 5 scaffold | Always |
 | `docs/sprints/` | One file per sprint | Phase 5 | Always |
-| `docs/05-test-points.md` | Test-point log, all columns including evidence (commands + output + commit) | Phase 5 | Always |
+| `docs/05-test-points.md` | Test-point log, all columns including evidence (commands + output + commit) and the two coverage columns: `Criterion` (the `AC-nn` ID) and `Coverage` (`driven` or one of the eight delegation tags — never free text) | Phase 5 | Always |
 | `docs/api/INDEX.md` | One line per public surface | Phase 5 first slice | Always |
-| `docs/playground.md` | Playground access + try-it instructions + seed/reset commands + `last verified:` stamp | Phase 5 scaffold | If the project can be run |
-| `scripts/keel-verify` | The project's own release linter (`references/phase-5-development.md`) | Phase 5 scaffold | If the project can be run |
+| `docs/keel-conformance.md` | The conformance sweep: one row per applicable MANIFEST Table 1 requirement with its state (`present` / `missing` / `declined` + D-entry / `n/a` + condition) — derived from this manifest, never from recollection (SKILL.md "Applying Keel completely") | Phase 1 step 0a; always at adoption step 4a and at every post-update reconciliation | Always |
+| `docs/playground.md` | Playground access + try-it instructions + seed/reset commands + `last verified:` stamp | Phase 5 scaffold — or the first maintenance/adoption touch on a project that never had one | If the project can be run |
+| `scripts/keel-verify` | The project's own release linter (`references/phase-5-development.md`) | Phase 5 scaffold — or the first maintenance/adoption touch on a project that never had one | If the project can be run |
+| `scripts/keel-doctor` | The environment doctor compiled from the technical plan's `## Environment requirements`: `--check` / `--plan` / `--fix` / `--json`, four states, nothing global installed without the user's OK on an itemized list (`references/test-automation.md`) | Phase 5 scaffold — or the first maintenance/adoption touch on a project that never had one | If the project can be run |
 | `scripts/` build/minify script (name per the technical plan) | Regenerates every `*.min.*` from its committed unminified source (`references/phase-5-development.md`); run locally by the working assistant, never CI — the source-first assets contract | Phase 5 scaffold | Only if the project ships front-end JS/CSS (source + minified pair) |
 | `.githooks/pre-commit` | Confidential-data gate (+ `core.hooksPath` set) — one per project, tool-agnostic | Phase 5 scaffold | Only if accepted (card: `Assistant config:`) |
 | Permission allow-lists — per capable tool (`.claude/settings.json`, `.codex/rules/`, `tools.allowed` in `.gemini/settings.json`, `.cursor/cli.json`) | Minimal confirmed allow-list from the plan's verified commands | Phase 5 scaffold | Only if accepted (card: `Assistant config:`) |
@@ -68,24 +70,25 @@ After an update, re-read `SKILL.md`, the current phase's reference, and THIS fil
 
 | Skill file | Last changed in |
 |---|---|
-| `SKILL.md` | v4.0.0 |
-| `MANIFEST.md` | v4.0.0 |
-| `CHANGELOG.md` | v4.0.0 |
-| `references/keel-maintenance.md` | v3.0.0 |
-| `references/playground-recipes.md` | v3.0.0 |
-| `references/maintenance.md` | v3.2.0 |
+| `SKILL.md` | v5.0.0 |
+| `MANIFEST.md` | v5.0.0 |
+| `CHANGELOG.md` | v5.0.0 |
+| `references/keel-maintenance.md` | v5.0.0 |
+| `references/playground-recipes.md` | v5.0.0 |
+| `references/test-automation.md` | v5.0.0 |
+| `references/maintenance.md` | v5.0.0 |
 | `references/guide-theme.md` | v3.2.1 |
-| `references/assistant-config.md` | v3.5.0 |
-| `references/phase-5-development.md` | v4.0.0 |
-| `references/phase-7-release.md` | v4.0.0 |
-| `references/project-state.md` | v4.0.0 |
-| `references/phase-1-discovery.md` | v4.0.0 |
-| `references/phase-2-functional-spec.md` | v4.0.0 |
-| `references/adoption.md` | v4.0.0 |
+| `references/assistant-config.md` | v5.0.0 |
+| `references/phase-5-development.md` | v5.0.0 |
+| `references/phase-7-release.md` | v5.0.0 |
+| `references/project-state.md` | v5.0.0 |
+| `references/phase-1-discovery.md` | v5.0.0 |
+| `references/phase-2-functional-spec.md` | v5.0.0 |
+| `references/adoption.md` | v5.0.0 |
 | `references/estimation-budget.md` | v4.0.0 |
-| `references/phase-6-documentation.md` | v3.5.0 |
+| `references/phase-6-documentation.md` | v5.0.0 |
 | `references/phase-3-design-handoff.md` | v3.5.0 |
-| `references/phase-4-faithful-build.md` | v3.5.0 |
+| `references/phase-4-faithful-build.md` | v5.0.0 |
 | `references/handoff-contract.md` | v2.1.0 |
 | `references/design-brief-template.md` | v3.5.0 |
 | `references/design-request-template.md` | v2.0.0 |
@@ -97,8 +100,8 @@ After an update, re-read `SKILL.md`, the current phase's reference, and THIS fil
 | `references/phase-8-design-direction.md` | v2.0.0 |
 | `references/phase-8-launch-checklist.md` | v3.0.0 |
 | `references/phase-8-technical-seo.md` | v2.0.0 |
-| `references/accessibility.md` | v3.0.0 |
-| `references/anti-patterns.md` | v4.0.0 |
+| `references/accessibility.md` | v5.0.0 |
+| `references/anti-patterns.md` | v5.0.0 |
 | `references/security/wordpress.md` | v4.0.0 |
 | `references/security/web-app.md` | v4.0.0 |
 | `references/security/mcp-server.md` | v4.0.0 |
@@ -128,6 +131,7 @@ What the reconciliation APPLIES, version by version, for every version newer tha
 | v3.4.0 | The build-assets source-first contract. On projects that ship front-end JS/CSS: at the next sprint kickoff or maintenance touch, ensure every shipped `*.min.*` has its unminified source committed beside it and a local build/minify script exists (`scripts/…`, run by the working assistant, never CI/forge); never hand-edit a minified file. If a project currently hand-maintains its minified assets, regenerate them once from source and adopt the script. Projects with no front-end assets, or that record a different pipeline in `docs/decisions.md`, set this n/a. Nothing else structural. |
 | v3.5.0 | Two actions. **(1) Docs follow the code, all three operations.** From the next slice or maintenance touch, a public surface that is *changed* has its `docs/api/` or `docs/reference/` entry and its example updated in the same slice, and one that is *removed* is resolved rather than deleted in silence: entry and INDEX row deleted if it was never released, or marked deprecated/removed with its replacement (plus a D-entry) if it was. No retroactive sweep of existing docs is required — but any stale entry found while working is fixed then, not noted for later. **(2) The rubric question (Phase 2 §6a) is asked once if it never was**, and its answer recorded — a rubric in `docs/rubrics/` or an explicit "none for this project"; for a released project, adopting one later is a normal maintenance change. Reference artifacts (Phase 2 `## Reference artifacts`, `docs/spec-references/`, `docs/design/references/`) are opt-in and create no obligation for a project that holds none. Nothing else structural. |
 | v4.0.0 | Documentation and reality stop drifting by discipline and start drifting by failing a check. Five actions, all applicable at the next natural touch — none requires a retroactive sweep. **(1) Load `references/anti-patterns.md`** for this project's type from the next session (it joins the security profile and the accessibility reference as a Phase 1 selection), and run its self-audit once against the current tree, every answer evidenced by a command or an artifact; each failing answer becomes a normal work item (an adopted or released project usually surfaces several). **(2) Mark the code map.** Add the `[E]`/`[A]`/`[G]` state marker to every row of `docs/03-technical-plan.md`; an existing project is almost entirely `[E]`, so this is a cheap pass, and from then on a path that is not `[E]` is treated as absent. **(3) Build the change map** (`references/phase-2-functional-spec.md` §4b): one row per recurring change type in this project, each naming real paths and real commands. Build it from the change types the project actually has — on a mature project this is the highest-value artifact of the whole version, because that knowledge currently lives only in the maintainer's head. From then on every slice reads its row first and a new change type adds its row in the slice that discovered it. **(4) Create `docs/threat-model.md`** (§4c) from the loaded security profile's new "Deliberate omissions" section plus the project's reality, with every control at its HONEST delivery state — a released project typically has more `TO BUILD` than expected, and recording that accurately is the point; the "Not defended" table turns silent omissions into decisions. Any control currently described in the present tense that is not `IN PLACE` with evidence is corrected in the docs at the same time. **(5) Extend `scripts/keel-verify`** with the new checks (cited commands exist, internal doc links resolve, no orphan documents, `[E]` markers match disk, code fences balanced, suppression count reported) — on projects that have the script; on those that do not, it is created at the next scaffold or maintenance touch as usual. The `docs/lessons-learned.md` template gains symptom/cause/fix and a "Check added" field; existing entries are not rewritten, new ones use the new shape. **(6) The Phase 1 competitive confrontation (§3a) is offered once** on any project whose scope was set before it existed: present every competitor functionality and external demand against what the project actually has, with per-feature AI-time cost and demand evidence, and let the user decide row by row — on a released product this is a roadmap exercise rather than a scope one, and its "never" decisions are recorded so they stop being re-proposed. Skip it only where the scan itself was skipped and the user declines to run it. **(7) Every duration the assistant states is AI development time** (AI working hours + vibe coder supervision hours), named as such every time — no human-team figure, in any doc, table or conversation, unless explicitly labelled and placed beside the AI figure. Nothing to migrate; it governs from the next session. |
+| v5.0.0 | The assistant stops asking the user to be the test runner, and applying Keel stops depending on anyone's memory. Eleven actions, applicable at the next natural touch. **(1) Run the conformance sweep and create `docs/keel-conformance.md`** — walk EVERY applicable row of Table 1 above plus every Table 3 action newer than the project's baseline, give each one a state (`present` / `missing` / `declined` with its D-entry / `n/a` with its condition), present every `missing` row to the user in one uncurated batch, and report the finished table in full. From now on this sweep runs at adoption, at every post-update reconciliation and at the Phase 7 gate, and `scripts/keel-verify` fails on a `missing` row with no decision. This is the answer to "Keel was applied, but only partly, and nobody said so". **(2) Record the environment requirements and generate `scripts/keel-doctor`** from them (`references/phase-2-functional-spec.md` §4d, `references/test-automation.md`): the technical plan gains `## Environment requirements`, the doctor is committed, and `--check` runs before gate zero and at the first test point of every session. On a released project this is a cheap pass that pays for itself the first time a machine is missing a driver. **(3) Name a driver per surface in the technical plan's `## Testing`**, each with its headless verdict and — where a driver takes over the user's screen (macOS and native Windows UI tests) — the agreed mitigation, plus the element-addressability convention and the division of labour with its delegation tags. **(4) Convert "the user will check it" into driven tests.** No retroactive sweep is required, but from the next slice every user-visible acceptance criterion gets a test that fills the real fields (valid, empty, invalid) and asserts what the interface shows, with console/network/log read-back failing the test; existing criteria whose only evidence is a human verdict are converted as their area is next touched. **(5) Sprint closes change shape:** the user receives verified results with evidence plus the short tagged list of what only they can do — never a numbered list of screens to visit. **(6) Accessibility rebalances:** the keyboard-only and focus-order pass moves from the manual list to the driven list (the assistant runs it on every UI slice), and the real assistive-technology pass batches per flow at sprint closes under `ASSISTIVE-TECH` instead of being demanded slice by slice. **(7) Maintenance and adoption join the contract:** every maintenance session opens with `keel-doctor --check`, reproductions and hotfix verifications are driven rather than delegated, and a released project that never had a playground or drivers gets them as its first maintenance change; the adoption audit gains a Testability row. **(8) Phase 4 stops being the manual phase:** `SPEC/external-setup.md` is triaged into drivable (scripted into the seed) and guided (tagged), fonts with a deterministic source are fetched by script rather than by the user, the environment and drivers stand up as soon as the first screen renders, and fidelity is verified from rendered output at the declared breakpoints instead of by reading code. **(9) Product screenshots for the guide** are captured by the assistant from the playground at a fixed viewport against seed data. **(10) Acceptance criteria gain stable `AC-nn` IDs** and `docs/05-test-points.md` gains the `Criterion` and `Coverage` columns — the pair that makes the coverage rule checkable by a script instead of self-declared; existing projects add IDs as each area is next touched, with no retroactive renumbering. **(11) If the assistant config package is accepted:** generate the `test-driver` subagent in every capable container, and extend the permission allow-lists to cover the playground, the drivers, the sniffers, `keel-verify` and `keel-doctor --check`/`--plan` — never `--fix`. A driver command missing from the allow-list is how this whole mechanism quietly reverts to asking the user. |
 
 ## Maintenance (part of EVERY release — no exceptions)
 

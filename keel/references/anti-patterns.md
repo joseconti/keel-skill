@@ -237,6 +237,49 @@ linked document. `keel-verify` reports orphans and broken internal links; archiv
 
 ---
 
+### 12a. The test delegated to the user
+
+**The trap.** An acceptance criterion whose only evidence is a person's verdict: "go to Settings, enter
+an invalid email, tell me if the error appears". It looks like verification and it is recorded as a pass.
+
+**Why it happens.** It is genuinely faster in the moment — for the assistant. Writing a locator, waiting
+for the right state and asserting the message costs ten minutes; asking costs one line. The cost is
+transferred, not removed, and it is transferred to the person whose time the project exists to protect.
+
+**What it costs.** The check runs once and never again, so it catches nothing on the next commit. It
+leaves no artifact, so nobody can see what was actually verified. The person walks the happy path and
+skips the empty, invalid and permission-denied cases, which is precisely where the defects are. And it
+becomes habit: a project that delegates one flow ends up delegating its whole surface.
+
+**The rule.** Every user-visible criterion is driven by the assistant and carries its evidence, or it
+carries one of the eight delegation tags with its steps (`references/test-automation.md`). Free-text
+excuses are not tags. `keel-verify` cross-checks the criterion IDs against the `Coverage` column, so the
+rule is enforced by a command rather than by anyone's good intentions.
+
+---
+
+### 12b. Keel applied halfway, silently
+
+**The trap.** Keel is adopted into a repository, or a project is moved to a newer Keel version, and a
+subset of what applies gets applied. Nothing is wrong on the surface: the state files exist, the lock is
+there, the phase references are being followed. What is missing was never mentioned, so nobody knows to
+look for it.
+
+**Why it happens.** The assistant works from what it recalls of the skill rather than from the manifest,
+and recall is partial by nature — especially for the conditional rows, which is exactly where the
+valuable, easily-skipped pieces live.
+
+**What it costs.** Months later a gap surfaces (no threat model, no change map, no doctor, no guide) and
+it is impossible to tell "we decided against it" from "it was forgotten". The second reading is the
+dangerous one, and it corrodes trust in every other claim the project makes about itself.
+
+**The rule.** Adoption and reconciliation both run the conformance sweep from `MANIFEST.md` row by row
+into `docs/keel-conformance.md`, every applicable row carries a state, every `missing` row reaches the
+user as a proposal, and every refusal becomes a decision entry. Applying is the user's choice; proposing
+is not optional. `keel-verify` fails on a due row that is `missing` with no decision.
+
+---
+
 ## WordPress and WooCommerce
 
 ### 13. The user-facing string that skipped i18n
@@ -433,12 +476,15 @@ recollection** — an answer given from memory is not an answer, it is the trap 
 10. Is every control described in the present tense actually `IN PLACE`, with its evidence?
 11. Is there exactly one authoritative file per artifact, and does every `*.min.*` match a fresh build of its source?
 12. Is every document in `docs/` reachable from an index, and does every internal link resolve?
-13. (WordPress) Does `wp i18n make-pot` report zero untranslated or wrongly-domained user-facing strings?
-14. (WordPress) Does uninstall remove every option, table, meta key and scheduled event the plugin creates?
-15. (WordPress) Does every entry point — admin, AJAX, REST, bulk, CLI — check its capability and its nonce?
-16. (MCP) Has every ability been called through a real client with its documented arguments this release?
-17. (Web) Is every protected surface refused on a direct server request, with JavaScript disabled?
-18. (Library) Is every dependency in the manifest backed by a decision entry?
+13. Does every user-visible acceptance criterion have either a driven test with its evidence, or one of the eight delegation tags with its steps — and is there any criterion whose only evidence is a person's verdict without a tag?
+14. Does `scripts/keel-doctor --check` pass on this machine, so the suite's green result actually means the suite ran?
+15. Does every applicable row of `MANIFEST.md` Table 1 carry a state in `docs/keel-conformance.md`, with every `n/a` quoting the manifest's own condition and every `declined` citing a real decision entry?
+16. (WordPress) Does `wp i18n make-pot` report zero untranslated or wrongly-domained user-facing strings?
+17. (WordPress) Does uninstall remove every option, table, meta key and scheduled event the plugin creates?
+18. (WordPress) Does every entry point — admin, AJAX, REST, bulk, CLI — check its capability and its nonce?
+19. (MCP) Has every ability been called through a real client with its documented arguments this release?
+20. (Web) Is every protected surface refused on a direct server request, with JavaScript disabled?
+21. (Library) Is every dependency in the manifest backed by a decision entry?
 
 ## Maintaining this file
 

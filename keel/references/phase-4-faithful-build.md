@@ -70,9 +70,25 @@ Only when `docs/BUILD-SPEC.md` is complete and gap-free:
 
 Steps 4–6 may interleave when the work requires it (e.g. an external-setup value is a build prerequisite, or an asset is needed by the slice being built): run the relevant Step 5/6 loop item at the moment the build needs it, under exactly the same rules. Interleaving changes the order, never the rules — each setup step and each asset still goes one at a time, verified, traced to the SPEC.
 
-## Step 5 — Guide external manual setup, one verified step at a time
+## Step 4a — Stand up the environment and the drivers as soon as there is something to run
 
-External software the builder can't script (Unity, hosting panel, OAuth console, SaaS settings, DNS, payment gateway) is NOT delivered as a big document. A long doc is heavy to follow and a mistake surfaces only after hundreds of steps and wasted hours. Run an interactive loop over `SPEC/external-setup.md` in its exact order:
+A build nobody can run is a build nobody can verify, and Phase 4 produces real UI. So the moment the first screen renders, bring forward what the Phase 5 scaffold formalizes (`references/test-automation.md`, `references/playground-recipes.md`): run `scripts/keel-doctor --check` (generating it from the technical plan's `## Environment requirements` if Phase 5 has not created it yet), stand up the playground, install the drivers, and get one trivial driven test passing against a real screen. Phase 5's scaffold then re-verifies rather than starting from nothing.
+
+Two consequences for this phase specifically:
+
+- **Every interactive element built here carries its stable test identifier** — the convention recorded in the technical plan (`<screen>.<element>[.<entity-id>]`, never the visible text, never a faked accessibility label). Retrofitting identifiers over a finished Phase 4 build is exactly the kind of rework this phase exists to avoid, and `scripts/keel-verify` will check for them.
+- **Fidelity is verified from rendered output, not by reading code.** Drive each screen at the declared breakpoints, capture it, and compare against the handoff — see Step 7.
+
+## Step 5 — External setup: drive what is drivable, guide only the rest
+
+**First, triage `SPEC/external-setup.md` into two lists — this is new and it is where most of the manual work disappears.** Read every entry and decide honestly whether the assistant can perform it:
+
+- **Drivable** — anything that happens inside the project's own playground or in a web panel a browser driver can reach with credentials the project already holds: WordPress and WooCommerce settings, plugin configuration, creating test products, enabling offline payment methods, seeding content, local config files. These are NOT setup steps for the user; they are commands and driven interactions, scripted into the seed so they survive a reset. A step that could have been `wp option update` and was instead read aloud to the user is a defect in this phase.
+- **Guided** — what genuinely requires the user: an account or secret that is theirs (`CREDENTIAL`), a third party that must act (`EXTERNAL-APPROVAL`), a live system where driving would be reckless (`PRODUCTION-RISK`), hardware (`HARDWARE`). Each carries its tag, and the tag covers only the step that needs it, never the whole sequence.
+
+Record the triage in `docs/BUILD-SPEC.md` so the split is on the record and the driven half becomes part of the seed script rather than folklore. Then run the interactive loop below **over the guided list only**.
+
+External software the builder can't script (hosting panel, OAuth console, SaaS settings, DNS, payment gateway) is NOT delivered as a big document. A long doc is heavy to follow and a mistake surfaces only after hundreds of steps and wasted hours. Run an interactive loop over `SPEC/external-setup.md` in its exact order:
 
 1. Give exactly ONE step: precise location inside the software, exact field, exact value — read straight from the SPEC, citing which SPEC entry. Never improvise a value.
 2. Ask the user to do that one step and report back when done. Don't send the next step yet.
@@ -92,7 +108,9 @@ Some assets (photos, complex illustrations, 3D renders) can't be produced by Des
 
 First, **tell the user plainly that Design could not generate these images itself**, so you'll guide them to generate each one. Then, once per project, ask which image generator they'll use (e.g. Gemini, or another). You will *adapt* Design's base prompts to that generator — you do not author new visual content. If they don't know, hand Design's base prompt as-is (it's generator-neutral) and note common adjustments.
 
-Then, for each asset in `SPEC/external-assets.md`, one at a time:
+**Before the loop, take out what does not belong in it.** Fonts with a downloadable source and a published checksum are a script, not a guided step: fetch, verify, place at the path the handoff names, and record it. The same goes for any asset with a deterministic source. What stays in this loop is what genuinely needs a human — generated imagery, licensed material behind an account, anything requiring a visual judgment.
+
+Then, for each remaining asset in `SPEC/external-assets.md`, one at a time:
 
 1. **Adapt Design's base prompt to the chosen generator.** Take the base prompt verbatim from the SPEC entry and only rephrase it / add tool-specific guidance for that generator. Every descriptive element must trace to `SPEC/external-assets.md` (and `design-tokens.md`). Never add or invent visual details Design didn't put in the base prompt — if the base prompt is missing something needed, that's the failure branch below, not a place to improvise.
 2. **Give the user exactly ONE adapted prompt**, plus the exact place to save the result: the target directory in the PROJECT's own tree — the path the technical plan's code map / the BUILD-SPEC asset map names, NEVER inside `docs/design/design-handoff/` (contract rule 10: the delivery stays wholesale-replaceable) — the exact filename, and the format (and intrinsic dimensions/aspect ratio from the SPEC). Record the final path in the BUILD-SPEC asset map.
@@ -112,7 +130,9 @@ Once an asset is confirmed and saved at its target path/name in the project tree
 
 ## Step 7 — Verify against the faithfulness checklist
 
-Walk the checklist in `docs/BUILD-SPEC.md`: every screen matches artifact+SPEC; every state exists and is reachable; no invented values/behavior; no unintended placeholder copy; reuse preserved; if an existing design system governs, every token/logo/component matches its canonical source (any divergence was a Design Request, never a build-side choice); every logo/icon present in both SVG and PNG and every asset used directly with no build-side transformation; every external-setup step guided one at a time with traced values and screenshot confirmation (unverified flagged); every external asset generated from the SPEC, saved at its exact path/name/format, and confirmed (unverified flagged); accessibility built to `SPEC/accessibility.md` and verified (automated checks plus the guided assistive-technology pass below); every code-side adaptation logged with design intent intact; zero unresolved Design Requests. Report results. A failure is a build defect (fix code) or a genuine gap (Design Request) — never a reason to relax the design.
+Walk the checklist in `docs/BUILD-SPEC.md`: every screen matches artifact+SPEC; every state exists and is reachable; no invented values/behavior; no unintended placeholder copy; reuse preserved; if an existing design system governs, every token/logo/component matches its canonical source (any divergence was a Design Request, never a build-side choice); every logo/icon present in both SVG and PNG and every asset used directly with no build-side transformation; every external-setup step either DRIVEN by the assistant (the drivable half of the Step 5 triage, scripted into the seed) or guided one at a time with traced values and its delegation tag (unverified flagged); every external asset generated from the SPEC, saved at its exact path/name/format, and confirmed (unverified flagged); accessibility built to `SPEC/accessibility.md` and verified (automated checks plus the guided assistive-technology pass below); every code-side adaptation logged with design intent intact; zero unresolved Design Requests. Report results. A failure is a build defect (fix code) or a genuine gap (Design Request) — never a reason to relax the design.
+
+**Verify from rendered output, not from source.** Drive each screen in the playground at the declared breakpoints, capture it, and check it against the handoff artifact and the token table — a fidelity walk done by reading CSS proves what the code says, not what the browser draws. Every state in the state matrix is reached by driving it (open the modal, submit the empty form, trigger the error) rather than by assuming it renders. The automated accessibility pass and the driven keyboard/focus-order pass run here too, per `references/accessibility.md`; only the real assistive-technology pass goes to the user.
 
 Step 7 is executed by updating §10's checkboxes in `docs/BUILD-SPEC.md` itself: each box is ticked in the file at the moment its item is verified. The definition of done is checked by reading the file — never from conversation memory.
 

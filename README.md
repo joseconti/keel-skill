@@ -4,7 +4,7 @@
 
 Use it for any new project — WordPress/WooCommerce plugins, MCP servers, web apps, components, libraries, or websites. Keel runs a complete multi-phase workflow so you never have to re-explain your standing requirements every time you start something new.
 
-- **Version:** 4.0.0
+- **Version:** 5.0.0
 - **License:** GPL-3.0-or-later
 - **Author:** [José Conti](https://plugins.joseconti.com/en)
 
@@ -27,7 +27,11 @@ After Phase 7 the project enters **maintenance** (`references/maintenance.md`): 
 
 Security is cross-cutting. As soon as Phase 1 fixes the project type, Keel loads the matching security profile (WordPress/WooCommerce, web app, MCP server, library/component, or website for Phase 8 sites) and keeps it in mind through every later phase. Every profile ends in a "Verify with" block naming the exact tools (phpcs with the WordPress security sniffs and Plugin Check, npm/composer/pip audit, OWASP ZAP baseline, MCP Inspector) — at a test point, the command and its result are the evidence, and an unrecorded check did not happen. The MCP profile covers model-facing threats (tool-result injection, description poisoning, confused deputy, destructive-tool consent, Origin validation).
 
-Verification is executable, not declarative. Every gate that can be checked mechanically is: acceptance criteria map to named automated tests (unit, integration, and browser-driven e2e for UI flows), test-point rows carry the exact commands with their output and commit hash, sprint closes run the full suite, the handoff audit leaves evidence per item and recomputes contrast ratios from the delivered hex values, and each project generates its own release linter (`scripts/keel-verify`). Independent subagents (code reviewer, security auditor, docs verifier, design-fidelity auditor, playground QA, launch verifier, accessibility auditor) break the self-certification loop wherever the environment provides them. The standing bar: anything a compile, a boot of the playground, or a basic test would have caught must be caught before the work is handed over.
+Verification is executable, not declarative. Every gate that can be checked mechanically is: acceptance criteria map to named automated tests (unit, integration, and browser-driven e2e for UI flows), test-point rows carry the exact commands with their output and commit hash, sprint closes run the full suite, the handoff audit leaves evidence per item and recomputes contrast ratios from the delivered hex values, and each project generates its own release linter (`scripts/keel-verify`) and environment doctor (`scripts/keel-doctor`). Independent subagents (code reviewer, security auditor, docs verifier, design-fidelity auditor, playground QA, launch verifier, accessibility auditor, test driver) break the self-certification loop wherever the environment provides them. The standing bar: anything a compile, a boot of the playground, or a basic test would have caught must be caught before the work is handed over.
+
+**The assistant runs the tests, not the user.** Anything a machine can drive, Keel drives: it starts the environment, fills every field with valid, empty and invalid values, walks every branch including the failure paths, asserts what the interface actually shows, reads back console errors and failed requests and platform logs, runs the sniffers, and runs the automated accessibility pass per screen and per state — headless wherever the platform allows, so it never takes over the user's screen. Work goes back to the person only for what is physically impossible to automate, tagged with one of six reasons: a credential that is theirs, hardware, a real assistive-technology pass, a product judgment, a third party's approval, or a platform the machine cannot run. Anything that cannot be driven is recorded as unverified with its steps — never silently skipped, never reported as passing. `references/test-automation.md` is the protocol; `scripts/keel-doctor` detects what the machine is missing and installs it only after showing the exact command list.
+
+**Applying Keel is a sweep, not a recollection.** Adopting Keel into a repository, and bringing a project up to a newer Keel version, both walk every applicable requirement of `MANIFEST.md` one by one into `docs/keel-conformance.md`, where each carries a state: present, missing, declined with its decision entry, or not applicable with its condition. Every missing row is proposed to the user in one uncurated batch — applying stays their choice — and `scripts/keel-verify` fails on a missing row with no decision. Partial application that nobody mentions stops being possible.
 
 Accessibility is cross-cutting too, and non-negotiable. As soon as Phase 1 fixes the project type and target platform(s), Keel loads `references/accessibility.md` and applies it — from the first line, on every platform (web, iOS, Android, macOS, Windows) — through every later phase, targeting WCAG 2.2 AA (AAA where feasible), EN 301 549 and the European Accessibility Act where they apply, and each platform's native accessibility API. It is stated up front, never retrofitted at the end.
 
@@ -61,7 +65,7 @@ Keel also keeps itself current. At the start of every session it checks this rep
 - Reuse the internal API; never duplicate code. Search the existing API before writing anything new; generalize a close fit instead of forking it. Duplication is a defect.
 - Document every public surface at the moment it is created — functions, classes, hooks, routes, MCP abilities, CLI commands — with a runnable example. Phase 6 consolidates documentation; it never writes it from zero.
 - Maximum extensibility for extensible project types: filterable user-facing strings, before/after hooks on decisions, filterable queries and responses, replaceable public classes.
-- Real functional verification whenever possible, not only automated tests: a runnable playground with a per-platform recipe (wp-env, MCP Inspector, Playwright, a clean consumer project) and synthetic seed data, where real flows, CLI, and API calls are exercised — and the user gets access details plus try-it instructions (`docs/playground.md`). Anything a compile, a boot, or a basic test would have caught is caught before hand-over, and a failing test is never weakened to pass.
+- Real functional verification whenever possible, not only automated tests: a runnable playground with a per-platform recipe (wp-env or WordPress Playground, MCP Inspector, Playwright, XCUITest on a dedicated simulator, a headless Android emulator, a virtual display for Linux GUIs, a real PTY for interactive CLIs, a clean consumer project for libraries) and synthetic seed data, where real flows, CLI, and API calls are exercised by the assistant — and the user gets access details plus try-it instructions (`docs/playground.md`) as an option, never a duty. Anything a compile, a boot, or a basic test would have caught is caught before hand-over, and a failing test is never weakened to pass.
 - Budgets are AI-time based, never human-time based: the AI's hours plus the vibe coder's supervision hours, itemized per segment, with the AI's token cost separate — and the actuals reconciled against the estimate at release.
 - Forge issues are tracked in a living log (`docs/issues.md`): everything there is, everything resolved and exactly how, everything still pending.
 - Confirm before advancing a phase. Each phase has a definition of done.
@@ -98,6 +102,7 @@ keel-skill/
         ├── adoption.md
         ├── maintenance.md
         ├── playground-recipes.md
+        ├── test-automation.md
         ├── assistant-config.md
         ├── estimation-budget.md
         ├── phase-1-discovery.md

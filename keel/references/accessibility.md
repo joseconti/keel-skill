@@ -78,7 +78,11 @@ A fail is a defect like any other: it enters the normal defect flow, never a "po
 
 ## Platform sections
 
-Every "Verify with" list below splits the same way: the **automated passes** (axe-core, pa11y, Lighthouse, Accessibility Inspector, Accessibility Insights, Accessibility Scanner) are run BY the assistant where the environment allows, with the command and its result recorded; the **manual passes** (keyboard-only, real assistive technology) route through the guided loop above. When a subagent environment exists, the `a11y-auditor` agent (`references/assistant-config.md`) runs the automated pass and prepares the guided-loop script.
+Every "Verify with" list below splits into three, not two — and the middle one is new, because it used to be handed to the user for no good reason:
+
+1. **Automated passes** (axe-core, pa11y, Lighthouse, the platform inspectors and audit APIs) — run BY the assistant where the environment allows, with the command and its result recorded.
+2. **Driven passes** — also run BY the assistant, using the same test drivers as any other test (`references/test-automation.md`): **keyboard-only operation and focus order** (drive `Tab` / `Shift-Tab` / `Enter` / `Space` / `Esc` / arrows through the flow and assert the sequence of focused elements, that no trap exists, that focus lands correctly after opening and closing a dialog, and that focus is visible), the accessibility-tree snapshot as a regression artifact, text scaling and reduced-motion behaviour where the platform lets a test set them. A keyboard pass is a sequence of key presses and assertions — a machine does it faster, exhaustively and repeatably, and there is no reason a person should be doing it by hand.
+3. **Human passes** — real assistive technology, and only that: a screen reader (VoiceOver, NVDA, JAWS, TalkBack), switch control, voice control. These route through the guided loop above under the `ASSISTIVE-TECH` tag, because they tell you what a person actually *hears* and *can do*, which no assertion reproduces. When a subagent environment exists, the `a11y-auditor` agent (`references/assistant-config.md`) runs the automated pass and prepares the guided-loop script.
 
 ### Web / HTML
 
@@ -88,7 +92,9 @@ Every "Verify with" list below splits the same way: the **automated passes** (ax
 - Focus: visible focus style (`:focus-visible`), managed focus for dialogs/menus/disclosure, no `tabindex > 0`, no keyboard traps. Modal dialogs use `role="dialog"`/`aria-modal`, trap focus while open, restore focus on close.
 - Live updates via `aria-live` regions; don't hijack scrolling or the browser's zoom.
 - Honor `prefers-reduced-motion`, `prefers-contrast`, `prefers-color-scheme`, and `forced-colors` (Windows High Contrast) — don't paint over system colors.
-- **Verify with:** axe-core / axe DevTools, Lighthouse, WAVE, or pa11y in CI; a **keyboard-only pass** (Tab/Shift-Tab/Enter/Space/Esc/arrows); and a **real screen-reader pass** (NVDA or JAWS on Windows, VoiceOver on macOS/iOS, TalkBack on Android). Automated tools catch at most ~30–40% — the manual passes are mandatory, not optional.
+- **Verify with:** axe-core / axe DevTools, Lighthouse, WAVE, or pa11y in CI (automated, assistant-run); a **keyboard-only pass** (Tab/Shift-Tab/Enter/Space/Esc/arrows) — **driven by the assistant**, asserting the focus sequence, the absence of traps, focus restoration after dialogs, and focus visibility; and a **real screen-reader pass** (NVDA or JAWS on Windows, VoiceOver on macOS/iOS, TalkBack on Android), which is the one pass that needs a person (`ASSISTIVE-TECH`).
+
+  **On what automation actually covers, stated once and correctly, because the two numbers in circulation measure different things:** Deque's study puts automated detection at about **57% of the total volume of issues** — which is the honest figure for "how much does axe find". Measured instead as *WCAG success criteria fully covered*, the figure is far lower, in the 20–30% range, and the W3C is explicit that no tool alone determines conformance. Both are true and they are not interchangeable: use the volume figure to argue that automation is worth running on every state, and the criteria figure to refuse any claim that a green automated run means conformance. Never quote 57% as WCAG coverage — least of all to a client.
 
 ### WordPress / WooCommerce
 

@@ -57,6 +57,30 @@ Create the Keel artifacts describing what exists — filling everything inferabl
 
 With the as-built technical plan written, materialize any accepted assistant config rules/agents from the OBSERVED conventions, in every accepted tool's container (per `references/assistant-config.md`, "Adoption specifics").
 
+### 4a. The conformance sweep — every applicable requirement, from the manifest, one by one (BLOCKING)
+
+This is the step that makes "apply Keel to this repo" mean the whole of Keel, not the part this session happened to remember. It is not optional, it is not a summary, and it is not answered from knowledge of what the skill contains: **it is read off `MANIFEST.md`, row by row.**
+
+1. **Enumerate.** Read `MANIFEST.md` Table 1 in full. For every row, decide whether it applies at this project's position and under its recorded conditions. An adopted project sits at "Phases 1–2 adopted (as-built)", so most Phase 1–2 rows apply immediately and the Phase 5–7 rows apply as the project reaches them — but the ones tied to a recorded choice (the assistant config package, the end-user guide, the docs theme, a client budget) apply the moment their condition is true, whether or not this session finds them interesting.
+2. **Write `docs/keel-conformance.md`.** One row per applicable requirement:
+
+   ```
+   | Requirement (MANIFEST Table 1) | State | Where / decision | Notes |
+   |---|---|---|---|
+   | docs/PROGRESS.md | present | docs/PROGRESS.md | — |
+   | scripts/keel-doctor | missing | — | proposed to the user 2026-… |
+   | guide/ | declined | D-014 | user prefers the existing wiki |
+   | docs/budget.md | n/a | Client budget: no | condition not met |
+   ```
+
+   Four states, and every row has exactly one: `present`, `missing`, `declined` (with the `docs/decisions.md` entry number), `n/a` (with the condition that excludes it). A row left blank is an unfinished sweep, not a pass.
+3. **Present every `missing` row to the user in ONE batch**, each with a one-line explanation of what it is, what it costs, and what changes if it is skipped. Then let them decide row by row — or accept the whole batch, which is what most people do. **Applying is their choice; proposing is not.** The failure this step exists to end is the one where a subset gets applied, nobody mentions the rest, and the omission only surfaces when the user asks why something is missing.
+4. **Record each refusal as a decision entry** and set the row to `declined`. A declined row is a decision the project can point at; a forgotten row is a hole nobody can distinguish from an intentional choice six months later.
+5. **Report the sweep to the user in full** — applied / declined / not applicable, with the totals. "Keel adopted" without that table is a claim, and this skill does not accept claims.
+6. **Wire the check.** When `scripts/keel-verify` is created (Phase 5 scaffold, or now if the project already has one), it verifies this file: every requirement applicable at the current position is `present`, or `declined` with a real decision entry, or `n/a` with its condition. From then on the sweep is enforced by a command, not by anyone's diligence.
+
+The same sweep runs — identically, from the same manifest — in the post-update reconciliation when a project moves to a newer Keel version, using Table 3's per-version delta on top of Table 1 (`references/keel-maintenance.md`).
+
 ### 5. Gap audit → `docs/04-adoption-audit.md`
 
 Audit the as-built reality against Keel's standards and record every gap honestly — this file only exists in adopted projects:
@@ -68,6 +92,7 @@ Audit the as-built reality against Keel's standards and record every gap honestl
 - **Extensibility** (extensible types): missing filters/actions per the Phase 5 density rule.
 - **Docs:** public surfaces with no documentation (now visible via INDEX).
 - **Hygiene:** `.gitignore`/`.gitattributes` gaps, tracked secrets (critical), version-touchpoint mismatches, changelog ordering.
+- **Testability:** does a playground exist and does it start? Is there a driver per user-visible surface? Does `scripts/keel-doctor` exist and pass, and does `scripts/keel-verify`? Do interactive elements carry stable test identifiers, or is every test bound to visible text? How many acceptance criteria (once reconstructed) have a driven test rather than a person's verdict? On a released project the honest answer is usually "none of it exists", and that is a normal, high-value finding: without an environment and drivers, every future bug report becomes "install this and tell me if it works". Building them is a remediation item like any other, and usually the first one worth doing.
 - **Known traps:** run the self-audit from `references/anti-patterns.md` against the real tree — every answer evidenced by a command or an artifact, never by reading the code and forming an impression. This is where adoption pays off fastest: a project that predates Keel has usually accumulated several of these silently (a declared tool nothing runs, a documented command that no longer exists, a version pinned in five places, a documented hook that is never fired, a generated file nobody imports), and each one is a concrete finding rather than a vague "needs tidying".
 - **Threat model:** produce `docs/threat-model.md` from the loaded profile and the real code, with every control at its HONEST delivery state — an adopted project typically has more `TO BUILD` than `IN PLACE`, and writing that down accurately is the point. The "Not defended" table converts what was silent into decisions the user can weigh.
 
@@ -84,6 +109,7 @@ Mark Phases 1–2 as **"adopted (as-built)"** in PROGRESS.md's phase table, set 
 - The step 3 questions are answered (or recorded as unknown), including project type + loaded security profile and accessibility reference, license, i18n, docs language, design system, website intent.
 - `docs/01-discovery.md`, `docs/02-functional-spec.md`, `docs/03-technical-plan.md` exist as-built, with every unverified inference labeled.
 - `docs/api/INDEX.md` complete for every existing public surface; progressive backfill rule recorded for full per-surface docs.
+- **`docs/keel-conformance.md` exists and is complete (step 4a):** every requirement applicable at this position enumerated FROM `MANIFEST.md` — never from recollection — and carrying exactly one state (`present` / `missing` / `declined` with its decision entry / `n/a` with its condition). Every `missing` row was presented to the user in one batch and ended in a decision; the full sweep table was reported to the user. Adoption does not pass this gate with an unexplained gap.
 - `docs/04-adoption-audit.md` complete, every gap prioritized with the user (now / when touched / accepted), mirrored in PROGRESS.md.
 - The `references/anti-patterns.md` self-audit was run against the real tree with every answer evidenced, and its findings are gaps in the audit like any other.
 - `docs/threat-model.md` exists with controls at their honest delivery state and a "Not defended" table — no control described in the present tense that is not `IN PLACE` with its evidence.

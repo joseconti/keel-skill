@@ -73,10 +73,18 @@ Every row carries a state marker. [E] exists on disk now. [A] to be created by t
 - Unit tests: framework + the exact run command
 - Integration and end-to-end tests: framework + the exact run command, and what gets unit vs integration vs e2e coverage. E2E is REQUIRED when the project has a UI or multi-step user flows — for web that means a browser-driven test (e.g. Playwright)
 - Verification playground (whenever the project can be run): the recipe chosen from references/playground-recipes.md for the project type — how the software will be exercised for REAL beyond the automated suite (Docker/docker-compose, wp-env, a playground script, a disposable sandbox, whatever fits the stack) — with exact start/stop commands, the seed-data mechanism (synthetic fixtures or a seeding script — NEVER real data) and its reset command. Stood up at the Phase 5 scaffold; access details + step-by-step try-it instructions for the user live in docs/playground.md
+- Driver per surface (per references/test-automation.md): one row per user-visible or externally-reachable surface — surface | driver | headless? | evidence it produces. Where a driver CANNOT run headless (macOS and native Windows UI tests drive the real cursor and keyboard), name the agreed mitigation here: dedicated machine/VM, separate user session, or scheduled batch. The user is never ambushed by a test run taking their screen
+- Element addressability: the attribute convention every interactive element carries so tests bind to identifiers, not to localized visible text (data-testid / accessibilityIdentifier / AutomationId / resource-id) and the naming pattern. Never fake an accessibility label to make a test findable — it is read aloud to real users
+- Division of labour: which flows the assistant drives end to end (the default: all of them) and the exhaustive list of legs it cannot, each with its tag — CREDENTIAL / HARDWARE / ASSISTIVE-TECH / JUDGMENT / EXTERNAL-APPROVAL / PLATFORM-IMPOSSIBLE — and the steps whoever runs it will follow. A tag covers only the leg that needs it, never the whole flow
+- Static analysis and sniffers: the exact command for each (linters, coding-standard sniffers, static analysers, platform-specific checkers), run at every test point, not once before release
+- Accessibility automation: the exact mechanism per platform (axe inside the e2e tests per screen AND per state; performAccessibilityAudit inside the Apple UI tests; AccessibilityChecks in the Android test target) and the driven keyboard/focus-order pass
+- Read-back duty: how console errors, uncaught exceptions, failed requests, 5xx responses and the platform's own log are captured and asserted, so a screen that looks right while throwing fails its test
 - Real exercise per flow: the exact command, URL, or tool call that exercises each main flow in the playground
 - Debug logging: the product's own log mechanism and its on/off switch, per platform (Woo: `WC_Logger` + a settings checkbox; WP: plugin log + checkbox/constant; PrestaShop: module config; panel apps: a panel toggle; servers/CLIs/libraries: env var or constant; MCP servers: stderr) — designed for copy-paste diagnosis by the user, ON during development, OFF by default at release (built at the Phase 5 scaffold; verified at the Phase 7 gate)
 - Performance budget measurement: how any budget declared in §Support matrix & budgets will be measured
 - Regression rule: every bug fixed gets a test pinning the fix (linked from lessons-learned)
+## Environment requirements (the source of scripts/keel-doctor — see step 4d)
+| Requirement | Required version/state | Severity (blocking/optional) | How it is installed on macOS / Windows / Linux |
 ## Tooling commands
 - lint / test / build / package: the exact commands (verified end-to-end at Phase 5 scaffold)
 - Front-end asset build (only if the project ships JS/CSS): the exact minify command/script that regenerates every `*.min.*` from its committed unminified source — run locally by the working assistant, never CI/forge. Source and minified live as a pair in the same dir (`name.js`+`name.min.js`, `name.css`+`name.min.css`); the minified file is never hand-edited. Per SKILL.md "Build assets — source first, minified for production"
@@ -139,6 +147,24 @@ Three sections, none optional:
 
 Each security profile in `references/security/` lists the deliberate omissions typical of its project type as the starting point; the project adds its own. Moving a row from the second table to the first is a normal change — it happens when the control ships — and it goes in `docs/decisions.md` like any other.
 
+### 4d. The environment requirements table — what `scripts/keel-doctor` will enforce
+
+Phase 1 §5a asked whether this machine *can* do the job. Here the answer becomes an exhaustive, versioned list, because the doctor generated at the Phase 5 scaffold is a direct compilation of this table — not a fresh improvisation. Read `references/test-automation.md` if it is not already in context.
+
+Fill `## Environment requirements` in the technical plan with one row per requirement, covering four groups:
+
+1. **Build and run:** the language runtime and its minimum version, the package manager, the container runtime if the recipe needs one, the database, anything the app itself needs to boot.
+2. **Test drivers:** the browser automation package and its browser binaries, the mobile or desktop driver, the protocol driver, the PTY tooling for interactive CLIs — whatever the "Driver per surface" rows require.
+3. **Static analysis:** every linter, coding-standard sniffer, static analyser and platform checker named in §Tooling commands.
+4. **Platform toolchains, where they apply:** the full Apple toolchain (Xcode.app, not just the Command Line Tools — plus accepted licence, first-launch components and simulator runtimes), the Android SDK with an emulator image and hardware acceleration, a virtual display for Linux GUI runs.
+
+For every row record: the required version or state, whether it is **blocking** (no work possible without it) or **optional**, and the install path per operating system the project supports. Two rules keep the table honest:
+
+- **Distinguish "installed but not operational".** A container runtime present with its daemon stopped is not the same as absent, and the doctor must say which. Collapsing the two is what makes an assistant propose reinstalling something that only needed starting.
+- **Flag licence and privilege consequences in the row itself**, not in a footnote — a desktop container product whose licence depends on company size and revenue, a group membership that is effectively root, a download of hundreds of megabytes. These are the user's decisions, and they need to see them before `--fix` runs. Where a lighter path exists, name it in the same row.
+
+Also record here **what cannot be installed on this machine at all** and what happens instead: a platform toolchain that requires different hardware, a permission that cannot be granted without degrading system security, a system-dependency installer that does not know this Linux distribution (the container is the answer there). Those rows exist so the doctor reports a clear stop instead of attempting a workaround that does not exist.
+
 ### 5. Decide precisely what needs design
 
 This is the bridge to Phase 3. Produce a clear split:
@@ -157,6 +183,8 @@ Three of these recorded items — foreseen external assets, per-screen accessibi
 ### 6. Acceptance criteria
 
 Define, per feature, the conditions under which it's considered done. These feed Phase 5 test points and the Phase 4 faithfulness checklist.
+
+**Every criterion carries a stable ID: `AC-01`, `AC-02`, … assigned here, never reused, never renumbered.** The ID is not bookkeeping — it is what makes coverage checkable by a script instead of by anyone's account of themselves. It travels to three places: this list, the name of the test that covers it (`AC-07 checkout rejects an invalid postcode`), and the `Criterion` column of `docs/05-test-points.md`. Renumbering breaks the link between a shipped test and the requirement it proves, so criteria are appended, and a criterion that dies is marked withdrawn rather than deleted and its number reused. A criterion with no ID cannot be verified as covered, which in practice means it will not be.
 
 Every feature with a UI includes **accessibility conditions** in its acceptance criteria — operable by keyboard and assistive technology, accessible name/role/state exposed, contrast met, visible focus, error identification (not color-only), adequate target size, and honored user preferences (reduced motion, text scaling). Accessibility is a done condition of the feature, not a separate later pass (see `references/accessibility.md`).
 
@@ -230,7 +258,7 @@ ALWAYS use this template:
 
 ## Definition of done
 
-- Every v1 feature has testable requirements and acceptance criteria.
+- Every v1 feature has testable requirements and acceptance criteria, and **every criterion carries its stable `AC-nn` ID** (step 6) — the key the test name and the test-point row are matched on.
 - Every UI feature's acceptance criteria include accessibility conditions (keyboard/AT operable, name/role/state, contrast, visible focus, error identification, target size, honored user preferences) per `references/accessibility.md`; every screen that needs design has its accessibility requirements recorded for the Phase 3 brief.
 - Every multi-step/branching journey has a flow file.
 - Data model, integrations, and permissions are specified.
@@ -238,6 +266,8 @@ ALWAYS use this template:
 - Every code-map row carries its state marker (`[E]` / `[A]` / `[G]`), and every `[E]` row was confirmed against the tree rather than assumed (step 4).
 - The change map exists with a row per recurring change type in this project, each naming real paths or real commands (step 4b).
 - `docs/threat-model.md` exists with all three sections — assumptions, defended controls each carrying a delivery state (`IN PLACE` / `TO BUILD` / `MANUAL` / `VERIFY`), and the "Not defended" table with consequences. No control is written in the present tense unless it is `IN PLACE` with its evidence (step 4c).
+- The testing block names a driver per surface, each with its headless verdict and — where a driver takes over the user's screen — the agreed mitigation; the element-addressability convention is recorded; the division of labour lists every leg the assistant cannot drive with its tag (`CREDENTIAL` / `HARDWARE` / `ASSISTIVE-TECH` / `JUDGMENT` / `EXTERNAL-APPROVAL` / `PLATFORM-IMPOSSIBLE`) and its steps; static analysis, accessibility automation and the read-back duty each have their exact commands (step 4/§Testing, per `references/test-automation.md`). A UI surface with no driver, or a delegation with no tag, does not pass this gate.
+- `## Environment requirements` is complete (step 4d): one row per build, driver, static-analysis and platform-toolchain requirement, with required version/state, blocking-or-optional severity, the per-OS install path, and any licence or privilege consequence flagged in the row. Anything that cannot be installed on this machine at all is recorded with what happens instead. This table is what `scripts/keel-doctor` compiles from at the Phase 5 scaffold.
 - If the project ships front-end JS/CSS: the technical plan names the build/minify script that regenerates every `*.min.*` from its committed source (run locally, never CI/forge) and records the source→minified pairing convention — per SKILL.md "Build assets — source first, minified for production". Projects with no front-end assets, or a different pipeline recorded in `docs/decisions.md`, note it as such.
 - If the project card accepted assistant config rules/agents: the rules and subagents generated in every accepted tool's container per `references/assistant-config.md`, path-scoped, identical in substance, recorded in `docs/decisions.md`.
 - The design split is explicit, including external-setup items, foreseen external assets, per-screen accessibility requirements, and target devices/viewports with exact breakpoints — each on its own template line, carried into the Phase 3 brief.

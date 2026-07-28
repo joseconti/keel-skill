@@ -2,9 +2,18 @@
 
 Load this when `docs/PROGRESS.md` marks Phase 7 done and anything new arrives: a bug report, a feature request, a dependency alert, a platform update. Phase 7's close hands the project here (current position: "maintenance"), and the Resume entry mode lands here whenever a released project is reopened. Maintenance is not a lighter regime — it is the same discipline (state, tests, evidence, hygiene) applied to smaller units, on a codebase that now has users.
 
+## Every maintenance session opens the same way
+
+Two checks, before triage, because most of a project's life happens here and this is where the contract otherwise evaporates:
+
+- **`scripts/keel-doctor --check`.** Maintenance sessions often start on a machine that has drifted since the last sprint — a runtime upgraded, a container runtime not started, browser binaries pruned. Run it and read the table. If the project has no doctor (it predates v5.0.0, or was adopted), generating it from the technical plan's `## Environment requirements` is the first maintenance change, not a nice-to-have: without it, "the tests pass" cannot be distinguished from "the tests never ran".
+- **The conformance sweep, if the baseline moved.** If Keel was updated since the last session, the reconciliation runs per `references/project-state.md` — and it is a sweep from `MANIFEST.md`, not a summary. It never blocks an urgent hotfix: record `Reconciliation pending vX → vY` in PROGRESS.md open items, ship the fix, and complete the sweep before the tag.
+
+**No playground, no drivers?** A released project that never had them gets them as a maintenance change the first time anything is worked on it. It is a few hours once, and it is what turns every future report from "install this zip and tell me if it works" into a driven reproduction with evidence. Do not carry a project indefinitely without the environment its own tests need.
+
 ## Triage
 
-- **Reproduce first, in the playground.** Before any diagnosis and any fix, reproduce the report in the verification playground (`docs/playground.md`, per `references/playground-recipes.md`). If it only reproduces with production-shaped data, build a synthetic fixture that mimics that shape — same volume, same edge case, invented values — and add it to the seed. Never import real data: the confidential-data rule covers maintenance exactly as it covered development.
+- **Reproduce first, in the playground — driven by the assistant, not by the reporter and not by the user.** Before any diagnosis and any fix, reproduce the report in the verification playground (`docs/playground.md`, per `references/playground-recipes.md`). If it only reproduces with production-shaped data, build a synthetic fixture that mimics that shape — same volume, same edge case, invented values — and add it to the seed. Never import real data: the confidential-data rule covers maintenance exactly as it covered development.
 - **Classify:** broken for everyone / broken for some (which configuration, which versions) / cosmetic / request. The class decides the path — the first goes to the hotfix path below; the rest are scheduled work, prioritized with the user.
 - **Record in `docs/issues.md`** (template in `references/project-state.md`) at the moment of triage — including forge issues, which follow the existing forge-log duty: inventory current, one entry per issue worked. A request the user postpones lands in PROGRESS.md's "Deferred items" (per `references/project-state.md`), never in memory.
 
@@ -13,8 +22,8 @@ Load this when `docs/PROGRESS.md` marks Phase 7 done and anything new arrives: a
 Phase 7's gate compressed in time — never compressed in content:
 
 1. **Branch from the release tag,** not from main if main has moved on. Users run the tag; the fix must apply to what they run, without dragging unreleased work along.
-2. **The minimal fix plus its regression test** — a test that fails before the fix and passes after, in the same change. A hotfix without its regression test is not done.
-3. **The full gate, fast:** the FULL automated suite green, `scripts/keel-verify` clean, and real-environment verification of the rebuilt distributable — install the exact package in the real-type environment and exercise the fixed flow plus the critical path. Command + output recorded, as always.
+2. **The minimal fix plus its regression test** — a test that fails before the fix and passes after, in the same change, and **driven** where the bug is user-visible: the regression test reproduces the report through the interface, not only through a unit-level call, or it will not catch the same bug coming back through a different path. A hotfix without its regression test is not done.
+3. **The full gate, fast:** `scripts/keel-doctor --check` passing (so it is provable the suite really ran), the FULL automated suite green, `scripts/keel-verify` clean, and real-environment verification of the rebuilt distributable — install the exact package in the real-type environment and **have the assistant drive** the fixed flow plus the critical path in it, with the fields filled and the assertions made, not "install it and see". Command + output + evidence recorded, as always. Anything that genuinely cannot be driven carries one of the eight tags from `references/test-automation.md` with its steps; a hotfix verified only by the user's say-so carries a tag or it is not verified.
 4. **The version is a patch, PROPOSED to the user** for explicit approval before any number is written anywhere (Phase 7's versioning discipline); only then sync every touchpoint.
 5. **Changelog entry** (oldest → newest), naming the bug and the fix.
 6. **Tag, release, then merge back to main,** so the fix exists in both lines — a hotfix that never lands on main resurfaces in the next release.
@@ -70,8 +79,9 @@ Maintenance changes nothing about the state system:
 
 ## Definition of done (per maintenance change)
 
-- Reproduced in the playground (with a synthetic fixture if production-shaped data was needed) and recorded in `docs/issues.md`.
-- The fix carries its regression test; the FULL automated suite is green; `scripts/keel-verify` clean; real-environment verification passed on the rebuilt distributable.
+- `scripts/keel-doctor --check` passed at session start (or the doctor was created as this maintenance change), and any pending Keel reconciliation was either completed or recorded as pending in PROGRESS.md.
+- Reproduced in the playground **by the assistant**, driven (with a synthetic fixture if production-shaped data was needed), and recorded in `docs/issues.md`.
+- The fix carries its regression test — driven, where the bug is user-visible; the FULL automated suite is green; `scripts/keel-verify` clean; real-environment verification passed on the rebuilt distributable with the flow driven by the assistant, and anything undrivable carrying its tag and its steps.
 - Version proposed and explicitly approved by the user before writing; every touchpoint synced; changelog updated oldest → newest.
 - If a Phase 8 site exists: the freshness mini-checklist ran for the release.
 - State current at the moment of change: PROGRESS.md, decisions, lessons, token ledger, issues.
