@@ -328,6 +328,8 @@ One rule, and its two properties are both consequences of how the failure actual
 
 It holds the owning PID and its start time, so a stale lock from a crashed session is detectable rather than permanent. A session that cannot take the lock does what every other blocked path does: prints the prompt and exits 0.
 
+**Who implements it, and when: `scripts/keel-handoff-verify`, at the Phase 5 scaffold** (`references/phase-5-development.md` §1). The lane is claimed by the same script the arriving session already runs before acting, because that is precisely the moment it must be claimed — one command, one allow-list entry, and no window between verifying and starting work in which a second session could slip through. There is no separate lock script and no lock step for the user to remember. On a card that is not `Chaining: start` the script runs its five checks and takes nothing.
+
 Until a project has this, `start` is not offered — not as a warning, as a gate.
 
 **How the question is asked — at the start, and with the warning attached.** `Chaining:` is not a configuration preference to be buried in the project card and filled in silently. It is asked at Phase 1 step 0a (and at the reconciliation, for an existing project) alongside the other opening decisions, in this shape:
@@ -459,7 +461,7 @@ The project root carries the Keel block below in TWO files, always: `CLAUDE.md` 
 One tool needs a third step: **Gemini CLI reads `GEMINI.md`, not `AGENTS.md`, by default.** If the user works with Gemini CLI, ask once and record the pick: mirror the same block in `GEMINI.md` (a third copy of the lock, refreshed with the others), or commit a `.gemini/settings.json` whose `context.fileName` includes `AGENTS.md` (no third copy to maintain). Either satisfies the lock.
 
 ```
-<!-- KEEL:BEGIN — v5.3.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
+<!-- KEEL:BEGIN — v5.3.1 do not remove: binds every AI/session in this repo to the Keel workflow -->
 # Keel protocol (mandatory for ANY assistant working in this repository)
 
 This project is governed by the Keel workflow. Before reading code or changing ANYTHING:
