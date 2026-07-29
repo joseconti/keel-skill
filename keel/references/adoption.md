@@ -83,7 +83,7 @@ The same sweep runs — identically, from the same manifest — in the post-upda
 
 ### 5. Gap audit → `docs/04-adoption-audit.md`
 
-Audit the as-built reality against Keel's standards and record every gap honestly — this file only exists in adopted projects:
+Audit the as-built reality against Keel's standards and record every gap honestly — this file only exists in adopted projects. The dimensions below are independent reads of a tree nobody is modifying, and this is the largest one-shot verification a project ever gets: **dispatch one agent per dimension in ONE parallel block** and merge before prioritizing, rather than walking the list (`references/assistant-config.md`, "Parallel fan-out"). Two rows sit outside that block: **Testability** starts things, so it runs on its own rather than beside another agent holding the same environment, and **Threat model** is authored by the main session from the merged security and known-traps findings — producing `docs/threat-model.md` is writing, and no verifier here writes.
 
 - **Security:** the loaded profile's checklist against the real code (unescaped output, missing nonces/capabilities, unprepared queries, missing ABSPATH guards, secrets handling…).
 - **Accessibility** (if UI): the targeted level vs reality, per `references/accessibility.md`.

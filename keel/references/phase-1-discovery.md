@@ -83,7 +83,7 @@ These three feed the **proposed v1** in step 3 and are then confronted against i
 
 #### Run the scan in subagents when the environment provides them
 
-When the environment provides subagents, run the scan in one — or several in parallel, one per competitor. Subagents return the drafted scan artifacts and conclusions, never raw dumps of pages or search results; the main session validates that every external-demand item resolves to a source before accepting the draft. This keeps the main session's context clean for the discovery conversation that follows.
+When the environment provides subagents, run the scan in one — or several in parallel, one per competitor, which is the per-unit shape of the fan-out rule in `references/assistant-config.md` ("Parallel fan-out"). Subagents return the drafted scan artifacts and conclusions, never raw dumps of pages or search results; the main session validates that every external-demand item resolves to a source before accepting the draft. This keeps the main session's context clean for the discovery conversation that follows.
 
 #### When the first pass finds zero competitors
 

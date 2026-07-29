@@ -146,3 +146,8 @@ build/
 .claude/cache/
 .claude/local/
 .anthropic/
+
+# ---------------------------------------------------------------------------
+# Local quarantine (bridge cannot unlink; emptied from a real terminal)
+# ---------------------------------------------------------------------------
+_to_delete/

@@ -258,7 +258,7 @@ The project root carries the Keel block below in TWO files, always: `CLAUDE.md` 
 One tool needs a third step: **Gemini CLI reads `GEMINI.md`, not `AGENTS.md`, by default.** If the user works with Gemini CLI, ask once and record the pick: mirror the same block in `GEMINI.md` (a third copy of the lock, refreshed with the others), or commit a `.gemini/settings.json` whose `context.fileName` includes `AGENTS.md` (no third copy to maintain). Either satisfies the lock.
 
 ```
-<!-- KEEL:BEGIN — v5.1.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
+<!-- KEEL:BEGIN — v5.2.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
 # Keel protocol (mandatory for ANY assistant working in this repository)
 
 This project is governed by the Keel workflow. Before reading code or changing ANYTHING:
@@ -304,6 +304,14 @@ This project is governed by the Keel workflow. Before reading code or changing A
      does not depend on a previous result.
    - Delegate broad searches/scans to a subagent when the environment provides them;
      bring back conclusions, never file dumps — the main context stays clean.
+   - The same batching rule governs delegation: independent READING verifiers at one
+     gate, and one agent per independent unit (screen, locale, competitor), go out in
+     ONE parallel block — with at most one EXECUTING verifier per environment running
+     alongside them — and the gate is judged against their merged findings. Serial
+     only when one check's input is another's output, when two executing agents would
+     share one environment (playground, test machine, database, deployed origin), when
+     an agent in the set can write (that one runs first, alone), or when concurrency
+     is capped.
    - Do not narrate between tool calls ("now I will…"); accumulate findings and
      report once, at the end of the work block.
    - Locate before reading: search/grep first, then read only the relevant fragment.
