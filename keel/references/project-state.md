@@ -311,11 +311,12 @@ The values name the BEHAVIOUR, not the mechanism, on purpose: the same tool fami
 
 But removing the human removes something else that nobody had accounted for, and it was found by RUNNING the mechanism rather than reading it: **the person between links was the only thing keeping the chain single-file.** A three-link chain under test produced four live sessions and four windows in sixteen seconds — two launches were still in flight while the counter was read, so the cap was passed by design rather than by accident. Two sessions live on one checkout means interleaved commits on one branch, `docs/PROGRESS.md` overwritten by whichever finishes last, a hand-off describing a state neither of them left, and edits made on reads the other has already invalidated. **None of the courier checks fire**: same repository, same starting commit, a perfectly fresh hand-off. And it escaped the person who had just written the cap, which is the part that matters — a user who merely switched `start` on has strictly worse odds.
 
-So `start` requires three things, and a project missing any of them is offered `prefill` at most:
+So `start` requires four things, and a project missing any of them is offered `prefill` at most:
 
 1. **The single-lane lock** (below). Without it, `start` is a chain that can fork silently.
 2. **A verified open action for the tool that produces a VISIBLE session**, not a headless run. On macOS that is `osascript` driving Terminal.app, verified. Linux (`gnome-terminal` / `konsole` / `xterm`) and Windows are NOT verified: an implementer who reaches for the plain platform open command ships the headless variant, which runs correctly and opens nothing, leaving the user waiting for a window that will never appear. **`start` is therefore verified on macOS only today.**
 3. **The project's allow-list entry for `scripts/keel-handoff-verify`**, plus folder trust granted once. Without them every link stops for a permission prompt, which is not automation with extra steps — it is `prefill` pretending.
+4. **The `claude` command on PATH.** `start` launches a CLI session, so without the standalone CLI there is nothing to launch. This is worth stating because it is not obvious: neither the desktop app nor the VS Code extension puts `claude` on PATH — the app runs Claude Code graphically, and the extension bundles a private copy for its own panel — so a user can have both installed, use Claude Code daily, and still have no `claude` command. Absent → `prefill` is the maximum, and say which requirement failed rather than letting the first close-out of a chain discover it.
 
 The residual risk stays real even with all three: a window begins working unsupervised from a hand-off composed by a session that was running out of context. That is not uniform — a routine slice is not a migration, a release, or anything touching production data — so it remains the user's call per project, recorded on the card and in `docs/decisions.md`.
 
@@ -461,7 +462,7 @@ The project root carries the Keel block below in TWO files, always: `CLAUDE.md` 
 One tool needs a third step: **Gemini CLI reads `GEMINI.md`, not `AGENTS.md`, by default.** If the user works with Gemini CLI, ask once and record the pick: mirror the same block in `GEMINI.md` (a third copy of the lock, refreshed with the others), or commit a `.gemini/settings.json` whose `context.fileName` includes `AGENTS.md` (no third copy to maintain). Either satisfies the lock.
 
 ```
-<!-- KEEL:BEGIN — v5.3.1 do not remove: binds every AI/session in this repo to the Keel workflow -->
+<!-- KEEL:BEGIN — v5.3.2 do not remove: binds every AI/session in this repo to the Keel workflow -->
 # Keel protocol (mandatory for ANY assistant working in this repository)
 
 This project is governed by the Keel workflow. Before reading code or changing ANYTHING:

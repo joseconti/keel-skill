@@ -560,3 +560,13 @@ Two artifacts v5.3.0 required and never told anyone to build. Nothing new is des
 Both failures are the same shape and it is worth naming: a requirement recorded in the index and missing from the contract. The manifest's authority rule exists precisely because that shape recurs — it decides which side wins, and in both cases the side that wins was the silent one.
 
 **The lock block's content did not change**, only its version stamp, so the refresh at the next freshness check is a stamp-only rewrite.
+
+## 5.3.2
+
+One unstated dependency. `start` launches a CLI session, so it always needed the `claude` command on PATH, and v5.3.0 shipped that requirement without writing it down anywhere.
+
+### Fixed
+
+- **`start` names the CLI as its fourth requirement.** The gate listed three (the single-lane lock, a verified visible-session action, the allow-list entry plus folder trust) and omitted the one without which there is nothing to launch at all. It is worth stating explicitly rather than assuming, because it is genuinely not obvious: neither the desktop app nor the VS Code extension puts `claude` on PATH — the app runs Claude Code graphically, and the extension bundles a private copy for its own panel — so someone can have both installed, use Claude Code every day, and still have no `claude` command. Left unstated, the failure surfaced at the first close-out of a chain, which under `start` is precisely when nobody is watching. A project missing it is offered `prefill`, told which requirement failed, and nothing else changes.
+
+**The lock block's content did not change**, only its version stamp, so the refresh at the next freshness check is a stamp-only rewrite.
