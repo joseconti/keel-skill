@@ -295,6 +295,22 @@ Record the decision in the discovery doc, `docs/decisions.md`, and the PROGRESS.
 
 With the v1 scope agreed, produce the preliminary estimate so the user can answer whoever asked for a quote. Load `references/estimation-budget.md` and follow it: itemized AI working hours (per phase, session wall-clock ranges), itemized vibe coder hours (segments — what the developer does + hours), contingency, and the AI cost mode (subscription ≈ 0 marginal cost / API with verified per-token prices). Record it as **Estimate v1 (preliminary)** in `docs/estimate.md`, with wide ranges and stated assumptions, and create `docs/token-ledger.md` (template in that reference) so actual token usage is recorded from here on. NEVER estimate from traditional human development time — the estimate is AI time + supervision time, full stop. If the user needs a client-facing preliminary budget now, produce it per the same reference, clearly marked preliminary; the firm budget comes at Phase 2 close.
 
+### Chat chaining — asked here, with its warning visible
+
+Ask once, alongside the other opening decisions, and record the answer as `Chaining:` on the project card. It is NOT a card field to fill in silently: two of the three values change how the user works, and they must know that before choosing, not after.
+
+> **Do you want development to chain automatically between chats?**
+>
+> - `off` (recommended) — every chat ends with the hand-off written to `docs/continuation-prompt.md` and the prompt ready to copy. You decide when it continues.
+> - `prefill` — the next chat opens with the instruction already typed; you press Enter.
+> - `start` — the next chat opens **and starts by itself**, without you touching anything.
+>
+> **If you choose `start`, that happens in the CLI, not in your editor.** It is the only verified way to automate the full cycle: the VS Code URI pre-fills and does not submit, and its handler accepts no parameter that changes this. Choosing `start` means development moves to command-line sessions.
+>
+> **And it means development advances with nobody watching.** Decide whether that is acceptable on this project before choosing it.
+
+`off` and `prefill` are always available. **`start` is gated**: it is not offered until the project has the single-lane lock (`references/project-state.md`), and it is verified on macOS only — offer `prefill` as the maximum where either condition fails, and say which one. Whatever the answer, the hand-off file is written and the prompt shown at every session end; chaining only decides whether a window also opens. Full contract in `references/project-state.md`.
+
 Ask here, once — and never again in any later phase: **is there a client to bill or a quote to produce?** Record the answer in the PROGRESS.md project card as `Client budget: yes/no`. `docs/estimate.md` and `docs/token-ledger.md` are produced always — the user needs the numbers whether or not anyone is billed. The client-facing `docs/budget.md` (Phase 2 close) is produced only when `Client budget: yes`; when no, none of the client questions (rate, currency, budget language) are asked — not now, not at Phase 2.
 
 ## `docs/01-discovery.md` structure
@@ -379,6 +395,7 @@ ALWAYS use this template:
 - Estimate v1 (preliminary) recorded in docs/estimate.md: AI hours [X–Y], vibe coder hours [X–Y], contingency [+N%], AI cost mode [subscription / API]
 - Token ledger created: docs/token-ledger.md (actuals recorded from here on)
 - Client budget: [yes / no — asked once here, recorded in the project card; yes → docs/budget.md at Phase 2 close, no → no budget.md and the client questions (rate, currency, budget language) are never asked]
+- Chaining: [off (default) / prefill / start — asked once here with its warning shown; start is gated on the single-lane lock and macOS-verified only, so offer prefill as the maximum where either fails]
 ## Open questions for the user
 - [anything still undefined — must be resolved before Phase 2]
 ```
@@ -409,6 +426,7 @@ ALWAYS use this template:
 - If design is needed: the design-system decision is recorded (existing with source/location, founding with future home, or one-off with reason) in the discovery doc, `decisions.md`, and the project card — including the target surfaces/platforms the system must cover (marking which ship in this project vs which it anticipates for reuse).
 - Preliminary estimate produced per `references/estimation-budget.md`: `docs/estimate.md` (Estimate v1 — itemized AI hours and vibe coder hours, contingency, AI cost mode, assumptions stated, wide ranges marked as such) and `docs/token-ledger.md` created. No number is based on traditional human development time.
 - The client question was asked once — is there a client to bill or a quote to produce? — and `Client budget: yes/no` is on the project card (yes → `docs/budget.md` at Phase 2 close; no → the client questions are never asked).
+- The chaining question was asked once, WITH its warning shown (that `start` moves development to CLI sessions rather than the editor, and that it removes the only person supervising), and `Chaining:` is on the project card. If the answer was `start`, the single-lane lock exists and the platform is verified; otherwise `prefill` was offered instead and the reason recorded.
 - `docs/01-discovery.md` exists and has zero open questions left unresolved.
 
 Do not enter Phase 2 with open discovery questions — an unresolved idea-level question becomes an expensive rework later.

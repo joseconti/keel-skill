@@ -52,6 +52,7 @@ Keep it to roughly one page. Detail lives in the linked files, never accumulated
 - Client budget: [yes / no — asked once at Phase 1 step 10; yes → docs/budget.md at Phase 2 close]
 - User guide: [languages + ships in release yes/no + dev portal yes/no and ships/repo-only / declined — asked at Phase 6; guide/ at the repo root]
 - Docs theme: [keel-docs-theme vX.Y.Z vendored in guide/_theme/ / n/a until Phase 6 — per references/guide-theme.md]
+- Chaining: [off (default) / prefill / start — what a CLEAN close-out does beyond writing docs/continuation-prompt.md and showing the prompt, which happen on every value including off; prefill opens the next chat pre-filled (user presses Enter), start launches and submits. Asked at Phase 1 step 0a with the warning attached, never filled in silently. start is GATED on the single-lane lock and is verified on macOS only; without both, prefill is the maximum offered. Falls back to printing]
 
 ## Phase status
 | Phase | Status | Key artifacts |
@@ -219,6 +220,206 @@ Load the `keel` skill and resume [PROJECT NAME] at Phase [N] ([phase name]), [st
 
 The prompt must be self-sufficient: assume the new session knows nothing except what these files contain. Producing it does not force a chat switch — if the current chat still has capacity, continue in it; the prompt is insurance. Like everything Keel creates, the continuation prompt is written in English (SKILL.md "Token economy"), regardless of the conversation language.
 
+### The continuation file — `docs/continuation-prompt.md` (UNBREAKABLE)
+
+The prompt is not only shown in the chat; it is also WRITTEN to `docs/continuation-prompt.md`, always at that exact path, overwritten each time. The fixed path is what makes the hand-off addressable by a short constant instruction instead of a wall of text that has to be selected, copied and pasted without losing a line, and it removes every length limit from the hand-off, because what travels between chats is a path.
+
+The file is ephemeral session state, not project history: it is listed in `.gitignore` and never committed. Showing the prompt in the chat does not stop — the file is in addition, never instead.
+
+It opens with a freshness header, then the prompt verbatim:
+
+```
+---
+Repo: 8f2c1ab
+Generated: 2026-07-29T18:40:00+02:00
+Keel: 5.3.0
+Commit: a1b2c3d
+Tree: clean
+Position: Phase 5 — Sprint 3, slice 3.4 closed; next action: slice 3.5
+Handover: clean
+---
+
+[the continuation prompt, exactly as templated above]
+```
+
+`Handover:` is `clean`, or `blocked: <one line>` naming what stopped the session. `Tree:` is `clean`, or `dirty (N files)` from `git status --porcelain` — the session that writes a hand-off while running out of context is exactly the one likely to leave work uncommitted, and `Commit:` alone says nothing about it, so the next session would inherit changes it believes do not exist.
+
+**Producing `Repo:` — three traps, all silent.** It is the SHORT root-commit hash, and the command has edges that return a wrong answer with exit 0:
+
+```
+git rev-parse --is-shallow-repository        # true → do NOT write a hash
+git rev-list --max-parents=0 HEAD | sort | head -1
+```
+
+- **A shallow clone returns the grafted commit, not the root**, with no error, and the value CHANGES after `git fetch --unshallow`. A hand-off written under `--depth 1` therefore carries an identity no full clone accepts, and the same directory rejects its own hand-off once deepened. When `--is-shallow-repository` is `true`, write `Repo: unavailable (shallow)`; the reader treats repository identity as unverifiable and relies on the containment check below.
+- **A repository can have more than one root commit** (unrelated histories merged), and the command then prints several lines — a naive `$(...)` yields a multi-line value that can never match a 7-character header. `sort | head -1` picks one stably, independent of traversal order.
+- **`Repo:` identifies the REPOSITORY, not the working directory** — see the containment check below.
+
+**Why `Repo:` exists, and why the obvious fix is not enough.** The filename is IDENTICAL in every Keel project. So a chat opened in the wrong window reads that project's own hand-off, and every other check passes — the commit really is its `HEAD`, the position really is its `PROGRESS.md`, the timestamp really is recent. Nothing is stale; the session simply continues the wrong project, coherently and unsupervised. That is why two independent halves are required and neither is optional:
+
+- **Every launch passes this repository's ABSOLUTE hand-off path**, not a relative one, so the right file gets read even from the wrong window.
+- **`Repo:` carries the root-commit hash** — the stable identity of a repository, unlike a remote URL, which may be absent or plural — so a session that finds itself in a different repository than the hand-off names STOPS and says so instead of working.
+
+The first makes the right file get read; the second makes a session in the wrong place refuse. Alone, each leaves the failure silent.
+
+**And `Repo:` alone is still not enough, because a repository is not a directory.** Two checkouts of the SAME repository at the same commit — a `git worktree`, a second clone, a copied folder, a sync-service duplicate — share their root commit AND their `HEAD`. A session in one of them reading the other's hand-off passes every identity check while working in the wrong directory, which is the original flaw wearing a narrower disguise. Worktrees are not exotic: agent harnesses create them routinely to isolate parallel work. The separating check is containment — the hand-off's REAL path must lie inside this session's own `git rev-parse --show-toplevel` — and it costs one command.
+
+**The file is a courier, never a source of truth.** `docs/PROGRESS.md` and the repository are the authority; this file only points at them. The session that reads it verifies, in this order:
+
+| Check | How | Mechanical? |
+|---|---|---|
+| **Containment** | the file's REAL path (symlinks resolved) is inside this session's `git rev-parse --show-toplevel` | Yes |
+| `Repo:` | against `git rev-list --max-parents=0 HEAD \| sort \| head -1` in the repo the session is actually in | Yes |
+| `Commit:` | against `git rev-parse HEAD`; `git merge-base --is-ancestor <Commit> HEAD` also reports HOW FAR behind, which is more useful than a yes/no | Yes |
+| `Generated:` | against the current time AND the file's own modification time (`stat`), which the header cannot forge | Yes |
+| `Tree:` | against `git status --porcelain` — a hand-off written `clean` on a tree that is now dirty, or vice versa, means work moved outside the hand-off's account of it | Yes |
+| `Position:` | against PROGRESS.md's current position and next action | **No — prose against prose** |
+
+The first five are executable. `Position:` is a human-readable corroborator, deliberately kept in prose because a position is a sentence, and it is NOT claimed as a mechanical check anywhere — a check that cannot be run is a promise, and this skill does not write promises as checks. Containment runs FIRST because it is the only one that catches a second checkout of the same repository, where every identity check legitimately passes.
+
+**A session never composes these checks itself — it runs `scripts/keel-handoff-verify` (UNBREAKABLE).** This is not a style preference, it is what makes the checks run at all. A session writing them inline produces one line of nested `$(...)`, the permission matcher cannot decompose it, the call comes back `Parse error`, and the project's allow-list is bypassed **even when every git command in it is allowed** — at every link of a chain, not only the first. Measured. So the checks live in a generated script with ONE allow-list entry:
+
+```json
+{ "permissions": { "allow": ["Bash(./scripts/keel-handoff-verify:*)"] } }
+```
+
+The table above is that script's CONTRACT, not a recipe for the session to reimplement. Keel generates it at the Phase 5 scaffold beside `keel-verify` and `keel-doctor`, and the continuation prompt instructs the next session to run it. Its output is one line per check plus a `VERDICT: CONTINUE` or `VERDICT: STOP`, so the session reads a verdict instead of interpreting five command outputs. Written any other way, the courier checks are exactly the promise this skill refuses to write.
+
+**Timestamps are compared as epoch seconds, never as strings.** The header writes an ISO offset (`+02:00`) and `stat` reports another form (`+0200`); a string comparison of the same instant therefore reports tampering on every run. Normalise both to epoch first — the script does; a human reading them will silently do the right thing and never notice the trap.
+
+Everything agrees → continue. Containment fails → STOP: this hand-off belongs to another working directory, name it and do not act. `Repo:` disagrees → STOP: this hand-off belongs to another repository. `Repo: unavailable (shallow)` is neither pass nor fail: identity is unverifiable, containment carries the weight, and the session says so rather than pretending either way. Anything else disagrees, or `Generated:` is old enough that the repository has moved since (new commits, a changed position) → **STOP and say exactly what disagrees**, then resume from `docs/PROGRESS.md` instead. A stale or foreign hand-off is more dangerous than no hand-off: it reads like an instruction and is actually a memory. A missing file is not an error — it means resume normally from PROGRESS.md.
+
+Timestamping is done in the header and not in the filename deliberately: a dated filename would make the path change on every write, and the header plus the file's modification time answer "was this written just now or three days ago?" at no cost.
+
+**The most common case is not a new chat at all — it is `/clear` in the same window.** A session whose context is full but whose window is perfectly good starts a fresh session in place (`/clear` — "start a new session with empty context; the previous session stays on disk, resumable with `/resume`"), then reads the hand-off. This is the SAFEST route and it is the one to recommend by default: same window, same repository, permissions already granted, the wrong-window failure impossible by construction. It is also the least automatable — nothing lets a session clear its own context — which is exactly why it is stated here rather than left implicit. All the chaining machinery below exists for when a new window is genuinely wanted; `/clear` needs none of it.
+
+### Chaining the next chat (opt-in — `Chaining:` on the project card)
+
+**Split this in two before reading further, because only one half is universal.** The continuation FILE works with every assistant, everywhere, with no integration whatsoever: "read `<abs-path>/docs/continuation-prompt.md` and continue" is an ordinary prompt, so Codex, Copilot, Cursor, Gemini CLI, Windsurf, a web chat or a human typing it all consume the hand-off identically. That half is the mechanism. Opening the next chat automatically is the other half — a per-tool convenience that depends on an integration each vendor either offers or does not, and that Keel must never assume on a tool's behalf.
+
+The card records what a CLEAN close-out does beyond writing the file:
+
+| `Chaining:` | What happens | Human gesture left |
+|---|---|---|
+| `off` (default) | The file is written and the prompt shown. Nothing opens. | Open a chat, paste |
+| `prefill` | The tool's recorded action opens a session with the prompt already typed | Press Enter |
+| `start` | The tool's recorded action launches AND submits | None — unless the lane is busy, in which case the new window prints the prompt |
+
+The values name the BEHAVIOUR, not the mechanism, on purpose: the same tool family does both — Claude Code's URI handler pre-fills and never submits, while its CLI, started with a prompt argument, submits immediately. A single value meaning different things on different tools is precisely the ambiguity this skill refuses everywhere else.
+
+**`start` is opt-in per project, is not the default, and is GATED on the single-lane lock below.** The protections that matter survive without a human keystroke: a blocked hand-off never chains, and a stale, foreign or misplaced one is refused on reading — all machine checks. What a keystroke uniquely guarded against was landing in the wrong place, and the absolute path, `Repo:` and containment close that.
+
+But removing the human removes something else that nobody had accounted for, and it was found by RUNNING the mechanism rather than reading it: **the person between links was the only thing keeping the chain single-file.** A three-link chain under test produced four live sessions and four windows in sixteen seconds — two launches were still in flight while the counter was read, so the cap was passed by design rather than by accident. Two sessions live on one checkout means interleaved commits on one branch, `docs/PROGRESS.md` overwritten by whichever finishes last, a hand-off describing a state neither of them left, and edits made on reads the other has already invalidated. **None of the courier checks fire**: same repository, same starting commit, a perfectly fresh hand-off. And it escaped the person who had just written the cap, which is the part that matters — a user who merely switched `start` on has strictly worse odds.
+
+So `start` requires three things, and a project missing any of them is offered `prefill` at most:
+
+1. **The single-lane lock** (below). Without it, `start` is a chain that can fork silently.
+2. **A verified open action for the tool that produces a VISIBLE session**, not a headless run. On macOS that is `osascript` driving Terminal.app, verified. Linux (`gnome-terminal` / `konsole` / `xterm`) and Windows are NOT verified: an implementer who reaches for the plain platform open command ships the headless variant, which runs correctly and opens nothing, leaving the user waiting for a window that will never appear. **`start` is therefore verified on macOS only today.**
+3. **The project's allow-list entry for `scripts/keel-handoff-verify`**, plus folder trust granted once. Without them every link stops for a permission prompt, which is not automation with extra steps — it is `prefill` pretending.
+
+The residual risk stays real even with all three: a window begins working unsupervised from a hand-off composed by a session that was running out of context. That is not uniform — a routine slice is not a migration, a release, or anything touching production data — so it remains the user's call per project, recorded on the card and in `docs/decisions.md`.
+
+#### The single-lane lock
+
+One rule, and its two properties are both consequences of how the failure actually happened:
+
+- **The ARRIVING session takes the lock, not the launching one.** A launcher cannot know who else is in flight — that is precisely what failed. A session that starts, finds the lock held by a live process, and exits saying so is the only shape that closes the window between launch and execution.
+- **The lock file lives OUTSIDE the repository** (the user's state directory), **keyed by the REAL path of `git rev-parse --show-toplevel`** — not by the root-commit hash. A lock inside the tree is a brake the chain can erase: a `git clean`, a checkout, or a fresh clone resets it, and the thing it protects is the thing that modifies it. The key is the working directory for two reasons: the root-commit hash carries the shallow trap described above (it is not the root in a shallow clone and it CHANGES on `--unshallow`, so a live session's lock would become invisible to the next one in the same directory), and what has to be serialised is the tree being written to, not the repository in the abstract — two worktrees of one repository are two legitimate lanes, exactly as containment already treats them.
+
+It holds the owning PID and its start time, so a stale lock from a crashed session is detectable rather than permanent. A session that cannot take the lock does what every other blocked path does: prints the prompt and exits 0.
+
+Until a project has this, `start` is not offered — not as a warning, as a gate.
+
+**How the question is asked — at the start, and with the warning attached.** `Chaining:` is not a configuration preference to be buried in the project card and filled in silently. It is asked at Phase 1 step 0a (and at the reconciliation, for an existing project) alongside the other opening decisions, in this shape:
+
+> **Do you want development to chain automatically between chats?**
+>
+> - `off` (recommended) — every chat ends with the hand-off written and the prompt ready to copy. You decide when it continues.
+> - `prefill` — the next chat opens with the instruction already typed; you press Enter.
+> - `start` — the next chat opens **and starts by itself**, without you touching anything.
+>
+> **If you choose `start`, that happens in the CLI, not in your editor.** It is the only verified way to automate the full cycle: the VS Code URI pre-fills and does not submit, and its handler accepts no parameter that changes this. Choosing `start` means development moves to command-line sessions.
+>
+> **And it means development advances with nobody watching.** Decide whether that is acceptable on this project before choosing it.
+
+Two reasons the warning is text the user reads and not a footnote. **It changes the tool, not just a setting** — someone working in VS Code who picks `start` expecting their editor to do something gets terminal windows instead, and that belongs before the choice, not after. **And it changes who supervises** — `off` and `prefill` keep a person between links; `start` removes the only participant who can notice that the chain has forked.
+
+Whatever the value:
+
+- **Chaining fires only on a clean hand-off.** Any "When to stop and ask" row (SKILL.md), a failed test point, an open Design Request, or the three-attempt rule → the file is written with `Handover: blocked` and the reason, and nothing is opened. Chaining a blocked state hands the next session a problem dressed as an instruction, and the next session cannot tell the difference.
+- **Opening a window the user did not ask for takes over their screen**, so it is never done silently and never on `off`.
+- **An open action is a local convenience only.** It needs the tool running on the same machine as the repository, so it has no meaning in CI, in a cloud session, or anywhere the repo is not open locally. Where it does not apply, the file alone does the whole job — chaining is a convenience on top of the file, never a replacement for it.
+
+#### Whenever a chat cannot be opened, the prompt is shown to be copied (UNBREAKABLE)
+
+Chaining fails for ordinary reasons — the card says `off`, the tool has no recorded action (the normal case), the tool is not running, the command is missing, the action does not fire, the hand-off is blocked. Every one of them ends the same way: **the full continuation prompt is printed in the conversation, ready to copy, with the one line saying to paste it into a new chat.** There is no path in which a session ends without the user holding either an opened chat or a copyable prompt.
+
+This is why the file and the chat display are never traded against each other. Writing the file does not excuse skipping the prompt, chaining does not excuse skipping it either, and a failure to chain is not an error to report but a fallback to take — say in one line that the chat could not be opened, then show the prompt. A session that ends with "I could not open the next chat" and nothing else has stranded the user at exactly the moment the mechanism existed to help them.
+
+#### Closing the current chat when a new one is launched (UNBREAKABLE)
+
+When chaining DOES fire, the session that fired it is finished, and it says so as its last message — otherwise the user is left with two live chats and no idea which one is theirs. The closing message is short and states three things:
+
+1. This chat is closed.
+2. A continuation chat is being launched, and where the hand-off lives.
+3. What is left for them to do: press Enter in the window that just opened (`prefill`), or nothing at all (`start`) — **and, under `start`, that if the single lane is already busy the new window will say so and print the prompt instead of continuing.** The closing session cannot know: the lock is taken by the ARRIVING session, after this one has finished. Promising an unconditional "nothing to do" is the one claim in this message that can be false, and the user is by definition not watching.
+
+Nothing else — no summary of the sprint, which is already in `docs/PROGRESS.md` and in the file, and no work started after it.
+
+**This closing message follows the language of the conversation, not the English default.** It is spoken TO the person, so it obeys SKILL.md's rule that the assistant always talks in the user's language; the English default governs what Keel *creates*, and `docs/continuation-prompt.md` — an artifact — stays in English like every other. Getting this backwards is a real and easy mistake: the file in Spanish and the goodbye in English is precisely the wrong way round.
+
+For a Spanish-speaking user, that last message reads like: *"Chat cerrado. Lanzo el chat de continuación — el traspaso está en `docs/continuation-prompt.md`. Solo tienes que pulsar Enter en la ventana nueva."*
+
+#### The tool registry — what each assistant may do
+
+The chaining action is a property of the TOOL, not of Keel, so the script detects rather than assumes and probes at the moment it runs. Evidence is graded in three tiers, because "documented" and "verified" are not the same claim:
+
+| Tool | Recognised by | Action | Evidence |
+|---|---|---|---|
+| Claude Code, VS Code extension | `CLAUDECODE=1` **and** `CLAUDE_CODE_ENTRYPOINT=claude-vscode` | `vscode://anthropic.claude-code/open?prompt=…` — pre-fills, does NOT submit → `prefill` | **VERIFIED** on macOS: new tab opened, box pre-filled, no session file written until Enter |
+| Claude Code, CLI | `CLAUDECODE=1` **and** `CLAUDE_CODE_ENTRYPOINT` set to anything OTHER than `claude-vscode` (observed: `cli` when a person types the command, `sdk-cli` when another session launches it) | `claude '<prompt>'` in the repo — submits immediately, and inherits `cwd` so it cannot land in the wrong repository → `start` | **VERIFIED** on macOS: `sdk-cli` in Terminal.app, end to end in a scratch repo; `cli` in VS Code's integrated terminal |
+| Cursor | Marker not verified | `cursor://anysphere.cursor-deeplink/prompt?text=…`; its documentation states deeplinks never trigger automatic execution → would be `prefill` | **DOCUMENTED, UNTESTED** — no row is active until someone runs it |
+| Codex | Marker not verified | A positional prompt argument is documented; whether it submits or pre-fills is not | **DOCUMENTED, UNTESTED** |
+| Gemini CLI | Marker not verified | The documented prompt flags are headless mode — run and exit, i.e. submitting, not pre-filling | **DOCUMENTED, UNTESTED** |
+| GitHub Copilot, Windsurf | — | No documented mechanism for opening a chat with a prompt | **NONE FOUND** |
+| Anything unidentified — a cloud session, a web or desktop chat, CI, an unknown tool | No marker matches | — | Print |
+
+**Match one value positively; treat every other entrypoint as the CLI. Never exclude on `VSCODE_*`, and never enumerate the CLI's values.** Two drafts got this wrong the same way — by describing the environment that had happened to be measured rather than the property that matters.
+
+The first required the CLI row to see zero `VSCODE_*`, which would have un-matched the CLI whenever it runs inside VS Code's integrated terminal, a shell that inherits the editor's variables. The second pinned the CLI row to `CLAUDE_CODE_ENTRYPOINT=sdk-cli`, the one value measured at the time — and then a plain `claude '<prompt>'` typed by a person turned out to report `cli`, so the row would have missed the most ordinary case there is. The entrypoint set belongs to the vendor, and a rule that lists its members ages the day they add one.
+
+So the rule is asymmetric on purpose: **`claude-vscode` is the only value matched by name**, because it is the only one whose BEHAVIOUR differs — a URI handler that pre-fills and never submits. Everything else carrying `CLAUDECODE=1` is the CLI: it submits, and it inherits `cwd`. That holds whichever label the vendor prints and whoever started the session, and it is safe in both directions — a future CLI entrypoint matches correctly, and if one ever appears that is NOT the CLI, containment and `Repo:` still refuse to let it work in the wrong place.
+
+Measured on macOS, and worth reading twice because two of the four are counter-intuitive: the extension reports `claude-vscode` and sets **no** `TERM_PROGRAM` at all; VS Code's integrated terminal reports `cli` with `TERM_PROGRAM=vscode`; a session launched programmatically by another reports `sdk-cli`; Terminal.app sets `TERM_PROGRAM=Apple_Terminal`. So `TERM_PROGRAM=vscode` identifies the terminal PANEL, not the VS Code extension — the exact inversion of the first draft's guess. And `VSCODE_*` is not one family but two disjoint ones: the extension host carries `VSCODE_PID` / `VSCODE_IPC_HOOK` / `VSCODE_ESM_ENTRYPOINT`, the integrated terminal carries `VSCODE_GIT_ASKPASS_*` / `VSCODE_INJECTION`. Three surfaces, overlapping variables, one reliable discriminator.
+
+**Only a VERIFIED row is ever acted on.** Documented-but-untested is not a permission: it is a lead, telling whoever verifies it where to start. Everything else prints, which costs the user one paste and never fails silently.
+
+Two properties make this safe to extend. **An unrecognised tool is never a failure**, it is the print row. And **a tool is promoted to VERIFIED only from an observation on a real machine** — the exact marker, the exact command, and what it actually did (pre-filled or submitted) — never from a plausible-looking URI scheme or an environment variable someone assumed exists. That second rule was written after being broken here: this table's first version identified the VS Code surface by `TERM_PROGRAM=vscode`, which is NOT set there; the real discriminator is `CLAUDE_CODE_ENTRYPOINT`. The guess failed safe, into the print row, but it was a guess, and guessing about a tool nobody is watching produces a close-out that reports a chat as opened when nothing opened.
+
+Adding a tool is therefore a small, ordinary contribution: verify it, promote the row, record the D-entry. Removing one is the same in reverse — if a vendor changes its scheme, the row drops back rather than staying wrong.
+
+#### `scripts/keel-continue`
+
+Generated at the Phase 5 scaffold on projects whose card is not `Chaining: off`. It writes nothing and decides nothing: it detects the tool, looks up its row, and either fires the recorded action or prints. Keeping it that thin is what keeps the mechanism testable without any editor at all — the hand-off is verified by reading the file, not by watching a window appear. One script serves every tool on the project; there is no per-tool script and no per-tool branch in the skill.
+
+The contract it must satisfy, whatever language it is written in:
+
+1. Resolve `REPO_ROOT` (`git rev-parse --show-toplevel`) and build the ABSOLUTE hand-off path from it. Never emit a relative path.
+2. **Verify before firing**, by running `scripts/keel-handoff-verify` — not by composing git commands. A `VERDICT: STOP` → print, do not chain. Firing first and verifying afterwards means the next session discovers it must stop only after it has launched and spent context, which is the wrong order — and under `start` there is no human in between to notice.
+3. A missing file, an unreadable or malformed header (treat it exactly like a missing file — a header that cannot be parsed cannot be trusted), or a `Handover:` that is not `clean` → **print the reason AND the prompt itself, marked as a blocked hand-off, and exit 0.** The prompt rule admits no exception: "whenever a chat cannot be opened, for ANY reason, the prompt is printed" includes this one. Refusing to chain and refusing to print are different things, and only the first is intended.
+4. Detect the tool by `CLAUDE_CODE_ENTRYPOINT` (or the equivalent marker recorded for that tool), matching `claude-vscode` by name and treating every other value as the CLI — never by enumerating the CLI's values, which the vendor extends. No match, or a match whose row is not VERIFIED → print and exit 0. This is a success, not a failure.
+5. A VERIFIED row whose action tier exceeds the card's `Chaining:` value → downgrade to what the card allows; never upgrade. **If the row has no action at the resulting tier, print** — downgrading never means substituting another tier's action. (The CLI row knows only `start`; on a card that says `prefill`, it prints.)
+6. Fire the action. On any non-zero exit, fall back to printing.
+7. Exit 0 in every path that leaves the user with either an opened chat or a printed prompt. Exit non-zero only when it could do neither.
+8. Under `start`, taking the single-lane lock is NOT this script's job — the ARRIVING session does that. `keel-continue` only launches; the launched session refuses if the lane is busy.
+
+Two details an implementer would otherwise have to invent, so they are fixed here: the prompt is **percent-encoded** when it goes into a URI (space → `%20`, `/` → `%2F`), using whatever the platform provides rather than a hand-rolled table; and "copy to the clipboard where available" means `pbcopy` (macOS), `wl-copy` or `xclip -selection clipboard` (Linux), `clip.exe` (Windows) — absent all of them, printing alone satisfies the contract.
+
+**Two different jobs, two different commands, and conflating them is a real trap.** Firing a URI is `open` (macOS), `xdg-open` (Linux), `Start-Process` (Windows) — that serves `prefill`. Opening a VISIBLE CLI session is something else entirely: on macOS it is `osascript` driving Terminal.app, verified; on Linux (`gnome-terminal` / `konsole` / `xterm`) and on Windows it is NOT verified. Reaching for the plain open command to satisfy `start` ships the headless variant, which runs the next session correctly and opens no window at all — the user waits for a chat that does not exist, and nothing reports an error. Until those platforms are verified, `start` resolves only on macOS and prints everywhere else.
+
+`scripts/keel-handoff-verify` is the sibling artifact, generated at the same scaffold: it runs the five mechanical checks and prints one line each plus `VERDICT: CONTINUE|STOP`. Portability is the same open question — the first prototype was BSD/macOS only (`stat -f`, `date -j`); the Linux/GNU forms (`stat -c`, `date -d`) and Windows are unwritten. A generated script that only runs on the machine that generated it is a check that cannot be run, so this is tracked as a real gap rather than a detail.
+
+
 ## Context & cache discipline (how every session works)
 
 These rules exist so sessions are cheap, deterministic, and cache-friendly. Follow them literally.
@@ -258,7 +459,7 @@ The project root carries the Keel block below in TWO files, always: `CLAUDE.md` 
 One tool needs a third step: **Gemini CLI reads `GEMINI.md`, not `AGENTS.md`, by default.** If the user works with Gemini CLI, ask once and record the pick: mirror the same block in `GEMINI.md` (a third copy of the lock, refreshed with the others), or commit a `.gemini/settings.json` whose `context.fileName` includes `AGENTS.md` (no third copy to maintain). Either satisfies the lock.
 
 ```
-<!-- KEEL:BEGIN — v5.2.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
+<!-- KEEL:BEGIN — v5.3.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
 # Keel protocol (mandatory for ANY assistant working in this repository)
 
 This project is governed by the Keel workflow. Before reading code or changing ANYTHING:
@@ -297,9 +498,28 @@ This project is governed by the Keel workflow. Before reading code or changing A
    customer data). A finding STOPS the commit: warn the user file by file that
    pushing it is a serious security risk, and exclude it via `.gitignore` (already
    tracked: untrack it too; ever pushed: purge history AND rotate the credential)
-   before committing anything. If ending mid-work, produce the continuation prompt
-   from the embedded skill's `references/project-state.md`.
-5. Work with execution discipline, whatever model or environment is running:
+   before committing anything.
+5. NEVER end a session mid-work leaving the user with nothing to continue from
+   (UNBREAKABLE). Produce the continuation prompt from the embedded skill's
+   `references/project-state.md`, SHOW it in the conversation ready to copy, and
+   WRITE it to `docs/continuation-prompt.md` with its freshness header
+   (`Repo` / `Generated` / `Keel` / `Commit` / `Tree` / `Position` / `Handover`). Running low on
+   context is when this is most likely to be skipped and most expensive to skip:
+   do it BEFORE the session is exhausted, never as an afterthought. Reading one of
+   those files obliges the reverse duty — check that its real path is INSIDE this
+   session's `git rev-parse --show-toplevel`, then its `Repo`, `Commit`, `Tree` and
+   timestamp against the repository you are actually in, and STOP rather than act on
+   a stale hand-off OR on another checkout's: the filename is the same in every Keel
+   project, and a worktree or second clone shares both repository and commit, so
+   containment is the only check that separates them. Where the project card's `Chaining:` allows it and the hand-off
+   is clean, and the tool you are running in has a VERIFIED action recorded, also
+   chain the next chat — passing this repository's ABSOLUTE hand-off path — then
+   close this one in one short message in the CONVERSATION's language. If a chat
+   cannot be opened for ANY reason — including "this tool has no recorded action",
+   which is the normal case — that is not an error to report: print the prompt to
+   be copied. The FILE works in every tool and needs no integration; only the
+   auto-open is tool-specific, and it is never guessed.
+6. Work with execution discipline, whatever model or environment is running:
    - Batch independent tool calls in ONE parallel block; never run sequentially what
      does not depend on a previous result.
    - Delegate broad searches/scans to a subagent when the environment provides them;

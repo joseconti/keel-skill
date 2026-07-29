@@ -325,7 +325,7 @@ Hard rule, every container: NEVER a literal secret — each tool's environment-e
 
 ## Personal files and `.gitignore`
 
-Unconditional entries (they apply even when the whole package was declined): `CLAUDE.local.md`, `.claude/settings.local.json`, and `.keel-update-check`. Per accepted tool, add its repo-resident personal/transient files: `AGENTS.override.md` (Codex — the user's personal per-directory override), `.gemini/.env` and `.gemini/tmp/` (Gemini CLI). User-level config under `~` never enters the repo, so it needs no entry. Keel never creates any personal file — they are the user's own; the entries only make them uncommittable.
+Unconditional entries (they apply even when the whole package was declined): `CLAUDE.local.md`, `.claude/settings.local.json`, `.keel-update-check`, and `docs/continuation-prompt.md`. Per accepted tool, add its repo-resident personal/transient files: `AGENTS.override.md` (Codex — the user's personal per-directory override), `.gemini/.env` and `.gemini/tmp/` (Gemini CLI). User-level config under `~` never enters the repo, so it needs no entry. Keel never creates any personal file — they are the user's own; the entries only make them uncommittable.
 
 ## Adoption specifics
 
@@ -341,6 +341,6 @@ Unconditional entries (they apply even when the whole package was declined): `CL
 - The pre-commit gate, if accepted: installed (`.githooks/pre-commit` + `core.hooksPath`), VERIFIED by blocking a synthetic secret, and its collaborator setup line documented.
 - MCP registration exists only if the plan defines dev MCP servers, carries no literal secret in any container, and was confirmed.
 - The CI workflow, if accepted and the forge supports CI: one workflow, on push and PR, running the plan's EXACT verified commands (install → lint → build → full test suite) plus the secret scan and `scripts/keel-verify` — nothing invented.
-- `.gitignore` includes the unconditional entries (`CLAUDE.local.md`, `.claude/settings.local.json`, `.keel-update-check`) plus the accepted tools' personal files.
+- `.gitignore` includes the unconditional entries (`CLAUDE.local.md`, `.claude/settings.local.json`, `.keel-update-check`, `docs/continuation-prompt.md`) plus the accepted tools' personal files.
 - Phase 7's export-ignore covers every generated config tree (`.claude/`, `.agents/`, `.codex/`, `.cursor/`, `.gemini/`, `.windsurf/`, `.github/instructions/`, `.github/agents/`, `.vscode/mcp.json`, `.githooks/`, `.mcp.json`, nested context files); nothing from this package ships.
 - Every generated piece is reflected in the project card and `docs/decisions.md`; no piece is ever regenerated silently.
