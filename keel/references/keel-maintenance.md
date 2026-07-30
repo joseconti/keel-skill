@@ -1,4 +1,4 @@
-# Keel maintenance — update check, lock freshness, version policy
+# Keel maintenance — update check, permission mode, lock freshness, version policy
 
 Loaded and executed ONCE per session, when Keel is invoked and before the entry-mode decision. Reading this file IS the cue: run the checks the moment you read it, before any project work. In a Keel project's repo the `CLAUDE.md` lock makes the full `SKILL.md` read its step 1, and SKILL.md's maintenance block routes here — precisely so these checks run in every session, whether or not the skill auto-triggered. Everything here is best-effort and must never block, delay, or interrupt the work: if any step fails (no network, no fetch mechanism, API error), skip silently, continue with the running version, and do not retry in this session.
 
@@ -21,6 +21,59 @@ Keel is distributed from `https://github.com/joseconti/keel-skill` (releases: `h
 **Lock freshness (same moment, every session inside a Keel project).** After the update check, verify the project's Keel lock block — in `CLAUDE.md` AND `AGENTS.md`, both — is current by its stamp alone — a one-line look, never a content comparison: the `KEEL:BEGIN` delimiter carries the version of the Keel that last wrote the block (`KEEL:BEGIN — vX.Y.Z do not remove: …`). Stamp equal to the running version → current, done. Stamp different or missing (blocks from before the stamp mechanism carry none; match delimiters by the `KEEL:BEGIN` prefix, never by exact text) → refresh: rewrite the block between the delimiters from the canonical copy in `references/project-state.md` ("Portability" §1), restamped with the running version, with the user's OK — in both lock files, and in the `GEMINI.md` mirror when the project keeps one; a project still carrying a single-file lock gets the missing `AGENTS.md` created in the same refresh. Never touch anything outside the delimiters. This is what keeps the always-loaded `CLAUDE.md` rules from drifting behind the skill.
 
 Overwriting the skill is safe: Keel is stateless — project artifacts live in each project's `docs/`, never in the skill folder (see the repository's `INSTALL.md`). Installing an official newer release is an installation, not an authoring edit: it does not fall under the version change policy below, which governs hand-editing version strings in this copy.
+
+## Permission mode (start of every session, before any work)
+
+Keel works in long chains of tool calls, and Claude Code's default permission mode is `manual`. In `manual` mode a command is matched **statically** against the `allow` rules, so anything composite — a shell variable, a `&&`, a `;`, a pipe — fails to match even when every command inside it is allowed, and opens a permission dialog. Keel's phases are made of exactly those commands. The result is not slower work, it is stopped work: the unattended stretch this skill assumes never happens, and the user is dragged back into approving links of a chain they already approved as a whole. So the mode is checked and resolved BEFORE any project work, in the same breath as the update check.
+
+**Check first.** Read the session's active mode (the status line / mode indicator, `--permission-mode` if it was passed, and `.claude/settings.local.json` → `permissions.defaultMode` when the file exists). Anything other than `manual` → say nothing and continue. `manual`, or undetermined → resolve it by one of the two routes below, then continue.
+
+### Preferred route — `.claude/settings.local.json` (persistent)
+
+Create or update `.claude/settings.local.json` at the repository root **when question 1 of the setup batch was answered yes** (SKILL.md, "Session start setup"). The mode is the user's call, asked once and recorded on the project card's `Autonomy:` line; writing the FILE that implements it is not a second question — Keel writes it and announces it in one line. A later session on a fresh machine finds the decision recorded and the file absent (it is gitignored, so a new checkout never carries one): it writes the file, says so, and does not re-open a question that is already answered. Answer no, and no file is written at all: the mode stays as it is, Keel asks before each action, and it pushes nothing that was not explicitly requested.
+
+That this file may be written where a committed allow-list may not is not an inconsistency with "committed permissions are ALWAYS confirmed" (`references/assistant-config.md`) — it is the same rule read correctly: `.claude/settings.json` is committed and binds every person who opens the repo, so it needs the user's explicit OK; `.claude/settings.local.json` is machine-local, gitignored and binds nobody but this checkout, so writing it changes nothing outside the user's own machine. It is also the single exception to "Keel never creates a personal config file"; every other personal file stays the user's own.
+
+The contents:
+
+```json
+{
+  "permissions": {
+    "defaultMode": "auto",
+    "deny": [
+      "Bash(rm -rf /*)",
+      "Bash(sudo *)",
+      "Bash(curl * | sh)"
+    ]
+  },
+  "env": {
+    "PATH": "/opt/local/bin:/opt/homebrew/bin:/usr/local/bin:${PATH}"
+  }
+}
+```
+
+**Merge, never overwrite.** If the file already exists, read it and add only what is missing: set `permissions.defaultMode` to `auto`, union the `deny` and `ask` entries with those already present, and set `env.PATH` only if it is absent. A rule the user put there is never removed or reordered, and a `deny` the user added always survives. If the existing file is unparsable, do not rewrite it — say so and use the per-session route instead.
+
+Two contents notes, told to the user when the file is written so neither surprises them later:
+
+- **There is deliberately no `ask` entry for `git push`.** An earlier draft put one there and it was removed: it contradicts the git-flow rule head-on (SKILL.md, "Git flow"), where pushing and merging into `develop` are the assistant's own duty in automatic mode. A dialog on every push recreates the queue of unpushed commits that rule exists to abolish, and it buys no safety — the safety lives at the `develop` → `main` merge, which Keel never performs on its own initiative. Adding `ask` entries of their own is of course the user's prerogative, and a merge preserves them.
+- **`env.PATH` is the user's real PATH**, the one their own commands resolve under. The value above is the verified macOS/MacPorts+Homebrew case; on a machine whose layout differs, detect it (per the corroboration rules in `references/test-automation.md`) and write that one instead of copying this line blindly.
+
+### Alternative route — per session
+
+For a user who prefers no file written: start the session with `claude --permission-mode auto`, or press Shift+Tab until the mode indicator reads `auto`. It resolves the same problem for the current session only, and has to be repeated in the next one — say that plainly rather than letting them discover it.
+
+### `.gitignore`
+
+Verify `.claude/settings.local.json` is listed; if it is not, add it. It is already one of the unconditional entries (`references/assistant-config.md`, "Personal files and `.gitignore`"), so this is a check, not a new rule — but the file is being written now, which is exactly the moment a missing entry becomes a real risk.
+
+### Hygiene — no `export PATH=... &&` prefix, ever
+
+With `env.PATH` set in that file, every command Keel runs already resolves the user's tooling. Prefixing a command with `export PATH=... && ...` therefore buys nothing and costs everything: the prefix ALONE makes the command composite, which is precisely what fails the static match and opens a dialog — on every single call, including the ones that would otherwise have matched an `allow` rule cleanly. So Keel never writes that prefix, in a tool call, in a generated `scripts/` file, in a phase reference, or in a command handed to the user. When a tool genuinely does not resolve, the answer is the absolute path of that binary (recorded in the environment requirements table), never a PATH prefix on the command. A milder version of the same mistake — `cd <dir> && <command>` where the tool already takes a working directory — has the same fix: pass the directory, keep the command simple.
+
+### The doctor's check
+
+`scripts/keel-doctor` reports the permission mode as an **advisory** row — never blocking (see `references/test-automation.md`, "`scripts/keel-doctor`").
 
 ## Version change policy (UNBREAKABLE RULE — never bump under any circumstance without explicit user instruction)
 
