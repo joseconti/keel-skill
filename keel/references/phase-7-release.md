@@ -15,6 +15,8 @@ Confusing these is a common defect: a dev file ends up shipped, or a needed runt
 
 ### 1. `.gitignore`
 
+**Who performs the release (read before anything else in this phase).** Keel prepares it — the candidate on `develop`, the full gate, the version proposal, the notes, the artifacts — and stops. **The merge to `main`/`master`, the tag and the published release are the user's acts**, performed only on an explicit instruction in the current conversation (SKILL.md, "Git flow"; the version number itself follows the same propose-and-wait rule). Keel says the candidate is ready and what remains to be pressed; it never presses it.
+
 Generate per project type. Always exclude: secrets/credentials, `.env*`, local config with tokens, dependency dirs (`vendor/`, `node_modules/`), build artifacts, logs, OS files (`.DS_Store`), editor dirs (`.idea/`, `.vscode/` unless intentionally shared), personal assistant config (`CLAUDE.local.md`, `.claude/settings.local.json`), the update-check throttle stamp (`.keel-update-check`), and the ephemeral session hand-off (`docs/continuation-prompt.md`, per `references/project-state.md`). Add type-specific entries:
 - WordPress plugin: build dirs, `vendor/` if committing only built deps, local WP test env.
 - MCP server / web app (e.g. Fly.io): `.env`, deploy secrets, local data volumes.

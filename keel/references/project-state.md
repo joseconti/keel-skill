@@ -52,6 +52,9 @@ Keep it to roughly one page. Detail lives in the linked files, never accumulated
 - Client budget: [yes / no — asked once at Phase 1 step 10; yes → docs/budget.md at Phase 2 close]
 - User guide: [languages + ships in release yes/no + dev portal yes/no and ships/repo-only / declined — asked at Phase 6; guide/ at the repo root]
 - Docs theme: [keel-docs-theme vX.Y.Z vendored in guide/_theme/ / n/a until Phase 6 — per references/guide-theme.md]
+- Autonomy: [automatic — Keel does not ask, and does every merge to develop and every push itself | not automatic — Keel asks every time and pushes only what was explicitly requested] / issues: [after-sprint|on-request|n/a no forge] — the session-start setup batch (SKILL.md), asked once and applied silently thereafter. Everything hangs off the first value; it is never inferred per action. The MODE lives in a per-machine file (`.claude/settings.local.json` is gitignored, so a fresh checkout has none) while this line is the recorded DECISION, so a new machine gets the file written without re-asking
+- Branches: [integration branch (default `develop`) / current work branch / anything on develop awaiting the user's merge to main] — per SKILL.md "Git flow": Keel merges work branches to develop and pushes; the merge to main, the tag and the release are the user's act, always
+- Notify: [channel — recipient / none — nothing delivering in this environment / declined] — the out-of-band channel per references/notifications.md; re-probed every session, because a channel that answered yesterday is not a fact about today
 - Chaining: [off (default) / prefill / start — what a CLEAN close-out does beyond writing docs/continuation-prompt.md and showing the prompt, which happen on every value including off; prefill opens the next chat pre-filled (user presses Enter), start launches and submits. Asked at Phase 1 step 0a with the warning attached, never filled in silently. start is GATED on the single-lane lock and is verified on macOS only; without both, prefill is the maximum offered. Falls back to printing]
 
 ## Phase status
@@ -155,17 +158,21 @@ Created the first time issues are triaged or worked (any phase — development, 
 ## Inventory
 | # | Title | Type | Priority | Status | Entry |
 |---|-------|------|----------|--------|-------|
-| 123 | Checkout fails on empty cart | bug | high | resolved | E-001 |
+| 123 | Checkout fails on empty cart | bug | high | awaiting deploy | E-001 |
 | 124 | Support WebP product images | feature | low | open | — |
+| 125 | Wrong tax on refunds | bug | high | awaiting reporter | E-002 |
 
 ## Entries (one per issue worked)
 
 ### E-001 — #123 Checkout fails on empty cart
-- Link: [forge issue URL]   Status: resolved [date] / in progress / won't fix (reason)
+- Link: [forge issue URL]   Status: in progress / awaiting deploy / awaiting reporter / resolved [date] / won't fix (reason)
 - Diagnosis: [what was actually wrong — root cause, not the symptom]
 - Resolution: [what was done and why — the approach taken]
 - Changes: [commits/PR, files touched, the version that ships the fix]
 - Verification: [regression test added (Phase 5 rule), test point, playground check]
+- Replies: [beat 1 — fix-landed comment, date + link | beat 2 — testable comment, date + link | none yet]
+- Deploy: [notified <date> via <channel> | confirmed up by the developer <date>, version X | n/a]
+- Closed by: [the reporter <date> / the developer <date> / Keel after the reporter confirmed <date> | still open]
 - Lesson: [L-NNN in docs/lessons-learned.md if one was recorded | none]
 - Pending: [anything left on this issue | none]
 ```
@@ -175,6 +182,14 @@ Rules:
 - **Inventory covers what is known; entries cover what was worked.** On first contact with the forge, fill the inventory with at least the open issues (closed history is optional). Every issue actually worked gets its E-entry — an issue closed without its entry is a state defect.
 - **Status values:** open / triaged / in progress / resolved / won't fix (reason recorded). The inventory row and its entry must agree.
 - **An entry must answer "what did we do here?" months later:** diagnosis, approach, commits, verification — enough to reopen the work cold if the problem resurfaces. If the fix produced a lesson, record it in `docs/lessons-learned.md` and link it; the regression test lives with the fix (Phase 5 rule).
+- **Replying is publishing, and it runs in three beats — never one (UNBREAKABLE).** A comment on a forge issue is read by a third party, carries the developer's name, and cannot be taken back. So an issue whose fix has landed is never answered with "fixed" and closed in the same motion, because the code changing and the reporter being able to try it are two different events, usually days apart:
+
+  1. **Fix landed.** Comment on the issue: what was wrong, that the fix is implemented, and that they will be told when there is something they can actually test. Status → `awaiting deploy`. **The issue is not closed.**
+  2. **The developer is notified** through the recorded channel (`references/notifications.md`) that a build/upload/deploy is needed before the reporter can test — naming the issue, the version and what has to go up. This is a real stop: it goes in `docs/PROGRESS.md` open items and Keel waits.
+  3. **The developer confirms it is up.** Comment again on the issue: it can be tested now, on which version, and what to look for. Status → `awaiting reporter`.
+
+  Then the reporter answers. A confirmation closes it; a "still broken" reopens the work on that issue with the report as new evidence. **Keel never closes an issue on its own reading of the code** — not after the fix, not after the deploy, not at a sprint close, not at a release. And if the reporter or the developer already closed it, Keel leaves it closed and records who did; re-closing a closed issue is noise on someone else's thread.
+- **The three beats survive across sessions**, which is the whole reason they are recorded rather than remembered: the `Replies:`, `Deploy:` and `Closed by:` fields let a fresh session tell beat 2 from beat 3 without reading the forge thread and guessing. An issue sitting in `awaiting deploy` for weeks is a visible open item, not a forgotten one.
 - **Both directions:** issues can drive work (a bug report becomes a slice) or record it (work done reveals something to file upstream). Either way the log stays current.
 - **Growth:** if the file grows large, old **resolved** entries may move to `docs/old/issues-archive.md` (move, never delete); the inventory always stays complete, with archived entries still referenced from their rows.
 
@@ -212,10 +227,13 @@ A chat can fill up in any phase — a long competitive scan, a long external-set
 
 ```
 Load the `keel` skill and resume [PROJECT NAME] at Phase [N] ([phase name]), [step/sprint X].
-1. Read docs/PROGRESS.md — the project card, phase status, current position, open items.
-2. Read docs/decisions.md and docs/lessons-learned.md — do not re-litigate decisions; do not repeat recorded mistakes.
-3. Read the current phase's reference (references/phase-[N]-*.md) and the inputs PROGRESS.md names for the current position.
-4. Continue EXACTLY from "Next action". Do not restart the phase, do not reinterpret or "improve" earlier decisions, do not redesign. Gaps go to the user or to a Design Request, per the skill.
+1. Before anything else, apply the recorded session setup from the project card's `Autonomy:` and `Notify:` lines — do not re-ask what is already recorded. If the card says automatic and this session is in `manual`, resolve it (write or merge .claude/settings.local.json with permissions.defaultMode "auto", or restart with --permission-mode auto): in `manual` every composite command opens a dialog and the work cannot run unattended. Re-probe the notification channel for THIS session and say so if nothing delivers.
+2. Read the `Branches:` card line: which branch the work is on, what still has to be merged into the integration branch, and whether anything is waiting on the user's merge to main. Merge your work to develop and push it as you go (automatic mode); never merge to main, never tag, never release — say it is ready and stop there.
+3. Keep going while the queue holds work that does not depend on what is unfinished. Do not stop to ask whether to continue, and do not hand back a menu of remaining items: stop only when the next step depends on something not yet done, or when a decision is genuinely the user's. If context runs out, that is a hand-off, not a decision — write docs/continuation-prompt.md and continue there under this same rule.
+4. Read docs/PROGRESS.md — the project card, phase status, current position, open items.
+5. Read docs/decisions.md and docs/lessons-learned.md — do not re-litigate decisions; do not repeat recorded mistakes.
+6. Read the current phase's reference (references/phase-[N]-*.md) and the inputs PROGRESS.md names for the current position.
+7. Continue EXACTLY from "Next action". Do not restart the phase, do not reinterpret or "improve" earlier decisions, do not redesign. Gaps go to the user or to a Design Request, per the skill.
 ```
 
 The prompt must be self-sufficient: assume the new session knows nothing except what these files contain. Producing it does not force a chat switch — if the current chat still has capacity, continue in it; the prompt is insurance. Like everything Keel creates, the continuation prompt is written in English (SKILL.md "Token economy"), regardless of the conversation language.
@@ -236,13 +254,14 @@ Keel: 5.3.0
 Commit: a1b2c3d
 Tree: clean
 Position: Phase 5 — Sprint 3, slice 3.4 closed; next action: slice 3.5
+Branch: feature/sprint-3 (merged+pushed to develop); nothing awaiting main
 Handover: clean
 ---
 
 [the continuation prompt, exactly as templated above]
 ```
 
-`Handover:` is `clean`, or `blocked: <one line>` naming what stopped the session. `Tree:` is `clean`, or `dirty (N files)` from `git status --porcelain` — the session that writes a hand-off while running out of context is exactly the one likely to leave work uncommitted, and `Commit:` alone says nothing about it, so the next session would inherit changes it believes do not exist.
+`Branch:` names the work branch, whether it is already merged and pushed to the integration branch, and anything sitting on `develop` awaiting the user's merge to `main` — a hand-off that does not say where the code IS sends the next session hunting. `Handover:` is `clean`, or `blocked: <one line>` naming what stopped the session. `Tree:` is `clean`, or `dirty (N files)` from `git status --porcelain` — the session that writes a hand-off while running out of context is exactly the one likely to leave work uncommitted, and `Commit:` alone says nothing about it, so the next session would inherit changes it believes do not exist.
 
 **Producing `Repo:` — three traps, all silent.** It is the SHORT root-commit hash, and the command has edges that return a wrong answer with exit 0:
 
@@ -543,7 +562,7 @@ The project root carries the Keel block below in TWO files, always: `CLAUDE.md` 
 One tool needs a third step: **Gemini CLI reads `GEMINI.md`, not `AGENTS.md`, by default.** If the user works with Gemini CLI, ask once and record the pick: mirror the same block in `GEMINI.md` (a third copy of the lock, refreshed with the others), or commit a `.gemini/settings.json` whose `context.fileName` includes `AGENTS.md` (no third copy to maintain). Either satisfies the lock.
 
 ```
-<!-- KEEL:BEGIN — v5.4.1 do not remove: binds every AI/session in this repo to the Keel workflow -->
+<!-- KEEL:BEGIN — v5.5.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
 # Keel protocol (mandatory for ANY assistant working in this repository)
 
 This project is governed by the Keel workflow. Before reading code or changing ANYTHING:
