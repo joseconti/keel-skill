@@ -145,6 +145,9 @@ build/
 # ---------------------------------------------------------------------------
 .claude/cache/
 .claude/local/
+.claude/settings.local.json
+CLAUDE.local.md
+.keel-update-check
 .anthropic/
 
 # ---------------------------------------------------------------------------

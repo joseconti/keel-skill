@@ -52,6 +52,9 @@ Keep it to roughly one page. Detail lives in the linked files, never accumulated
 - Client budget: [yes / no — asked once at Phase 1 step 10; yes → docs/budget.md at Phase 2 close]
 - User guide: [languages + ships in release yes/no + dev portal yes/no and ships/repo-only / declined — asked at Phase 6; guide/ at the repo root]
 - Docs theme: [keel-docs-theme vX.Y.Z vendored in guide/_theme/ / n/a until Phase 6 — per references/guide-theme.md]
+- Autonomy: [automatic — Keel does not ask, and does every merge to develop and every push itself | not automatic — Keel asks every time and pushes only what was explicitly requested] / issues: [after-sprint|on-request|n/a no forge] — the session-start setup batch (SKILL.md), asked once and applied silently thereafter. Everything hangs off the first value; it is never inferred per action. The MODE lives in a per-machine file (`.claude/settings.local.json` is gitignored, so a fresh checkout has none) while this line is the recorded DECISION, so a new machine gets the file written without re-asking
+- Branches: [integration branch (default `develop`) / current work branch / anything on develop awaiting the user's merge to main] — per SKILL.md "Git flow": Keel merges work branches to develop and pushes; the merge to main, the tag and the release are the user's act, always
+- Notify: [channel — recipient / none — nothing delivering in this environment / declined] — the out-of-band channel per references/notifications.md; re-probed every session, because a channel that answered yesterday is not a fact about today
 - Chaining: [off (default) / prefill / start — what a CLEAN close-out does beyond writing docs/continuation-prompt.md and showing the prompt, which happen on every value including off; prefill opens the next chat pre-filled (user presses Enter), start launches and submits. Asked at Phase 1 step 0a with the warning attached, never filled in silently. start is GATED on the single-lane lock and is verified on macOS only; without both, prefill is the maximum offered. Falls back to printing]
 
 ## Phase status
@@ -155,17 +158,22 @@ Created the first time issues are triaged or worked (any phase — development, 
 ## Inventory
 | # | Title | Type | Priority | Status | Entry |
 |---|-------|------|----------|--------|-------|
-| 123 | Checkout fails on empty cart | bug | high | resolved | E-001 |
+| 123 | Checkout fails on empty cart | bug | high | awaiting deploy | E-001 |
 | 124 | Support WebP product images | feature | low | open | — |
+| 125 | Wrong tax on refunds | bug | high | awaiting reporter | E-002 |
 
 ## Entries (one per issue worked)
 
 ### E-001 — #123 Checkout fails on empty cart
-- Link: [forge issue URL]   Status: resolved [date] / in progress / won't fix (reason)
+- Link: [forge issue URL]   Status: in progress / awaiting deploy / awaiting reporter / resolved [date] / won't fix (reason)
 - Diagnosis: [what was actually wrong — root cause, not the symptom]
 - Resolution: [what was done and why — the approach taken]
 - Changes: [commits/PR, files touched, the version that ships the fix]
 - Verification: [regression test added (Phase 5 rule), test point, playground check]
+- Replies: [beat 1 — fix-landed comment, date + link | beat 2 — testable comment, date + link | none yet]
+- Deploy: [notified <date> via <channel> | confirmed up by the developer <date>, version X | n/a]
+- Closed by: [the reporter <date> / the developer <date> / Keel after the reporter confirmed <date> | still open]
+- Inbound: [last comment received — who, when, what it said, and what it changed | none since the last sweep]
 - Lesson: [L-NNN in docs/lessons-learned.md if one was recorded | none]
 - Pending: [anything left on this issue | none]
 ```
@@ -175,6 +183,15 @@ Rules:
 - **Inventory covers what is known; entries cover what was worked.** On first contact with the forge, fill the inventory with at least the open issues (closed history is optional). Every issue actually worked gets its E-entry — an issue closed without its entry is a state defect.
 - **Status values:** open / triaged / in progress / resolved / won't fix (reason recorded). The inventory row and its entry must agree.
 - **An entry must answer "what did we do here?" months later:** diagnosis, approach, commits, verification — enough to reopen the work cold if the problem resurfaces. If the fix produced a lesson, record it in `docs/lessons-learned.md` and link it; the regression test lives with the fix (Phase 5 rule).
+- **Replying is publishing, and it runs in three beats — never one (UNBREAKABLE).** A comment on a forge issue is read by a third party, carries the developer's name, and cannot be taken back. So an issue whose fix has landed is never answered with "fixed" and closed in the same motion, because the code changing and the reporter being able to try it are two different events, usually days apart:
+
+  1. **Fix landed.** Comment on the issue: what was wrong, that the fix is implemented, and that they will be told when there is something they can actually test. Status → `awaiting deploy`. **The issue is not closed.**
+  2. **The developer is notified** through the recorded channel (`references/notifications.md`) that a build/upload/deploy is needed before the reporter can test — naming the issue, the version and what has to go up. This is a real stop: it goes in `docs/PROGRESS.md` open items and Keel waits.
+  3. **The developer confirms it is up.** Comment again on the issue: it can be tested now, on which version, and what to look for. Status → `awaiting reporter`.
+
+  Then the reporter answers. A confirmation closes it; a "still broken" reopens the work on that issue with the report as new evidence. **Keel never closes an issue on its own reading of the code** — not after the fix, not after the deploy, not at a sprint close, not at a release. And if the reporter or the developer already closed it, Keel leaves it closed and records who did; re-closing a closed issue is noise on someone else's thread.
+- **Reading the thread back is half the duty (UNBREAKABLE).** A log that records what Keel published and nothing about what came back is a monologue, and it fails exactly where the lifecycle needs an answer. Every issue sweep — at each sprint close and at each maintenance touch — looks at BOTH new issues and **new comments on existing ones**, and reads them by status: on `awaiting reporter` a comment IS the verdict, closing the issue (recorded under `Closed by:`) or reopening the work with that report as new evidence; on `awaiting deploy` it is usually "when?", and gets a straight answer; anywhere else it is triaged like any other input. What it says, and what it changed, goes in the entry's `Inbound:` field. A comment that asks something only the user can decide is a stop with its notification — never a guess published on a public thread.
+- **The three beats survive across sessions**, which is the whole reason they are recorded rather than remembered: the `Replies:`, `Deploy:` and `Closed by:` fields let a fresh session tell beat 2 from beat 3 without reading the forge thread and guessing. An issue sitting in `awaiting deploy` for weeks is a visible open item, not a forgotten one.
 - **Both directions:** issues can drive work (a bug report becomes a slice) or record it (work done reveals something to file upstream). Either way the log stays current.
 - **Growth:** if the file grows large, old **resolved** entries may move to `docs/old/issues-archive.md` (move, never delete); the inventory always stays complete, with archived entries still referenced from their rows.
 
@@ -212,10 +229,13 @@ A chat can fill up in any phase — a long competitive scan, a long external-set
 
 ```
 Load the `keel` skill and resume [PROJECT NAME] at Phase [N] ([phase name]), [step/sprint X].
-1. Read docs/PROGRESS.md — the project card, phase status, current position, open items.
-2. Read docs/decisions.md and docs/lessons-learned.md — do not re-litigate decisions; do not repeat recorded mistakes.
-3. Read the current phase's reference (references/phase-[N]-*.md) and the inputs PROGRESS.md names for the current position.
-4. Continue EXACTLY from "Next action". Do not restart the phase, do not reinterpret or "improve" earlier decisions, do not redesign. Gaps go to the user or to a Design Request, per the skill.
+1. Before anything else, apply the recorded session setup from the project card's `Autonomy:` and `Notify:` lines — do not re-ask what is already recorded. If the card says automatic and this session is in `manual`, resolve it (write or merge .claude/settings.local.json with permissions.defaultMode "auto", or restart with --permission-mode auto): in `manual` every composite command opens a dialog and the work cannot run unattended. Re-probe the notification channel for THIS session and say so if nothing delivers.
+2. Read the `Branches:` card line: which branch the work is on, what still has to be merged into the integration branch, and whether anything is waiting on the user's merge to main. Merge your work to develop and push it as you go (automatic mode); never merge to main, never tag, never release — say it is ready and stop there.
+3. Keep going while the queue holds work that does not depend on what is unfinished. Do not stop to ask whether to continue, and do not hand back a menu of remaining items: stop only when the next step depends on something not yet done, or when a decision is genuinely the user's. If context runs out, that is a hand-off, not a decision — write docs/continuation-prompt.md and continue there under this same rule.
+4. Read docs/PROGRESS.md — the project card, phase status, current position, open items.
+5. Read docs/decisions.md and docs/lessons-learned.md — do not re-litigate decisions; do not repeat recorded mistakes.
+6. Read the current phase's reference (references/phase-[N]-*.md) and the inputs PROGRESS.md names for the current position.
+7. Continue EXACTLY from "Next action". Do not restart the phase, do not reinterpret or "improve" earlier decisions, do not redesign. Gaps go to the user or to a Design Request, per the skill.
 ```
 
 The prompt must be self-sufficient: assume the new session knows nothing except what these files contain. Producing it does not force a chat switch — if the current chat still has capacity, continue in it; the prompt is insurance. Like everything Keel creates, the continuation prompt is written in English (SKILL.md "Token economy"), regardless of the conversation language.
@@ -236,13 +256,14 @@ Keel: 5.3.0
 Commit: a1b2c3d
 Tree: clean
 Position: Phase 5 — Sprint 3, slice 3.4 closed; next action: slice 3.5
+Branch: feature/sprint-3 (merged+pushed to develop); nothing awaiting main
 Handover: clean
 ---
 
 [the continuation prompt, exactly as templated above]
 ```
 
-`Handover:` is `clean`, or `blocked: <one line>` naming what stopped the session. `Tree:` is `clean`, or `dirty (N files)` from `git status --porcelain` — the session that writes a hand-off while running out of context is exactly the one likely to leave work uncommitted, and `Commit:` alone says nothing about it, so the next session would inherit changes it believes do not exist.
+`Branch:` names the work branch, whether it is already merged and pushed to the integration branch, and anything sitting on `develop` awaiting the user's merge to `main` — a hand-off that does not say where the code IS sends the next session hunting. `Handover:` is `clean`, or `blocked: <one line>` naming what stopped the session. `Tree:` is `clean`, or `dirty (N files)` from `git status --porcelain` — the session that writes a hand-off while running out of context is exactly the one likely to leave work uncommitted, and `Commit:` alone says nothing about it, so the next session would inherit changes it believes do not exist.
 
 **Producing `Repo:` — three traps, all silent.** It is the SHORT root-commit hash, and the command has edges that return a wrong answer with exit 0:
 
@@ -273,9 +294,10 @@ The first makes the right file get read; the second makes a session in the wrong
 | `Commit:` | against `git rev-parse HEAD`; `git merge-base --is-ancestor <Commit> HEAD` also reports HOW FAR behind, which is more useful than a yes/no | Yes |
 | `Generated:` | against the current time AND the file's own modification time (`stat`), which the header cannot forge | Yes |
 | `Tree:` | against `git status --porcelain` — a hand-off written `clean` on a tree that is now dirty, or vice versa, means work moved outside the hand-off's account of it | Yes |
+| `Branch:` | against `git rev-parse --abbrev-ref HEAD` for the branch, and `git log @{u}..HEAD --oneline` for what the hand-off claims was pushed — a hand-off saying "merged and pushed" over commits that never left the machine is the exact failure the git-flow rule exists to prevent, and it is one command to catch | Yes |
 | `Position:` | against PROGRESS.md's current position and next action | **No — prose against prose** |
 
-The first five are executable. `Position:` is a human-readable corroborator, deliberately kept in prose because a position is a sentence, and it is NOT claimed as a mechanical check anywhere — a check that cannot be run is a promise, and this skill does not write promises as checks. Containment runs FIRST because it is the only one that catches a second checkout of the same repository, where every identity check legitimately passes.
+The first six are executable. `Position:` is a human-readable corroborator, deliberately kept in prose because a position is a sentence, and it is NOT claimed as a mechanical check anywhere — a check that cannot be run is a promise, and this skill does not write promises as checks. Containment runs FIRST because it is the only one that catches a second checkout of the same repository, where every identity check legitimately passes.
 
 **A session never composes these checks itself — it runs `scripts/keel-handoff-verify` (UNBREAKABLE).** This is not a style preference, it is what makes the checks run at all. A session writing them inline produces one line of nested `$(...)`, the permission matcher cannot decompose it, the call comes back `Parse error`, and the project's allow-list is bypassed **even when every git command in it is allowed** — at every link of a chain, not only the first. Measured. So the checks live in a generated script with ONE allow-list entry:
 
@@ -336,6 +358,19 @@ A session that cannot take the lane does what every other blocked path does: pri
 **Who implements it, and when: `scripts/keel-handoff-verify`, at the Phase 5 scaffold** (`references/phase-5-development.md` §1). The lane is claimed by the same script the arriving session already runs before acting, because that is precisely the moment it must be claimed — one command, one allow-list entry, and no window between verifying and starting work in which a second session could slip through. There is no separate lock script and no lock step for the user to remember. On a card that is not `Chaining: start` the script runs its five checks and takes nothing.
 
 Until a project has this, `start` is not offered — not as a warning, as a gate.
+
+#### One launch per hand-off — the launch receipt (UNBREAKABLE)
+
+The single-lane lock serialises **execution**, and that is not the same as serialising **launching**. It was written for the case of two sessions racing to work in one tree, and it handles that correctly. It does nothing about one closing session firing the launch four times: four windows open, three of them arrive, find the lane held, and politely exit — the mechanism working exactly as specified while the user watches four chats appear instead of one, with no way to tell which is the live one. Measured, on a real close-out.
+
+So the launcher gets its own guard, and it is the simpler of the two because it protects an **event**, not a resource:
+
+- **A launch is claimed against the HAND-OFF's identity, not against the clock and not against the repo alone.** The identity is the hand-off's `Generated:` plus `Commit:` (a hash of the header is enough). A receipt exists → this exact hand-off has already been launched, and the script prints the prompt and exits 0 without firing. Regenerate the hand-off and you get a new identity and one new launch — which is correct, because that is genuinely a different continuation.
+- **The claim is ATOMIC or it is decoration.** `mkdir` of the receipt path — it succeeds exactly once and fails if the directory exists, in one syscall, with no window. A `test -f` followed by a `touch` is two operations with a gap between them, and the gap is precisely where the duplicate is born. Same file location discipline as the lane: outside the repository, in the user's state directory, keyed by the real path of `git rev-parse --show-toplevel`, so a `git clean` or a fresh clone cannot erase the brake on the thing it is braking.
+- **A launch is NEVER retried. Ever.** The open command's exit code says the command ran, not that a window appeared, and no available signal distinguishes "it opened" from "it did not". Under that uncertainty, firing again is how one hand-off becomes four. The rule is therefore absolute: fire once, and if the outcome is unknown or the command failed, PRINT the prompt. Printing is always the right answer to "I do not know", and it is never wrong — the user reads it and decides.
+- **Exactly one place in the whole skill may invoke `scripts/keel-continue`:** the session close-out (`references/phase-5-development.md` §5, and the session-end path above, which is the same procedure). A close-out that runs twice hits its receipt and fires nothing. A fanned-out worker never launches at all — only the session owning the main tree closes out.
+- **A circuit breaker, because a loop is not a hypothesis.** More than three receipts for the same repository within one hour means something is re-running a close-out; the script stops chaining entirely, prints the prompt, and says in one line that it detected repeated launches and disabled chaining for this session. A runaway that announces itself costs a message; one that does not costs a screenful of windows and the user's trust in the mechanism.
+- **Receipts are disposable state**, cleaned with the lane's own housekeeping. Losing them can only cause one extra launch, never a missed continuation — the failure direction that matters is the one the user just saw.
 
 **How the question is asked — at the start, and with the warning attached.** `Chaining:` is not a configuration preference to be buried in the project card and filled in silently. It is asked at Phase 1 step 0a (and at the reconciliation, for an existing project) alongside the other opening decisions, in this shape:
 
@@ -416,9 +451,9 @@ The contract it must satisfy, whatever language it is written in:
 3. A missing file, an unreadable or malformed header (treat it exactly like a missing file — a header that cannot be parsed cannot be trusted), or a `Handover:` that is not `clean` → **print the reason AND the prompt itself, marked as a blocked hand-off, and exit 0.** The prompt rule admits no exception: "whenever a chat cannot be opened, for ANY reason, the prompt is printed" includes this one. Refusing to chain and refusing to print are different things, and only the first is intended.
 4. Detect the tool by `CLAUDE_CODE_ENTRYPOINT` (or the equivalent marker recorded for that tool), matching `claude-vscode` by name and treating every other value as the CLI — never by enumerating the CLI's values, which the vendor extends. No match, or a match whose row is not VERIFIED → print and exit 0. This is a success, not a failure.
 5. A VERIFIED row whose action tier exceeds the card's `Chaining:` value → downgrade to what the card allows; never upgrade. **If the row has no action at the resulting tier, print** — downgrading never means substituting another tier's action. (The CLI row knows only `start`; on a card that says `prefill`, it prints.)
-6. Fire the action. On any non-zero exit, fall back to printing.
+6. **Claim the launch receipt atomically (`mkdir`), and fire ONCE.** Receipt already present → this hand-off was already launched: print the prompt, exit 0, fire nothing. On a non-zero exit, or on any uncertainty about whether a window appeared, fall back to printing — **never to firing again** (see "One launch per hand-off").
 7. Exit 0 in every path that leaves the user with either an opened chat or a printed prompt. Exit non-zero only when it could do neither.
-8. Under `start`, taking the single-lane lock is NOT this script's job — the ARRIVING session does that. `keel-continue` only launches; the launched session refuses if the lane is busy.
+8. **Two guards, two owners, and they solve different problems.** The single-lane LOCK is taken by the ARRIVING session and serialises who may WORK in the tree; `keel-continue` never takes it. The launch RECEIPT is taken by this script and serialises how many windows OPEN for one hand-off. Neither substitutes for the other: the lock alone lets four windows open and three excuse themselves, which is the failure this receipt exists to end.
 9. Releasing the lane is the holder's job on EVERY exit path, and recovering an orphan (dead PID, or a live PID whose start time does not match) is the arriving session's — taken, reported in one line, never queued behind a permission prompt.
 
 Two details an implementer would otherwise have to invent, so they are fixed here: the prompt is **percent-encoded** when it goes into a URI (space → `%20`, `/` → `%2F`), using whatever the platform provides rather than a hand-rolled table; and "copy to the clipboard where available" means `pbcopy` (macOS), `wl-copy` or `xclip -selection clipboard` (Linux), `clip.exe` (Windows) — absent all of them, printing alone satisfies the contract.
@@ -543,7 +578,7 @@ The project root carries the Keel block below in TWO files, always: `CLAUDE.md` 
 One tool needs a third step: **Gemini CLI reads `GEMINI.md`, not `AGENTS.md`, by default.** If the user works with Gemini CLI, ask once and record the pick: mirror the same block in `GEMINI.md` (a third copy of the lock, refreshed with the others), or commit a `.gemini/settings.json` whose `context.fileName` includes `AGENTS.md` (no third copy to maintain). Either satisfies the lock.
 
 ```
-<!-- KEEL:BEGIN — v5.4.1 do not remove: binds every AI/session in this repo to the Keel workflow -->
+<!-- KEEL:BEGIN — v5.5.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
 # Keel protocol (mandatory for ANY assistant working in this repository)
 
 This project is governed by the Keel workflow. Before reading code or changing ANYTHING:
