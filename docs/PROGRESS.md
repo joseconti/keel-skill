@@ -21,7 +21,7 @@
 - Client budget: no — the skill is the user's own product, not client work.
 - User guide: n/a — `README.md` and `INSTALL.md` serve that role for a skill.
 - Docs theme: n/a
-- Autonomy: permission mode: auto (`.claude/settings.local.json`, written by Keel, gitignored) / push: unattended (Keel pushes; see D-003) / issues: on-request — the repo's forge issues are worked when the user raises them
+- Autonomy: **automatic** — Keel does not ask, and does every merge to `develop` and every push itself (`.claude/settings.local.json` written by Keel, gitignored; see D-003, D-004) / issues: on-request — this repo's forge issues are worked when the user raises them
 - Branches: integration branch `develop` (created from `main` 2026-07-30 and published) / work branch `feature/v5.5.0-autonomy-and-notifications` (merged) / **awaiting the user:** v5.5.0 on `develop`, to be merged to `main` and tagged by them
 - Notify: **native Claude Code notification** — desktop always; phone only while Remote Control is connected. No address needed. The Gmail connector is compose-only (draft, no send) and is not a channel. Re-probe each session per `references/notifications.md`.
 - Chaining: off

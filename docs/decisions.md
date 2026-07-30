@@ -24,14 +24,14 @@
 - Date: 2026-07-30
 - Context: Work was accumulating as local commits waiting for a human to push them, which is a queue nobody owns: the user has to remember, and a session that ends leaves work invisible to every other checkout.
 - Decision: The assistant pushes its own work. No commit is left local "for the human to review and push". Review happens at the `develop` → `main` merge (D-002), not by withholding a push.
-- Consequence: `Autonomy:` on the project card records `push: unattended`. Consequently `Bash(git push *)` is NOT in the `ask` list of `.claude/settings.local.json` — an earlier draft of v5.5.0 put it there and it was removed as directly contradicting this decision.
+- Consequence: `Autonomy:` on the project card records **automatic**, which is what makes pushing the assistant's duty here (D-004). Consequently `Bash(git push *)` is NOT in the `ask` list of `.claude/settings.local.json` — an earlier draft of v5.5.0 put it there and it was removed as directly contradicting this decision.
 
-## D-004 — The permission-mode file is written without asking
+## D-004 — Automatic mode is the user's question; the file that implements it is not
 
 - Date: 2026-07-30
-- Context: v5.5.0 was first drafted with the permission mode as a question in the session-start batch. The user then instructed that Keel write `.claude/settings.local.json` on its own initiative and merely announce it.
-- Decision: Keel writes or merges that file itself, announces it in one line, and never asks first — it is machine-local, gitignored, and binds nobody but the checkout it sits in. Merging never removes or reorders a rule the user put there. The committed `.claude/settings.json` is unaffected and still requires explicit confirmation.
-- Consequence: The startup batch drops from four questions to two real ones (forge-issue duty, notification channel); the permission mode became an action that is reported, not asked. This entry supersedes the earlier draft, per the rule that a later explicit instruction wins.
+- Context: v5.5.0 went through two reversals here. It was first drafted with the permission mode as a question; a relayed instruction then said Keel should write `.claude/settings.local.json` on its own initiative without asking; the user finally settled it: **the person defines the mode when asked, and everything else hangs off that answer.**
+- Decision: The setup batch asks **three** questions, and automatic mode is the first because it is the hinge. Answer yes → Keel writes or merges that file itself and announces it in one line (the MODE was the question; the file implementing it is not a second one), asks nothing further, and performs every merge to the integration branch and every push. Answer no → no file is written, Keel asks every time and pushes only what was explicitly requested. Merging never removes or reorders a rule the user put there, and the committed `.claude/settings.json` is unaffected — it still requires explicit confirmation.
+- Consequence: Three questions — automatic mode, forge-issue duty, notification channel — recorded on `Autonomy:` and `Notify:` and never re-asked. The regime is read from the card, never inferred per action. This entry supersedes both earlier drafts, per the rule that a later explicit instruction wins.
 
 ## D-005 — Out-of-band notification is protocol-first, and this machine has no channel
 
