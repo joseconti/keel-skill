@@ -45,7 +45,7 @@
 - Date: 2026-07-30
 - Context: The skill's UNBREAKABLE version policy forbids touching `metadata.version`, the heading, `CHANGELOG.md` and the `MANIFEST.md` header without an explicit instruction in the current conversation.
 - Decision: v5.4.1 → **v5.5.0** was authorised explicitly by the user ("Esto sería la 5.5"). All four locations plus `README.md` and the canonical lock stamp in `references/project-state.md` were updated together, and `MANIFEST.md` Tables 2 and 3 were updated for the release.
-- Consequence: `python3 tests/lint-release.py` is the mechanical check that these stayed in sync; it passes. The tag and the GitHub release remain the user's act (D-002).
+- Consequence: `python3 tests/lint-release.py` is the mechanical check that these stayed in sync; it passed at the gate. Released 2026-07-30 on the user's explicit instruction — `develop` merged to `main` (`94cea89`), tag `v5.5.0` pushed, and the `release` workflow published the GitHub release from the CHANGELOG section. Keel performed none of it until told to, per D-002.
 
 ## D-007 — The native harness notification is the default channel
 
@@ -54,3 +54,11 @@
 - Decision: Adopt the environment's native notification as the default channel, here and as the first-preference tier in `references/notifications.md`. Build nothing until it proves insufficient.
 - Alternatives considered: an SMTP sender via a Google app password (`msmtp` or a small script) — deferred, not rejected: it is the correct escalation for absences the native channel cannot reach. A self-hosted Gmail MCP with a send scope — rejected as more ceremony than the SMTP path for the same result.
 - Consequence: Two properties are recorded because both are easy to misread. **Reach:** desktop always, phone only while Remote Control is connected — so it covers "walked away from the desk" and not "out of the building". **Suppression:** it deliberately does not fire while the user is at the terminal and reports "not sent"; that is the anti-noise policy one layer down, so it counts as delivered-or-redundant and is never escalated to another channel or reported as a failure. Untested so far: the only honest test is one fired while the user is genuinely away, which has not happened yet.
+
+## D-008 — Fan-out workers run under `auto`; `bypassPermissions` is never used again
+
+- Date: 2026-07-30
+- Context: Raised by a review that spotted v5.5.0 contradicting itself — the session-start step writes a `deny` block and the fan-out dispatched workers with `--permission-mode bypassPermissions`, which evaluates no rules at all. The user then supplied the decisive fact from practice: **`bypassPermissions` asks for confirmation every time**, so the premise it was chosen on ("it is what lets an unattended worker finish") was simply wrong.
+- Decision: The dispatch uses `--permission-mode auto`, permanently. Recorded UNBREAKABLE in `references/project-state.md`. If workers stall on an action the allow-list does not cover, the fix is to extend the allow-list — never to bypass.
+- Alternatives considered: keeping `bypassPermissions` and relying on the fan-out's other three preconditions (a person in the dispatching session, slices approved at the kickoff, worktrees of this repository) — rejected twice over: those were never a substitute for permission evaluation, and the flag does not even deliver the unattended run it was picked for.
+- Consequence: `auto` is not a drop-in — a worker in `-p` mode cannot be asked, so an uncovered action is refused and the slice may fail. That is the correct failure direction: a refusal surfaces in the worker's report; an unattended `sudo` surfaces nowhere. A second hole found while verifying this one: `.claude/settings.local.json` is gitignored, so a worktree checkout does not carry it and the worker would fall back to user-level config regardless of the flag — the dispatch now copies it in before launching.

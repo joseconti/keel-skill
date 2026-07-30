@@ -16,13 +16,13 @@
 - Keel portability: lock only — this repo is the SOURCE of the skill; it does not embed a copy of itself.
 - Assistant config: none (tools: claude) — no `.claude/` package generated for this repo.
 - Models: n/a no agents
-- Keel baseline: v5.5.0 — this repository authors the version it is on, so the baseline always equals the version being written.
+- Keel baseline: v5.5.1 — this repository authors the version it is on, so the baseline always equals the version being written.
 - Website intent: no
 - Client budget: no — the skill is the user's own product, not client work.
 - User guide: n/a — `README.md` and `INSTALL.md` serve that role for a skill.
 - Docs theme: n/a
 - Autonomy: **automatic** — Keel does not ask, and does every merge to `develop` and every push itself (`.claude/settings.local.json` written by Keel, gitignored; see D-003, D-004) / issues: on-request — this repo's forge issues are worked when the user raises them
-- Branches: integration branch `develop` (created from `main` 2026-07-30 and published) / work branch `feature/v5.5.0-autonomy-and-notifications` (merged) / **awaiting the user:** v5.5.0 on `develop`, to be merged to `main` and tagged by them
+- Branches: integration branch `develop` (created from `main` 2026-07-30 and published) / no open work branch / nothing awaiting `main` — v5.5.0 merged and tagged on the user's explicit instruction
 - Notify: **native Claude Code notification** — desktop always; phone only while Remote Control is connected. No address needed. The Gmail connector is compose-only (draft, no send) and is not a channel. Re-probe each session per `references/notifications.md`.
 - Chaining: off
 
@@ -42,20 +42,21 @@ This repository was adopted into its own discipline late (state files created 20
 | 8 Website | n/a — website intent: no | — |
 
 ## Current position
-- Phase: maintenance — **v5.5.0** authored and integrated on `develop`; unreleased (not merged to `main`, not tagged)
-- Step/sprint: v5.5.0 change set — committed on `feature/v5.5.0-autonomy-and-notifications`, merged into `develop` and pushed (`bf823c0`) — session setup batch, permission mode, out-of-band notification, three-beat forge-issue lifecycle, `develop`-based git flow, uninterrupted advance
-- Next action: **the user's call** — v5.5.0 is on `develop` and pushed; merging `develop` into `main` and tagging `v5.5.0` are their acts (D-002). Keel does not perform them.
+- Phase: maintenance — **v5.5.1 RELEASED** (2026-07-30), following v5.5.0 the same day: the fan-out permission flag, the worktree settings copy, and the keychain symptom
+- Step/sprint: v5.5.1 change set — `--permission-mode auto` in the fan-out dispatch (`bypassPermissions` confirms EVERY time, measured, so it broke the automation it was chosen for AND skipped the deny block), the gitignored settings file copied into each worktree, and the re-authentication-loop symptom of a broken `env.PATH`
+- Next action: none pending on the release. Next change set starts from `develop` as usual. Open: the user's global `~/.claude/settings.json` still carries an unexpanded `env.PATH` (see deferred items) — that is a machine fix, not a repo change.
 
 ## Open items
 - Unresolved user questions: none
 - Open Design Requests: none
 - Unverified external steps/assets: none
 - Forge issues in progress: none
-- **Ready for `main`:** v5.5.0 is on `develop` and pushed, awaiting the user's decision to merge to `main` and tag. Keel does not do this on its own initiative.
+- **Ready for `main`:** nothing. v5.5.0 shipped; `main` and `develop` are level at the release commit.
 
 ### Deferred items (consciously postponed work)
+- **The user's `~/.claude/settings.json` carries an unexpanded `env.PATH`** (`$HOME/...:${PATH}` literal), which removes `/usr/bin` and `/bin` and breaks `git`, `ls`, `cut` and `grep` in every session on this machine — worked around all release day with absolute paths and `/usr/bin/env`. Severity: high (machine-wide, every project) — review trigger: the user's go-ahead; it is their personal global config, so Keel proposed the one-line fix and did not apply it. v5.5.0 fixed the RECIPE that would have propagated it.
 - **Notification reach is desktop-only unless Remote Control is connected** — severity: low — review trigger: the first time a real absence goes unnoticed, or if the user wants alerts while away from the building. The native channel covers "walked away from the desk"; an SMTP sender or messaging MCP would be the escalation, and is not built.
 - **This repo has no `scripts/keel-verify`, `keel-doctor` or `keel-handoff-verify`** — severity: low — review trigger: if the repo ever ships executable content. `tests/lint-release.py` is this project's equivalent gate and is genuinely mechanical; generating the other three would be ceremony over a Markdown package.
 - **Untracked working notes at the repo root** (`INFORME-v5.4.0.md`, `PROMPT-v5.4.0-*.md`) — severity: low — review trigger: next release hygiene pass. Decide per file: commit as project record, move under `docs/old/`, or delete.
 
-Last updated: 2026-07-30 — maintenance, v5.5.0 authoring
+Last updated: 2026-07-30 — maintenance, v5.5.0 released

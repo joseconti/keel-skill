@@ -473,13 +473,22 @@ One worktree and one branch per slice, then one process per worker, launched fro
 
 ```bash
 git worktree add -q ../w<N> -b slice-<N>
-"$KEEL_CLI" --session-id <uuid> --model <model> -p --permission-mode bypassPermissions \
+mkdir -p ../w<N>/.claude && cp .claude/settings.local.json ../w<N>/.claude/   # see below — it does NOT travel
+"$KEEL_CLI" --session-id <uuid> --model <model> -p --permission-mode auto \
   "$(cat ../slice-<N>.prompt)" > ../w<N>.log 2>&1 &
 ```
 
 **`$KEEL_CLI` is resolved, never assumed.** The dispatch needs the assistant's own CLI on this machine, and the bare word `claude` is a probe rather than an answer — resolve it per the corroboration rule in `references/test-automation.md` ("Detection rules that are not obvious"), which covers both the shell whose `PATH` hides an installed binary and the binary that is present but cannot run. A session running under Claude Code already holds the answer in `CLAUDE_CODE_EXECPATH`, an absolute path that works with no `PATH` at all. If no working CLI can be resolved, the fan-out does not happen: say so and build the sprint's slices in this session, serially, which is a slower plan and not a degraded one.
 
-**`--session-id <uuid>` assigns the id up front** instead of looking it up afterwards, so the dispatcher knows every worker's id before it starts. **`--permission-mode bypassPermissions` is what lets an unattended worker finish** — and it is precisely why a fan-out is dispatched only from a session with a person in it, only over slices the user approved at the kickoff, and only into worktrees of this repository. The log file is for post-mortem reading, never for detecting completion (see the report section below).
+**`--session-id <uuid>` assigns the id up front** instead of looking it up afterwards, so the dispatcher knows every worker's id before it starts. The log file is for post-mortem reading, never for detecting completion (see the report section below).
+
+**`--permission-mode auto`, and NOT `bypassPermissions` (UNBREAKABLE).** An earlier version of this dispatch used `bypassPermissions` on the grounds that it is what lets an unattended worker finish. **That premise is false, and it was measured: `bypassPermissions` asks for confirmation EVERY time** — entering it is itself a gated act, so instead of removing prompts it guarantees one, and an unattended worker sits waiting for an answer nobody will give. It therefore breaks precisely the automation it was chosen to enable, which is the worst kind of wrong flag: it fails in the direction of looking like a hang rather than an error.
+
+The safety argument points the same way, and would be sufficient on its own. `bypassPermissions` evaluates no permission rules at all, `deny` included. That put the skill in direct contradiction with itself: the session-start step writes a `deny` block precisely to keep `rm -rf /*`, `sudo *` and `curl * | sh` out of reach, and then the fan-out handed that exemption to the only sessions that are simultaneously **parallel, unattended, and writing to real branches** — the worst place in the whole skill to remove a barrier, and the one where nobody is watching to notice. `auto` keeps the worker moving through everything the allow-list covers and keeps the `deny` block enforced.
+
+**The honest cost of that swap, stated rather than discovered:** `auto` is not a drop-in. A worker in `-p` mode that reaches an action the allow-list does not cover cannot be asked, so that call is refused and the slice may fail. That is the correct failure direction — a refused call surfaces in the worker's report and its log and is fixed by extending the allow-list, whereas an unattended `sudo` is not fixed by anything. So: if workers stall, **extend the project's allow-list; never go back to bypassing.** And the fan-out's other three preconditions stand unchanged, because they were never a substitute for this one: dispatched only from a session with a person in it, only over slices approved at the kickoff, only into worktrees of this repository.
+
+**A worktree does NOT inherit the permission settings, and this is the part that silently undoes everything above.** `.claude/settings.local.json` is gitignored — that is what makes it machine-local — so `git worktree add` produces a clean checkout **without it**. A worker launched there falls back to user-level configuration: no project `deny` block, no project `env.PATH`, no project allow-list. The rule that was just enforced on the flag would be quietly absent in the directory. So the dispatch **copies the file into each worktree before launching**, as in the command above, and a dispatch that skips that step is not dispatching under the project's rules whatever flag it passes. Verify it landed: the file's absence is invisible at runtime and shows up only as a worker mysteriously blocked, or mysteriously unblocked.
 
 ### The living state is written by the session that owns the MAIN tree — and by nobody else
 
@@ -578,7 +587,7 @@ The project root carries the Keel block below in TWO files, always: `CLAUDE.md` 
 One tool needs a third step: **Gemini CLI reads `GEMINI.md`, not `AGENTS.md`, by default.** If the user works with Gemini CLI, ask once and record the pick: mirror the same block in `GEMINI.md` (a third copy of the lock, refreshed with the others), or commit a `.gemini/settings.json` whose `context.fileName` includes `AGENTS.md` (no third copy to maintain). Either satisfies the lock.
 
 ```
-<!-- KEEL:BEGIN — v5.5.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
+<!-- KEEL:BEGIN — v5.5.1 do not remove: binds every AI/session in this repo to the Keel workflow -->
 # Keel protocol (mandatory for ANY assistant working in this repository)
 
 This project is governed by the Keel workflow. Before reading code or changing ANYTHING:
