@@ -16,7 +16,7 @@
 - Keel portability: lock only — this repo is the SOURCE of the skill; it does not embed a copy of itself.
 - Assistant config: none (tools: claude) — no `.claude/` package generated for this repo.
 - Models: n/a no agents
-- Keel baseline: v5.5.1 — this repository authors the version it is on, so the baseline always equals the version being written.
+- Keel baseline: v5.5.2 — this repository authors the version it is on, so the baseline always equals the version being written.
 - Website intent: no
 - Client budget: no — the skill is the user's own product, not client work.
 - User guide: n/a — `README.md` and `INSTALL.md` serve that role for a skill.
@@ -42,8 +42,8 @@ This repository was adopted into its own discipline late (state files created 20
 | 8 Website | n/a — website intent: no | — |
 
 ## Current position
-- Phase: maintenance — **v5.5.1 RELEASED** (2026-07-30), following v5.5.0 the same day: the fan-out permission flag, the worktree settings copy, and the keychain symptom
-- Step/sprint: v5.5.1 change set — `--permission-mode auto` in the fan-out dispatch (`bypassPermissions` confirms EVERY time, measured, so it broke the automation it was chosen for AND skipped the deny block), the gitignored settings file copied into each worktree, and the re-authentication-loop symptom of a broken `env.PATH`
+- Phase: maintenance — **v5.5.2 RELEASED** (2026-07-30), the third release of the day: the launch of the next chat, fixed where a real close-out broke it
+- Step/sprint: v5.5.2 change set — the session may never compose the launch itself (script or print, UNBREAKABLE), the mandatory `cd '<abs repo root>' &&` in the `start` action with the false "inherits `cwd`" claim removed, a wrong launch is spent exactly like an unobserved one (no kill-and-relaunch), and the Phase 5 scaffold line that described the `prefill` mechanism for a `start` script
 - Next action: none pending on the release. Next change set starts from `develop` as usual. Open: the user's global `~/.claude/settings.json` still carries an unexpanded `env.PATH` (see deferred items) — that is a machine fix, not a repo change.
 
 ## Open items
@@ -51,7 +51,7 @@ This repository was adopted into its own discipline late (state files created 20
 - Open Design Requests: none
 - Unverified external steps/assets: none
 - Forge issues in progress: none
-- **Ready for `main`:** nothing. v5.5.0 shipped; `main` and `develop` are level at the release commit.
+- **Ready for `main`:** nothing. v5.5.2 shipped; `main` and `develop` are level at the release commit.
 
 ### Deferred items (consciously postponed work)
 - **The user's `~/.claude/settings.json` carries an unexpanded `env.PATH`** (`$HOME/...:${PATH}` literal), which removes `/usr/bin` and `/bin` and breaks `git`, `ls`, `cut` and `grep` in every session on this machine — worked around all release day with absolute paths and `/usr/bin/env`. Severity: high (machine-wide, every project) — review trigger: the user's go-ahead; it is their personal global config, so Keel proposed the one-line fix and did not apply it. v5.5.0 fixed the RECIPE that would have propagated it.
@@ -59,4 +59,4 @@ This repository was adopted into its own discipline late (state files created 20
 - **This repo has no `scripts/keel-verify`, `keel-doctor` or `keel-handoff-verify`** — severity: low — review trigger: if the repo ever ships executable content. `tests/lint-release.py` is this project's equivalent gate and is genuinely mechanical; generating the other three would be ceremony over a Markdown package.
 - **Untracked working notes at the repo root** (`INFORME-v5.4.0.md`, `PROMPT-v5.4.0-*.md`) — severity: low — review trigger: next release hygiene pass. Decide per file: commit as project record, move under `docs/old/`, or delete.
 
-Last updated: 2026-07-30 — maintenance, v5.5.0 released
+Last updated: 2026-07-30 — maintenance, v5.5.2 released
