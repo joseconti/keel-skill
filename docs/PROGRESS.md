@@ -23,7 +23,7 @@
 - Docs theme: n/a
 - Autonomy: permission mode: auto (`.claude/settings.local.json`, written by Keel, gitignored) / push: unattended (Keel pushes; see D-003) / issues: on-request — the repo's forge issues are worked when the user raises them
 - Branches: integration branch `develop` (created from `main` 2026-07-30 and published) / work branch `feature/v5.5.0-autonomy-and-notifications` (merged) / **awaiting the user:** v5.5.0 on `develop`, to be merged to `main` and tagged by them
-- Notify: none — no delivering channel probed in this environment; the Gmail connector is compose-only (draft, no send). Re-probe each session per `references/notifications.md`.
+- Notify: **native Claude Code notification** — desktop always; phone only while Remote Control is connected. No address needed. The Gmail connector is compose-only (draft, no send) and is not a channel. Re-probe each session per `references/notifications.md`.
 - Chaining: off
 
 ## Phase status
@@ -54,7 +54,7 @@ This repository was adopted into its own discipline late (state files created 20
 - **Ready for `main`:** v5.5.0 is on `develop` and pushed, awaiting the user's decision to merge to `main` and tag. Keel does not do this on its own initiative.
 
 ### Deferred items (consciously postponed work)
-- **No delivering notification channel exists on this machine** — severity: medium — review trigger: when the user wires an SMTP sender or a messaging MCP. Until then `references/notifications.md`'s protocol is correct but has nothing to deliver through, and Keel says so instead of pretending.
+- **Notification reach is desktop-only unless Remote Control is connected** — severity: low — review trigger: the first time a real absence goes unnoticed, or if the user wants alerts while away from the building. The native channel covers "walked away from the desk"; an SMTP sender or messaging MCP would be the escalation, and is not built.
 - **This repo has no `scripts/keel-verify`, `keel-doctor` or `keel-handoff-verify`** — severity: low — review trigger: if the repo ever ships executable content. `tests/lint-release.py` is this project's equivalent gate and is genuinely mechanical; generating the other three would be ceremony over a Markdown package.
 - **Untracked working notes at the repo root** (`INFORME-v5.4.0.md`, `PROMPT-v5.4.0-*.md`) — severity: low — review trigger: next release hygiene pass. Decide per file: commit as project record, move under `docs/old/`, or delete.
 

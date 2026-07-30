@@ -16,7 +16,7 @@ So every candidate is classified before it is used:
 
 | Tier | What it is | Counts as notification? |
 |---|---|---|
-| **Delivering** | The environment's own push/notification tool; a messaging MCP that posts (Slack, Telegram, Discord); a mail MCP or local mailer with a real send operation (`msmtp`, `sendmail`, an SMTP script the project owns) | **Yes** |
+| **Delivering** | The environment's own notification tool (the default — see below); a messaging MCP that posts (Slack, Telegram, Discord); a mail MCP or local mailer with a real send operation (`msmtp`, `sendmail`, an SMTP script the project owns) | **Yes** |
 | **Compose-only** | Gmail-style connectors offering drafts but no send | **No** — usable as a secondary trace, never as the notification |
 | **In-chat only** | Printing the message in the conversation | **No** — it is the fallback, and it is announced as such |
 
@@ -27,8 +27,11 @@ Keel does not read a tool list and conclude it can notify. A connector can be li
 Run the probe once per session, at the setup batch, in this order, and stop at the first tier-1 channel that answers:
 
 1. **The recorded channel from the project card** (`Notify:`), if the project has one. Probe *that* first — the user already chose it.
-2. **The environment's own notification tool**, where the session exposes one. Cheapest, needs no address, and is the sensible default for a developer at their own machine.
-3. **A messaging or mail MCP with a real send operation.** Verify the operation exists — read its schema, do not infer it from the server's name.
+2. **The environment's own notification tool**, where the session exposes one. **This is the default and it is preferred over building anything** — it needs no address, no credential, no server and no setup, which makes it the only channel that is already true on a fresh machine. Claude Code exposes one; other harnesses may. Two properties of it govern how Keel uses it, and both are easy to misread:
+
+   - **It reaches the desktop always, and the phone only when the harness's remote control is connected.** So it covers "walked away from the desk" natively and covers "out of the house" only if that link is up. When the user's real absence is the away-from-the-building kind, say this plainly and offer a second channel rather than letting them assume reach the mechanism does not have.
+   - **It deliberately does not fire while the user is actively at the terminal, and reports "not sent".** That is the anti-noise policy of this reference implemented one layer down, not a failure — so it is NOT reported as a failed notification and NOT retried through another channel. The message was already in front of them. Treat "not sent because redundant" as success; treat "nowhere to go" as the absence of a channel.
+3. **A messaging or mail MCP with a real send operation** — the right escalation when the user is genuinely away from their machine. Verify the operation exists by READING ITS SCHEMA; never infer it from the server's name. A mail connector in particular may expose reading, searching, labelling and draft creation and still have no send: that is the measured case, not a hypothetical.
 4. **A compose-only connector** — recorded as a secondary, never as the channel.
 5. **Nothing.** Then the notification is printed in the conversation, and the setup line says plainly that no out-of-band channel is available in this session, so the user knows silence means silence.
 
@@ -72,6 +75,8 @@ Never contains: credentials, tokens, keys, `.env` contents, customer or personal
 Keep it short. This is a pointer to work, not a report; the report is in the repo.
 
 ## Failure is reported, never silently absorbed
+
+**First, do not manufacture a failure out of a suppression.** A notification the environment withheld because the user was already looking at the screen delivered its content by definition; it is recorded as sent-or-redundant and nothing escalates. What follows is about a channel that genuinely could not deliver.
 
 If the send fails, or no channel was available, **say so in the conversation** in the same breath as the blocking message: *"I could not notify you out of band — <reason>. This message is the only signal."* An attempted-but-failed notification recorded as sent is worse than no mechanism at all: the developer believes they would have been told.
 

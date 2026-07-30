@@ -38,7 +38,7 @@
 - Date: 2026-07-30
 - Context: v5.5.0 adds `references/notifications.md` so a blocked session reaches the developer. The intended channel was email through the Gmail connector.
 - Decision: Define the protocol around **delivery**, not around a specific vendor: a channel counts only if it actually delivers, the capability is probed every session, and a connector that can compose but not send is recorded as compose-only. The measured fact behind this: the available Gmail connector exposes draft creation, reading and labelling, and **no send operation** — so a draft would have been recorded as a notification while alerting nobody.
-- Consequence: On this machine `Notify:` is `none`, and Keel says so rather than implying a message was delivered. Wiring a real sender (SMTP via app password, a messaging MCP, or the environment's native push) is deferred work, recorded in PROGRESS.md.
+- Consequence: The protocol is vendor-neutral and probe-first. See D-007 for the channel actually adopted.
 
 ## D-006 — Keel's own version is never bumped without explicit instruction, and v5.5.0 was instructed
 
@@ -46,3 +46,11 @@
 - Context: The skill's UNBREAKABLE version policy forbids touching `metadata.version`, the heading, `CHANGELOG.md` and the `MANIFEST.md` header without an explicit instruction in the current conversation.
 - Decision: v5.4.1 → **v5.5.0** was authorised explicitly by the user ("Esto sería la 5.5"). All four locations plus `README.md` and the canonical lock stamp in `references/project-state.md` were updated together, and `MANIFEST.md` Tables 2 and 3 were updated for the release.
 - Consequence: `python3 tests/lint-release.py` is the mechanical check that these stayed in sync; it passes. The tag and the GitHub release remain the user's act (D-002).
+
+## D-007 — The native harness notification is the default channel
+
+- Date: 2026-07-30
+- Context: D-005 left this repository with no channel, on the assumption that email was the route. The harness's own notification tool turned out to be available, and it needs no address, no credential, no server and no setup.
+- Decision: Adopt the environment's native notification as the default channel, here and as the first-preference tier in `references/notifications.md`. Build nothing until it proves insufficient.
+- Alternatives considered: an SMTP sender via a Google app password (`msmtp` or a small script) — deferred, not rejected: it is the correct escalation for absences the native channel cannot reach. A self-hosted Gmail MCP with a send scope — rejected as more ceremony than the SMTP path for the same result.
+- Consequence: Two properties are recorded because both are easy to misread. **Reach:** desktop always, phone only while Remote Control is connected — so it covers "walked away from the desk" and not "out of the building". **Suppression:** it deliberately does not fire while the user is at the terminal and reports "not sent"; that is the anti-noise policy one layer down, so it counts as delivered-or-redundant and is never escalated to another channel or reported as a failure. Untested so far: the only honest test is one fired while the user is genuinely away, which has not happened yet.
