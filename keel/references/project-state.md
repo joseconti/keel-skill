@@ -327,7 +327,11 @@ One rule, and its two properties are both consequences of how the failure actual
 - **The ARRIVING session takes the lock, not the launching one.** A launcher cannot know who else is in flight — that is precisely what failed. A session that starts, finds the lock held by a live process, and exits saying so is the only shape that closes the window between launch and execution.
 - **The lock file lives OUTSIDE the repository** (the user's state directory), **keyed by the REAL path of `git rev-parse --show-toplevel`** — not by the root-commit hash. A lock inside the tree is a brake the chain can erase: a `git clean`, a checkout, or a fresh clone resets it, and the thing it protects is the thing that modifies it. The key is the working directory for two reasons: the root-commit hash carries the shallow trap described above (it is not the root in a shallow clone and it CHANGES on `--unshallow`, so a live session's lock would become invisible to the next one in the same directory), and what has to be serialised is the tree being written to, not the repository in the abstract — two worktrees of one repository are two legitimate lanes, exactly as containment already treats them.
 
-It holds the owning PID and its start time, so a stale lock from a crashed session is detectable rather than permanent. A session that cannot take the lock does what every other blocked path does: prints the prompt and exits 0.
+It holds the owning PID and its start time. **The holder releases it on exit — every exit, including the failing ones.** A lock is only a lane if somebody gives it back; "detectable" is a property, not a policy, and a lane that is merely detectable stops serialising the moment anything goes wrong.
+
+**Recovery, because release cannot be guaranteed.** A killed process runs no cleanup, so an orphan will happen. When the lock names a PID that no longer exists, or one whose start time does not match the recorded one (the number was reused), the arriving session TAKES the lane, says in one line that it recovered an orphan and from which PID, and continues. It does not ask: a stale lock that requires permission to clear is a lane nobody can enter, which is the same outage as a lane nobody leaves. If the PID is alive, the lane is busy and nothing is taken — that case is not recovery, it is the lock doing its job.
+
+A session that cannot take the lane does what every other blocked path does: prints the prompt and exits 0.
 
 **Who implements it, and when: `scripts/keel-handoff-verify`, at the Phase 5 scaffold** (`references/phase-5-development.md` §1). The lane is claimed by the same script the arriving session already runs before acting, because that is precisely the moment it must be claimed — one command, one allow-list entry, and no window between verifying and starting work in which a second session could slip through. There is no separate lock script and no lock step for the user to remember. On a card that is not `Chaining: start` the script runs its five checks and takes nothing.
 
@@ -415,6 +419,7 @@ The contract it must satisfy, whatever language it is written in:
 6. Fire the action. On any non-zero exit, fall back to printing.
 7. Exit 0 in every path that leaves the user with either an opened chat or a printed prompt. Exit non-zero only when it could do neither.
 8. Under `start`, taking the single-lane lock is NOT this script's job — the ARRIVING session does that. `keel-continue` only launches; the launched session refuses if the lane is busy.
+9. Releasing the lane is the holder's job on EVERY exit path, and recovering an orphan (dead PID, or a live PID whose start time does not match) is the arriving session's — taken, reported in one line, never queued behind a permission prompt.
 
 Two details an implementer would otherwise have to invent, so they are fixed here: the prompt is **percent-encoded** when it goes into a URI (space → `%20`, `/` → `%2F`), using whatever the platform provides rather than a hand-rolled table; and "copy to the clipboard where available" means `pbcopy` (macOS), `wl-copy` or `xclip -selection clipboard` (Linux), `clip.exe` (Windows) — absent all of them, printing alone satisfies the contract.
 
@@ -462,7 +467,7 @@ The project root carries the Keel block below in TWO files, always: `CLAUDE.md` 
 One tool needs a third step: **Gemini CLI reads `GEMINI.md`, not `AGENTS.md`, by default.** If the user works with Gemini CLI, ask once and record the pick: mirror the same block in `GEMINI.md` (a third copy of the lock, refreshed with the others), or commit a `.gemini/settings.json` whose `context.fileName` includes `AGENTS.md` (no third copy to maintain). Either satisfies the lock.
 
 ```
-<!-- KEEL:BEGIN — v5.3.2 do not remove: binds every AI/session in this repo to the Keel workflow -->
+<!-- KEEL:BEGIN — v5.3.3 do not remove: binds every AI/session in this repo to the Keel workflow -->
 # Keel protocol (mandatory for ANY assistant working in this repository)
 
 This project is governed by the Keel workflow. Before reading code or changing ANYTHING:

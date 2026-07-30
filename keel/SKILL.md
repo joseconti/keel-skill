@@ -2,13 +2,13 @@
 name: keel
 license: GPL-3.0-or-later
 metadata:
-  version: 5.3.2
+  version: 5.3.3
 description: Use this skill for ANY new software project from idea to release — websites, WordPress/WooCommerce plugins, MCP servers, web apps, components, or libraries — and for maintaining what it built (hotfixes, dependency updates, new features). Trigger when the user starts a new project or feature, says "I have an idea for a plugin/site/app", "let's plan this project", brings only a vague one-line idea with no technical background (Keel shapes it and proposes the v1 unprompted), mentions a design handoff, asks for docs or a security review of a Keel project, asks what a project will cost (quote/budget), works forge issues (GitHub/GitLab/...), prepares a release or a hotfix, resumes an in-progress Keel project (any repo with docs/PROGRESS.md), or adopts Keel in an EXISTING project. Do NOT trigger for one-off scripts, quick code questions, or repos not managed by Keel unless the user wants to adopt them. Phases load references on demand; living state makes projects resumable across chats.
 ---
 
 # Keel — project lifecycle (idea → release)
 
-**Keel v5.3.2** — Licensed under GPL-3.0-or-later. *Keel* is the structural backbone laid down first, on which the whole project is built.
+**Keel v5.3.3** — Licensed under GPL-3.0-or-later. *Keel* is the structural backbone laid down first, on which the whole project is built.
 
 ## Skill maintenance — update check & version policy (RUN FIRST, NON-BLOCKING)
 
@@ -175,7 +175,7 @@ Two moments make this rule necessary: **adopting** Keel into a repository that n
 
 The mechanism is a sweep, not a memory:
 
-1. **Derive the list from `MANIFEST.md`, never from recollection.** Table 1 is the full inventory of what a Keel project must contain, phase- and condition-aware; Table 3 is the per-version action delta. Read them and enumerate every row applicable at the project's current position.
+1. **Derive the list from `MANIFEST.md`, never from recollection.** Table 1 is the full inventory of what a Keel project must contain, phase- and condition-aware; Table 3 is the per-version action delta. Read them and enumerate every row applicable at the project's current position. **The sweep never reads the previous `docs/keel-conformance.md` (UNBREAKABLE).** Its authorised sources are exactly three: the disk, `MANIFEST.md`, and `docs/decisions.md`. A sweep that cites the last sweep is self-confirming — a row that was wrong reproduces itself with the air of evidence, and the artifact that decides whether Keel is applied gets more confident with every run instead of more correct. Overwrite it; never consult it. This holds in every modality: a fan-out over the rows, a subagent block, or one session walking the list inline.
 2. **Write `docs/keel-conformance.md`** — one row per applicable requirement, with its state: `present` (and where), `missing`, `declined` (with the `docs/decisions.md` entry that records the user's refusal), or `n/a` (with the condition that excludes it). Every row has a state; a row with no state is an unfinished sweep.
 3. **Present every `missing` row to the user as one batch**, with what it is and what applying it costs, and let them decide row by row. Applying remains their choice — that is the part that was always right. What changes is that *not proposing* a row stops being possible.
 4. **A `declined` row is a decision entry, not an omission.** It is re-offered only if the user asks or the condition changes.
