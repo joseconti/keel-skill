@@ -16,7 +16,7 @@
 - Keel portability: lock only — this repo is the SOURCE of the skill; it does not embed a copy of itself.
 - Assistant config: none (tools: claude) — no `.claude/` package generated for this repo.
 - Models: n/a no agents
-- Keel baseline: v5.5.0 — this repository authors the version it is on, so the baseline always equals the version being written.
+- Keel baseline: v5.5.1 — this repository authors the version it is on, so the baseline always equals the version being written.
 - Website intent: no
 - Client budget: no — the skill is the user's own product, not client work.
 - User guide: n/a — `README.md` and `INSTALL.md` serve that role for a skill.
@@ -42,8 +42,8 @@ This repository was adopted into its own discipline late (state files created 20
 | 8 Website | n/a — website intent: no | — |
 
 ## Current position
-- Phase: maintenance — **v5.5.0 RELEASED** (2026-07-30): merged to `main` (`94cea89`), tagged `v5.5.0`, GitHub release published by the `release` workflow from the CHANGELOG section
-- Step/sprint: v5.5.0 change set — committed on `feature/v5.5.0-autonomy-and-notifications`, merged into `develop` and pushed (`bf823c0`) — session setup batch, permission mode, out-of-band notification, three-beat forge-issue lifecycle, `develop`-based git flow, uninterrupted advance
+- Phase: maintenance — **v5.5.1 RELEASED** (2026-07-30), following v5.5.0 the same day: the fan-out permission flag, the worktree settings copy, and the keychain symptom
+- Step/sprint: v5.5.1 change set — `--permission-mode auto` in the fan-out dispatch (`bypassPermissions` confirms EVERY time, measured, so it broke the automation it was chosen for AND skipped the deny block), the gitignored settings file copied into each worktree, and the re-authentication-loop symptom of a broken `env.PATH`
 - Next action: none pending on the release. Next change set starts from `develop` as usual. Open: the user's global `~/.claude/settings.json` still carries an unexpanded `env.PATH` (see deferred items) — that is a machine fix, not a repo change.
 
 ## Open items
