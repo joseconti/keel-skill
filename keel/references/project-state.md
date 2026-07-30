@@ -432,6 +432,20 @@ Two details an implementer would otherwise have to invent, so they are fixed her
 
 A session may dispatch several workers into git worktrees to work on independent slices at once. Everything in this section was measured; it applies to any such fan-out, and none of it requires a second chat with a role (see "Designs measured and rejected" below).
 
+### Dispatching a worker
+
+One worktree and one branch per slice, then one process per worker, launched from the main tree's session after the sprint kickoff approved the slices:
+
+```bash
+git worktree add -q ../w<N> -b slice-<N>
+"$KEEL_CLI" --session-id <uuid> --model <model> -p --permission-mode bypassPermissions \
+  "$(cat ../slice-<N>.prompt)" > ../w<N>.log 2>&1 &
+```
+
+**`$KEEL_CLI` is resolved, never assumed.** The dispatch needs the assistant's own CLI on this machine, and the bare word `claude` is a probe rather than an answer — resolve it per the corroboration rule in `references/test-automation.md` ("Detection rules that are not obvious"), which covers both the shell whose `PATH` hides an installed binary and the binary that is present but cannot run. A session running under Claude Code already holds the answer in `CLAUDE_CODE_EXECPATH`, an absolute path that works with no `PATH` at all. If no working CLI can be resolved, the fan-out does not happen: say so and build the sprint's slices in this session, serially, which is a slower plan and not a degraded one.
+
+**`--session-id <uuid>` assigns the id up front** instead of looking it up afterwards, so the dispatcher knows every worker's id before it starts. **`--permission-mode bypassPermissions` is what lets an unattended worker finish** — and it is precisely why a fan-out is dispatched only from a session with a person in it, only over slices the user approved at the kickoff, and only into worktrees of this repository. The log file is for post-mortem reading, never for detecting completion (see the report section below).
+
 ### The living state is written by the session that owns the MAIN tree — and by nobody else
 
 This **inverts** the rule that governs everywhere else in this file ("update state at the moment of change"), so it is recorded as a deliberate decision with its reason rather than left as an exception someone will treat as an oversight.
@@ -529,7 +543,7 @@ The project root carries the Keel block below in TWO files, always: `CLAUDE.md` 
 One tool needs a third step: **Gemini CLI reads `GEMINI.md`, not `AGENTS.md`, by default.** If the user works with Gemini CLI, ask once and record the pick: mirror the same block in `GEMINI.md` (a third copy of the lock, refreshed with the others), or commit a `.gemini/settings.json` whose `context.fileName` includes `AGENTS.md` (no third copy to maintain). Either satisfies the lock.
 
 ```
-<!-- KEEL:BEGIN — v5.4.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
+<!-- KEEL:BEGIN — v5.4.1 do not remove: binds every AI/session in this repo to the Keel workflow -->
 # Keel protocol (mandatory for ANY assistant working in this repository)
 
 This project is governed by the Keel workflow. Before reading code or changing ANYTHING:
