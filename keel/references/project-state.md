@@ -173,6 +173,7 @@ Created the first time issues are triaged or worked (any phase — development, 
 - Replies: [beat 1 — fix-landed comment, date + link | beat 2 — testable comment, date + link | none yet]
 - Deploy: [notified <date> via <channel> | confirmed up by the developer <date>, version X | n/a]
 - Closed by: [the reporter <date> / the developer <date> / Keel after the reporter confirmed <date> | still open]
+- Inbound: [last comment received — who, when, what it said, and what it changed | none since the last sweep]
 - Lesson: [L-NNN in docs/lessons-learned.md if one was recorded | none]
 - Pending: [anything left on this issue | none]
 ```
@@ -189,6 +190,7 @@ Rules:
   3. **The developer confirms it is up.** Comment again on the issue: it can be tested now, on which version, and what to look for. Status → `awaiting reporter`.
 
   Then the reporter answers. A confirmation closes it; a "still broken" reopens the work on that issue with the report as new evidence. **Keel never closes an issue on its own reading of the code** — not after the fix, not after the deploy, not at a sprint close, not at a release. And if the reporter or the developer already closed it, Keel leaves it closed and records who did; re-closing a closed issue is noise on someone else's thread.
+- **Reading the thread back is half the duty (UNBREAKABLE).** A log that records what Keel published and nothing about what came back is a monologue, and it fails exactly where the lifecycle needs an answer. Every issue sweep — at each sprint close and at each maintenance touch — looks at BOTH new issues and **new comments on existing ones**, and reads them by status: on `awaiting reporter` a comment IS the verdict, closing the issue (recorded under `Closed by:`) or reopening the work with that report as new evidence; on `awaiting deploy` it is usually "when?", and gets a straight answer; anywhere else it is triaged like any other input. What it says, and what it changed, goes in the entry's `Inbound:` field. A comment that asks something only the user can decide is a stop with its notification — never a guess published on a public thread.
 - **The three beats survive across sessions**, which is the whole reason they are recorded rather than remembered: the `Replies:`, `Deploy:` and `Closed by:` fields let a fresh session tell beat 2 from beat 3 without reading the forge thread and guessing. An issue sitting in `awaiting deploy` for weeks is a visible open item, not a forgotten one.
 - **Both directions:** issues can drive work (a bug report becomes a slice) or record it (work done reveals something to file upstream). Either way the log stays current.
 - **Growth:** if the file grows large, old **resolved** entries may move to `docs/old/issues-archive.md` (move, never delete); the inventory always stays complete, with archived entries still referenced from their rows.
