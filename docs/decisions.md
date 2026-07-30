@@ -45,7 +45,7 @@
 - Date: 2026-07-30
 - Context: The skill's UNBREAKABLE version policy forbids touching `metadata.version`, the heading, `CHANGELOG.md` and the `MANIFEST.md` header without an explicit instruction in the current conversation.
 - Decision: v5.4.1 → **v5.5.0** was authorised explicitly by the user ("Esto sería la 5.5"). All four locations plus `README.md` and the canonical lock stamp in `references/project-state.md` were updated together, and `MANIFEST.md` Tables 2 and 3 were updated for the release.
-- Consequence: `python3 tests/lint-release.py` is the mechanical check that these stayed in sync; it passes. The tag and the GitHub release remain the user's act (D-002).
+- Consequence: `python3 tests/lint-release.py` is the mechanical check that these stayed in sync; it passed at the gate. Released 2026-07-30 on the user's explicit instruction — `develop` merged to `main` (`94cea89`), tag `v5.5.0` pushed, and the `release` workflow published the GitHub release from the CHANGELOG section. Keel performed none of it until told to, per D-002.
 
 ## D-007 — The native harness notification is the default channel
 
