@@ -21,6 +21,7 @@
 - Client budget: no — the skill is the user's own product, not client work.
 - User guide: n/a — `README.md` and `INSTALL.md` serve that role for a skill.
 - Docs theme: n/a
+- Durability: **git remote `origin` — https://github.com/joseconti/keel-skill.git** (verified 2026-07-31 with `git remote -v`). The tree is not inside a synced folder; the remote covers the requirement on its own.
 - Autonomy: **automatic** — Keel does not ask, and does every merge to `develop` and every push itself (`.claude/settings.local.json` written by Keel, gitignored; see D-003, D-004) / issues: on-request — this repo's forge issues are worked when the user raises them
 - Branches: integration branch `develop` (created from `main` 2026-07-30 and published) / no open work branch / nothing awaiting `main` — v5.5.0 merged and tagged on the user's explicit instruction
 - Notify: **native Claude Code notification** — desktop always; phone only while Remote Control is connected. No address needed. The Gmail connector is compose-only (draft, no send) and is not a channel. Re-probe each session per `references/notifications.md`.
@@ -44,7 +45,8 @@ This repository was adopted into its own discipline late (state files created 20
 ## Current position
 - Phase: maintenance — **v5.5.2 RELEASED** (2026-07-30), the third release of the day: the launch of the next chat, fixed where a real close-out broke it
 - Step/sprint: v5.5.2 change set — the session may never compose the launch itself (script or print, UNBREAKABLE), the mandatory `cd '<abs repo root>' &&` in the `start` action with the false "inherits `cwd`" claim removed, a wrong launch is spent exactly like an unobserved one (no kill-and-relaunch), and the Phase 5 scaffold line that described the `prefill` mechanism for a `start` script
-- Next action: none pending on the release. Next change set starts from `develop` as usual. Open: the user's global `~/.claude/settings.json` still carries an unexpanded `env.PATH` (see deferred items) — that is a machine fix, not a repo change.
+- **In progress on `develop` (unreleased):** the durability change set — "Work never lives only on this machine" (SKILL.md cross-cutting section + Question 0 of the setup batch + `Durability:` card line + Phase 1 step 0a, adoption step 2, two `keel-verify` checks, MANIFEST Table 1 rows, README paragraph). See D-010.
+- Next action: the version bump, the `CHANGELOG.md` entry and `MANIFEST.md` Tables 2 and 3 for this change set — **blocked on the user's explicit version instruction** (D-006, UNBREAKABLE version policy). Nothing else pending. Open: the user's global `~/.claude/settings.json` still carries an unexpanded `env.PATH` (see deferred items) — that is a machine fix, not a repo change.
 
 ## Open items
 - Unresolved user questions: none
@@ -59,4 +61,4 @@ This repository was adopted into its own discipline late (state files created 20
 - **This repo has no `scripts/keel-verify`, `keel-doctor` or `keel-handoff-verify`** — severity: low — review trigger: if the repo ever ships executable content. `tests/lint-release.py` is this project's equivalent gate and is genuinely mechanical; generating the other three would be ceremony over a Markdown package.
 - **Untracked working notes at the repo root** (`INFORME-v5.4.0.md`, `PROMPT-v5.4.0-*.md`) — severity: low — review trigger: next release hygiene pass. Decide per file: commit as project record, move under `docs/old/`, or delete.
 
-Last updated: 2026-07-30 — maintenance, v5.5.2 released
+Last updated: 2026-07-31 — maintenance, durability change set on `develop` (unreleased)
