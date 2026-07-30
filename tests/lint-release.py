@@ -21,6 +21,9 @@ Checks:
      current version.
   8. No stray literal version strings in SKILL.md outside the two governed
      spots (frontmatter and heading).
+  9. Every MANIFEST Table 1 row required AT A PHASE is named by that phase's own
+     reference — the shape v5.3.1 and v5.4.0 both had to fix: a requirement
+     recorded in the index with no phase reference telling anyone to create it.
 """
 
 import re
@@ -160,6 +163,63 @@ if stray:
     fail(f"SKILL.md carries version-shaped literals outside the governed spots: {stray}")
 else:
     ok("SKILL.md: no stray version literals")
+
+# ---- 9. Every phase-required Table 1 row is created by that phase's reference --
+# The manifest's authority rule says the phase references are the contract. A row
+# no phase reference names is therefore never created on a new project — only the
+# reconciliation produces it, which is the inversion v5.3.1 had to fix, and which
+# recurred in v5.4.0 before release. Prose did not stop it twice; this does.
+t1 = manifest.split("## Table 1")[1].split("## Table 2")[0]
+ref_text = {p.name: p.read_text(encoding="utf-8") for p in (KEEL / "references").rglob("*.md")}
+
+# Rows the phase reference creates THROUGH a named delegated reference. One line
+# per exemption, with its reason, so adding one is a visible act in this file.
+# Deliberately a list and not a generic two-hop rule: the two-hop version lets the
+# v5.3.0 defect through, because phase-5-development.md already cited
+# project-state.md for unrelated reasons.
+DELEGATED = {
+    (".claude/rules/", "2"):           "phase-2 §4a materializes them from assistant-config.md",
+    (".claude/agents/", "2"):          "phase-2 §4a materializes them from assistant-config.md",
+    (".github/workflows/ci.yml", "5"): "phase-5 scaffold materializes it from assistant-config.md",
+}
+
+t1_checked = t1_out_of_scope = 0
+for row in [r for r in t1.splitlines() if r.startswith("|") and not r.startswith("|---")][1:]:
+    # Escaped pipes inside a cell (`VERDICT: CONTINUE\|STOP`) must not split it.
+    cells = [c.replace("\0", "\\|").strip()
+             for c in row.replace("\\|", "\0").strip().strip("|").split("|")]
+    if len(cells) < 4:
+        continue
+    m = re.search(r"Phase (\d)", cells[2])          # the "Required from" column
+    if not m:
+        # KNOWN GAP, stated rather than silently unhandled: rows whose "Required
+        # from" is an EVENT ("First forge contact", "Adoption step 5", "When
+        # archiving starts") have no owning phase reference to check against.
+        # Closing it means deciding which reference owns an event, which is not
+        # mechanical today. Such a row can still ship with no creator named.
+        t1_out_of_scope += 1
+        continue
+    phase = m.group(1)
+    owners = [n for n in ref_text if n.startswith(f"phase-{phase}-")]
+    if not owners:
+        continue
+    tokens = [re.sub(r"<[^>]+>.*$", "", t) for t in re.findall(r"`([^`]+)`", cells[0])]
+    # A basename counts only when it is a FILEname. A bare directory name is an
+    # ordinary English word: "slices" matched Phase 5's vertical slices and let
+    # docs/.keel/slices/ pass on prose that had nothing to do with the row.
+    tokens += [b for b in (t.rstrip("/").split("/")[-1] for t in tokens) if "." in b]
+    tokens = [t for t in tokens if len(t) > 3]
+    if not tokens or (tokens[0], phase) in DELEGATED:
+        continue
+    t1_checked += 1
+    if not any(t in ref_text[n] for n in owners for t in tokens):
+        elsewhere = sorted(n for n in ref_text if any(t in ref_text[n] for t in tokens))
+        where = f"named only in {', '.join(elsewhere)}" if elsewhere else "named by NO reference"
+        fail(f"MANIFEST Table 1: {tokens[0]} (Phase {phase}) — {where}; "
+             f"no phase-{phase} reference says who creates it")
+if not any(f.startswith("MANIFEST Table 1:") for f in failures):
+    ok(f"every phase-required Table 1 row is named by its phase reference "
+       f"({t1_checked} checked, {len(DELEGATED)} delegated, {t1_out_of_scope} event-based rows out of scope)")
 
 # ---- Result ----------------------------------------------------------------
 print()

@@ -82,7 +82,7 @@ Keep it to roughly one page. Detail lives in the linked files, never accumulated
 Last updated: [date — phase/step]
 ```
 
-Update rules: mark a phase `done` only when its definition of done passed (reported ✓/✗ to the user). `parked — <why>` is a recognized project status: set it when the user parks or discards the project — at the Phase 1 verdict or at any later point; the artifacts stay in place, never deleted, so the project can be resumed or revisited cold. "Next action" must always be executable by a fresh session with no other context. Never let PROGRESS.md drift from reality — a stale state file is worse than none.
+Update rules: mark a phase `done` only when its definition of done passed (reported ✓/✗ to the user). `parked — <why>` is a recognized project status: set it when the user parks or discards the project — at the Phase 1 verdict or at any later point; the artifacts stay in place, never deleted, so the project can be resumed or revisited cold. "Next action" must always be executable by a fresh session with no other context. Never let PROGRESS.md drift from reality — a stale state file is worse than none. One deliberate exception to "the session updates it at the moment of change": when work is fanned out over git worktrees, only the session owning the MAIN tree writes this file, and a worker writes a report instead — see "Fan-out over worktrees" below, which records why.
 
 Deferred items are the living list of consciously postponed WORK — a definition-of-done ✗ the user accepted, a performance finding accepted as-is — each entry carrying a severity and a review trigger ("revisit when touching X", "before release"). This is the greenfield counterpart of adoption's fix-now / fix-when-touched / accepted triage: `docs/decisions.md` logs the DECISION to defer; this list tracks the work until its trigger fires or the user closes it.
 
@@ -316,7 +316,7 @@ So `start` requires four things, and a project missing any of them is offered `p
 1. **The single-lane lock** (below). Without it, `start` is a chain that can fork silently.
 2. **A verified open action for the tool that produces a VISIBLE session**, not a headless run. On macOS that is `osascript` driving Terminal.app, verified. Linux (`gnome-terminal` / `konsole` / `xterm`) and Windows are NOT verified: an implementer who reaches for the plain platform open command ships the headless variant, which runs correctly and opens nothing, leaving the user waiting for a window that will never appear. **`start` is therefore verified on macOS only today.**
 3. **The project's allow-list entry for `scripts/keel-handoff-verify`**, plus folder trust granted once. Without them every link stops for a permission prompt, which is not automation with extra steps — it is `prefill` pretending.
-4. **The `claude` command on PATH.** `start` launches a CLI session, so without the standalone CLI there is nothing to launch. This is worth stating because it is not obvious: neither the desktop app nor the VS Code extension puts `claude` on PATH — the app runs Claude Code graphically, and the extension bundles a private copy for its own panel — so a user can have both installed, use Claude Code daily, and still have no `claude` command. Absent → `prefill` is the maximum, and say which requirement failed rather than letting the first close-out of a chain discover it.
+4. **The `claude` command on PATH.** `start` launches a CLI session, so without the standalone CLI there is nothing to launch. This is worth stating because it is not obvious: neither the desktop app nor the VS Code extension puts `claude` on PATH — the app runs Claude Code graphically, and the extension bundles a private copy for its own panel — so a user can have both installed, use Claude Code daily, and still have no `claude` command. Absent → `prefill` is the maximum, and say which requirement failed rather than letting the first close-out of a chain discover it. **The probe and the install offer belong to the Phase 1 environment preflight** (`references/phase-1-discovery.md` §5a, question 5), which runs `command -v claude` whenever the card is `prefill` or `start`, offers the platform's install command if it is missing, and records the answer either way.
 
 The residual risk stays real even with all three: a window begins working unsupervised from a hand-off composed by a session that was running out of context. That is not uniform — a routine slice is not a migration, a release, or anything touching production data — so it remains the user's call per project, recorded on the card and in `docs/decisions.md`.
 
@@ -428,6 +428,68 @@ Two details an implementer would otherwise have to invent, so they are fixed her
 `scripts/keel-handoff-verify` is the sibling artifact, generated at the same scaffold: it runs the five mechanical checks and prints one line each plus `VERDICT: CONTINUE|STOP`. Portability is the same open question — the first prototype was BSD/macOS only (`stat -f`, `date -j`); the Linux/GNU forms (`stat -c`, `date -d`) and Windows are unwritten. A generated script that only runs on the machine that generated it is a check that cannot be run, so this is tracked as a real gap rather than a detail.
 
 
+## Fan-out over worktrees — who writes the state, and how a worker reports
+
+A session may dispatch several workers into git worktrees to work on independent slices at once. Everything in this section was measured; it applies to any such fan-out, and none of it requires a second chat with a role (see "Designs measured and rejected" below).
+
+### The living state is written by the session that owns the MAIN tree — and by nobody else
+
+This **inverts** the rule that governs everywhere else in this file ("update state at the moment of change"), so it is recorded as a deliberate decision with its reason rather than left as an exception someone will treat as an oversight.
+
+- **The session in the main tree writes `docs/PROGRESS.md`**, after each merge, as always.
+- **A worker in a worktree never writes it.** Not a line. The prohibition goes in the worker's own prompt, in those words.
+
+The measurement: with three worktrees where each worker touched its own code file AND `docs/PROGRESS.md`, the code merged clean every time and `PROGRESS.md` conflicted in **100% of merges — N−1 times for N workers**, and not on one line but on the whole structured block. With the workers writing only their own report path instead, three merges produced **zero conflicts** and `PROGRESS.md` was left intact for the main session to rewrite.
+
+**`.gitattributes` with `merge=union` is not the fix and must not be reached for.** With two branches that only APPEND it works; a Keel `PROGRESS.md` is REWRITTEN — phase, version, position — and union merging then produces a clean merge and a corrupt file: two contradictory `**Fase actual:**`/`Phase:` lines, two `## Log` headings, and no conflict marker anywhere. A silent wrong answer is worse than a conflict.
+
+### The worker's report — `docs/.keel/slices/<n>.json`
+
+What a worker writes instead, committed on its own branch, one path per worker so two never touch the same file:
+
+```json
+{ "slice": "3", "status": "blocked", "branch": "slice-3", "commit": "4416bf5",
+  "needs_user": "What should divide(a, b) do when b is 0?" }
+```
+
+`status` is `done` or `blocked`. A `blocked` report is **not merged**: the branch and its worktree stay untouched, the question goes to the user in the chat where a person actually is, and the main session records the block in `PROGRESS.md`. That escalation is the whole reason a fan-out is driven from a session with a human in it — a worker that invents an answer to a product question is the failure this prevents.
+
+Two things the report deliberately is not. **Not stdout:** a `claude -p` worker writes nothing until it finishes, so a working worker and a dead one both show an empty log (measured: 0 lines while both were working). **Not the transcript:** it belongs to the process rather than to the project, and a transcript resumed after an interruption gains a fabricated `Continue from where you left off.` turn that nobody wrote.
+
+### The close-out contract — this order, and the order is the point
+
+Every worker prompt ends with these four steps in exactly this sequence:
+
+1. `git add -A && git commit -m "slice <N>: …"`
+2. Write `docs/.keel/slices/<N>.json` and commit it.
+3. Signal completion **atomically**: `printf '<N> done\n' > <signal>.tmp && mv <signal>.tmp <signal>.done`.
+4. Finish.
+
+The signal comes LAST so that **an existing signal implies committed work, never the reverse**. It is written by rename because a rename cannot be observed half-written, which a direct `>` redirect can. The dispatching session waits on the signal file — one blocking call with a ceiling (`until [ -f <signal>.done ]; do sleep 5; done`), which costs one line of context however long it takes.
+
+### The slice prompt is self-sufficient, and is not a continuation prompt
+
+Each worker receives a complete prompt that starts with the ABSOLUTE path of ITS worktree, states that no other directory may be touched, forbids reading or writing `docs/PROGRESS.md`, and carries the task in full. It reads no state file. There is also a mechanical reason the hand-off cannot get confused with a slice prompt: `docs/continuation-prompt.md` is gitignored, so a fresh worktree does not contain one at all (measured). The party that needs a hand-off is the session that owns the main tree, never the workers.
+
+**What needs serialising is the merge, not the slice.** Three worktrees give three different `git rev-parse --show-toplevel` values and therefore three legitimate lanes, exactly as the single-lane lock already intends. Since only the main session merges, the main tree's lane already covers the thing that must not happen twice at once; nothing about the lock changes for this.
+
+### Seeing which sessions are live — `claude agents --json`
+
+The supported way to enumerate live sessions, replacing any parsing of `*.jsonl` transcripts. It returns one object per session with `pid`, `cwd`, `kind`, `sessionId`, `name` and a status of `idle` or busy — enough to discover sessions, spot a dead one, and tell whether one is working. It needs no TTY and is scriptable.
+
+Two caveats, both measured, both load-bearing:
+
+- **`-p` (print) sessions do NOT appear** — only interactive and `--bg` ones. So it is not a completion detector for `-p` workers; the done-signal file is.
+- **`--session-id <uuid>` lets the launcher assign the id up front**, so whoever dispatches a worker already knows its id without looking it up.
+
+## Designs measured and rejected — do not re-propose
+
+Each of these was built or probed on a real machine and failed for a reason that will not change by trying again. They are recorded so the next session finds the result before spending the round that produces it a second time.
+
+- **A "chat director" — a second chat whose role is orchestrating worker chats. Abandoned as a design.** It works: a prototype ran three slices with three workers, merged without conflicts, wrote the state itself, and escalated a product question instead of inventing an answer. It still does not earn its scaffolding. Measured, it costs **≈7k tokens of context per slice in a toy project and 15–20k in a real one** (a `PROGRESS.md` of 4–18 KB read and rewritten every slice is what fills it, not the waiting loop — that is one Bash call returning one line however long it blocks), which degrades the director **between the 6th and the 9th slice**. It has no cost accounting, no cancellation and no concurrency cap, all to obtain parallelism that native subagents and workflows already provide with all three. Its one genuine advantage — a chat with a person in it, which can be asked a question and can answer — is obtained by something far smaller: **one ordinary Keel session that, in a single turn, dispatches N workers into worktrees, waits for their signals and merges**, exactly as this section describes. The chat where the person is, is the chat you are already working in.
+- **Delivering a message into a live session with `claude --resume`.** There is no mailbox. `--resume` starts a NEW process that reads the transcript from disk and writes to the same file: against an idle session the target's window sees nothing, and against a session mid-turn the transcript FORKS, a `Continue from where you left off.` / `No response requested.` pair that nobody wrote is fabricated, and the message is **silently lost** from the resumable history. It is also scoped to the current directory's slug, so a worker in a worktree could not reach a session in the main tree even if the mechanism worked. Workers report through their file, and nothing else.
+- **Closing another session's window from a script.** Measured on macOS with Terminal.app: `close` takes **40–78 seconds** with no confirmation and no error either way, so the caller cannot know whether it happened without polling; it is a hard kill that runs **no cleanup hooks at all** (three signal traps were installed and none fired, and the log file was never created); and because the holder can therefore never release its lane, an orphaned lock is guaranteed rather than exceptional. Killing the child instead leaves the window open with an idle shell. Opening an unrequested window was already placed behind the user's decision; closing one is more destructive and its mechanics are worse. **Do not do it, not even opt-in.** The defensible version, if it is ever wanted, is `kill -TERM` on a worker whose done-signal already exists — the commit is guaranteed by the close-out order — leaving the window open; even that needs an explicit lane release, which is specified for the arriving session and not for a third party.
+
 ## Context & cache discipline (how every session works)
 
 These rules exist so sessions are cheap, deterministic, and cache-friendly. Follow them literally.
@@ -467,7 +529,7 @@ The project root carries the Keel block below in TWO files, always: `CLAUDE.md` 
 One tool needs a third step: **Gemini CLI reads `GEMINI.md`, not `AGENTS.md`, by default.** If the user works with Gemini CLI, ask once and record the pick: mirror the same block in `GEMINI.md` (a third copy of the lock, refreshed with the others), or commit a `.gemini/settings.json` whose `context.fileName` includes `AGENTS.md` (no third copy to maintain). Either satisfies the lock.
 
 ```
-<!-- KEEL:BEGIN — v5.3.3 do not remove: binds every AI/session in this repo to the Keel workflow -->
+<!-- KEEL:BEGIN — v5.4.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
 # Keel protocol (mandatory for ANY assistant working in this repository)
 
 This project is governed by the Keel workflow. Before reading code or changing ANYTHING:
@@ -632,5 +694,6 @@ These NEVER move while the project is alive: `PROGRESS.md`, `decisions.md`, `les
 - If forge issues were ever accessed: `docs/issues.md` exists, its inventory reflects the forge, and every worked issue has its entry (diagnosis, resolution, changes, verification, pending).
 - From Phase 5: `docs/api/INDEX.md` exists and matches the docs; sprint files follow the template.
 - Any session ending mid-work produced a continuation prompt.
+- Where work was fanned out over worktrees: only the main tree's session wrote `docs/PROGRESS.md`, every worker left its `docs/.keel/slices/<n>.json` report committed on its own branch, every done-signal was written after its commit, and no `blocked` report was merged.
 - The project card carries `Keel baseline:`; a completed reconciliation updated it and left its D-entry; a deferred one is listed in PROGRESS.md open items.
 - Any reconciliation read `MANIFEST.md`, ran the full conformance sweep (Table 1 parity plus Table 3's per-version delta) and left `docs/keel-conformance.md` complete — every applicable row `present`, `declined` with its D-entry, or `n/a` with its condition. Every `missing` row reached the batched plan and ended in a user decision; the sweep table was reported to the user in full.

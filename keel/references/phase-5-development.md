@@ -53,6 +53,17 @@ Real projects don't fit in one chat. Plan the work as sprints so it survives acr
 2. **Re-validate what you think you know — assumptions rot between sessions.** Verify against the source, never against memory, before planning on top of it: the current state of the code the sprint touches (read those files — do they still look like the plan assumes?), the platform and dependency versions (has WordPress/WooCommerce/the runtime/a pinned dependency released something since the plan was written? does the support matrix still hold?), and any external API, hook, or schema the sprint builds against (is it still what the spec recorded?). Anything that changed is a recorded plan/spec amendment, never a silent improvisation; anything uncertain is settled NOW with a file read, a command, or a doc lookup. A sprint built on a stale assumption is rework with extra steps.
 3. **Confirm the playground still boots** from its documented commands (this is the same session-start freshness rule as §4 — at a sprint kickoff it is simply mandatory).
 
+#### Fanning the sprint out over worktrees (optional — and it creates one artifact)
+
+A sprint whose slices are genuinely independent may be dispatched to several workers at once, each in its own git worktree. The rule is in `references/project-state.md` ("Fan-out over worktrees"); what belongs HERE is who does what, and when:
+
+- **The session that owns the MAIN tree dispatches**, at this kickoff, after the sprint's slices are approved — one worktree and one branch per slice, each worker handed a self-sufficient prompt that opens with the absolute path of ITS worktree.
+- **That same session is the only one that writes `docs/PROGRESS.md`**, after each merge, and it is the only one that merges. The worker prompt forbids touching the state file in those words.
+- **Each worker creates `docs/.keel/slices/<n>.json`** — `slice`, `status`, `branch`, `commit`, `needs_user` — and commits it on its own branch, then signals completion, in that order (commit → report → atomic done-signal). That file is the deliverable of the fan-out that Table 1 of `MANIFEST.md` requires; no other artifact records a worker's outcome.
+- **A `status: blocked` report is not merged.** Its branch and worktree stay untouched, and its `needs_user` question goes to the user in this chat — which is the reason the fan-out is driven from a session with a person in it.
+
+Every slice still passes its own test point (§2) before its branch is merged; fanning out changes who runs them concurrently, never whether they run. A project that never fans out over worktrees never creates this artifact, and its Table 1 row does not apply.
+
 ### 1. Scaffold
 
 Create the project structure per the technical plan's code map, the `docs/` dir (already seeded by earlier phases), and a `tests/` location. Set up `.gitignore` and `.gitattributes` now (full rules in Phase 7) so secrets and build cruft never enter history from commit one.

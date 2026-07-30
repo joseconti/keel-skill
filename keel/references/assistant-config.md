@@ -177,7 +177,45 @@ The four cases where serial is correct, and no others:
 - **An agent in the set can change what the readers are reading.** `test-driver` is the only one — its mechanical adaptations to selectors, waits and fixtures — and only on a run where it actually adapts something: then it runs FIRST and alone, and the reading block starts once it has finished. A run that only executes and emits its evidence artifacts does not qualify; nobody reviews the artifacts directory.
 - **The environment caps concurrency**, or the user asked for one check at a time. Then run what the cap allows per block — still batched, never one by one.
 
+**File isolation does not buy environment isolation, so it never dissolves the second case.** Where a harness offers to run each agent in its own git worktree, what that isolates is FILES: two agents editing the same path stop colliding. The serial case above is not about files — it is about two EXECUTING verifiers sharing one port, one database, one seed dataset, one deployed origin, and two worktrees fight over all four exactly as two directories in one checkout would. "One executing verifier per environment" therefore stays a serial stage whatever the isolation mechanism offers, and an isolated worktree is never the reason to relax it.
+
 **Merging is the main session's job and it is not optional.** Each agent returns findings for its own slice of the work and nothing else; the session collects every block's results, deduplicates findings several agents raised against the same `file:line`, and reports once. A gate is passed against the merged set — never against the first agent that answered, and never against a partial set because one agent is still running.
+
+### Workflows — the same fan-out, written as a script
+
+Some environments expose a further primitive: a **workflow**, a script that dispatches agents deterministically — loops, conditions, per-unit fan-out, and a merge step that is code rather than discipline. Where one exists it does not change any rule above; it changes who enforces them. The rule stays "one agent per independent unit, merged before the verdict"; the script is what makes forgetting impossible.
+
+**Keel never depends on it.** A workflow tool requires the user's explicit opt-in, may simply not exist in the environment, and carries a user-controlled size cap Keel does not govern (a session may be told to keep workflows under a given number of agents). That is the same situation as subagents, so it takes the same shape of answer: a fallback chain, not a requirement.
+
+**The fallback chain, three steps, all producing the same table:**
+
+> **workflow** (where one exists AND the user has opted in) → **parallel subagent block** (where subagents exist) → **inline and serial**.
+
+Only the wall clock changes between them. None of the three drops a check, and none of them is a licence to trim the set: an environment without the first two runs every check inline and says so, exactly as the standing fallback already requires.
+
+**The canonical candidate is the conformance sweep** (SKILL.md "Applying Keel completely"). The rows of `MANIFEST.md` Table 1 plus Table 3's per-version delta are an enumerable list of independent units checked the same way — the textbook one-verifier-over-many-units case. Measured on a real project: 31 rows, 5 agents, 110 seconds, and no hallucination found when the evidence was contrasted against the disk; the `docs/decisions.md` citations in the `declined` rows were correct. The same shape fits the other enumerable units the rule already names: screens in the Phase 4 fidelity walk (over captures, per capture-once), locales in `guide-qa`, dimensions in the adoption gap audit, rubric domains at Phase 2 §6a, competitors in the Phase 1 scan.
+
+**What a schema buys, stated honestly.** With a per-row output schema, the rows arrive validated at the tool layer and **no model sits between the data and the file** — nothing rewrites, summarises or reformats a verdict on its way to `docs/keel-conformance.md`. But two pieces are still needed and they are not "the schema":
+
+1. **A deterministic template in the script** — `rows.map(r => "| … |")`, about six lines, no model, reproducible. That is code, not post-processing, and it has to be written.
+2. **A way to reach the disk**, because the workflow script itself has no filesystem access. Either a writing agent handed the finished markdown and forbidden to change a word, or — cleaner, and one agent cheaper — the workflow **RETURNS** the markdown and the main session writes it with its own file tool.
+
+So "no post-processing" means no MODEL in the middle. It does not mean no code.
+
+**Three things stop being discipline and become code:**
+
+- **Dedup and merge.** "Merging is the main session's job" becomes a deterministic function over the collected findings — deduplicating by `file:line` in the script, not by a model asked to be careful, and not omittable.
+- **The concurrency cap.** Native to the primitive; there is nothing to write.
+- **The cross-unit check.** "A per-unit split never silently drops the checks that are cross-unit" becomes one additional agent, visible in the script beside the per-unit ones instead of trusted to whoever wrote the dispatch.
+
+**And the sweep's own prohibition travels unchanged:** a workflow's agents may read the disk, `MANIFEST.md` and `docs/decisions.md`, and **never the previous `docs/keel-conformance.md`** — the failure that made the rule was found in exactly this modality, where agents cited the last sweep as evidence for their own verdicts.
+
+**What does not become a script, and saying so is part of the rule:**
+
+- **Which verifiers a gate calls for.** Six of the nine agents are conditional on what the project has; that is read off the project card, not enumerated in a script.
+- **The reader/executor split and one-executor-per-environment.** A script can *implement* it as a serial stage; *deciding* which agent executes and which environment it holds is judgment — and file isolation does not help, per the note above.
+- **`test-driver`'s ordering exception.** "First and alone, but only on a run that actually adapts something" depends on the outcome of that run; the two stages are expressible, the condition is not.
+- **The gate's verdict.** A workflow returns the merged set. Passing the gate remains the session's call.
 
 Where the environment provides no subagents (Codex, Windsurf, or any tool without them), the checks run inline and therefore serially. That is a property of the environment, not a licence to drop any of them: record it exactly as the standing fallback already requires.
 
