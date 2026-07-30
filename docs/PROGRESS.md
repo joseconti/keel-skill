@@ -41,16 +41,16 @@ This repository was adopted into its own discipline late (state files created 20
 | 8 Website | n/a — website intent: no | — |
 
 ## Current position
-- Phase: maintenance — authoring **v5.5.0** (unreleased, uncommitted at the time of writing)
-- Step/sprint: v5.5.0 change set — session setup batch, permission mode, out-of-band notification, three-beat forge-issue lifecycle, `develop`-based git flow, uninterrupted advance
-- Next action: commit the v5.5.0 change set to a work branch, merge it to `develop`, push. `main` is not touched — the merge to `main` and the tag are the user's act (D-002).
+- Phase: maintenance — **v5.5.0** authored and integrated on `develop`; unreleased (not merged to `main`, not tagged)
+- Step/sprint: v5.5.0 change set — committed on `feature/v5.5.0-autonomy-and-notifications`, merged into `develop` and pushed (`bf823c0`) — session setup batch, permission mode, out-of-band notification, three-beat forge-issue lifecycle, `develop`-based git flow, uninterrupted advance
+- Next action: **the user's call** — v5.5.0 is on `develop` and pushed; merging `develop` into `main` and tagging `v5.5.0` are their acts (D-002). Keel does not perform them.
 
 ## Open items
 - Unresolved user questions: none
 - Open Design Requests: none
 - Unverified external steps/assets: none
 - Forge issues in progress: none
-- **Ready for `main`:** v5.5.0 will sit on `develop` once merged, awaiting the user's decision to merge to `main` and tag. Keel does not do this on its own initiative.
+- **Ready for `main`:** v5.5.0 is on `develop` and pushed, awaiting the user's decision to merge to `main` and tag. Keel does not do this on its own initiative.
 
 ### Deferred items (consciously postponed work)
 - **No delivering notification channel exists on this machine** — severity: medium — review trigger: when the user wires an SMTP sender or a messaging MCP. Until then `references/notifications.md`'s protocol is correct but has nothing to deliver through, and Keel says so instead of pretending.
