@@ -22,6 +22,7 @@
 - User guide: n/a — `README.md` and `INSTALL.md` serve that role for a skill.
 - Docs theme: n/a
 - Autonomy: permission mode: auto (`.claude/settings.local.json`, written by Keel, gitignored) / push: unattended (Keel pushes; see D-003) / issues: on-request — the repo's forge issues are worked when the user raises them
+- Branches: integration branch `develop` (created from `main` 2026-07-30 and published) / work branch `feature/v5.5.0-autonomy-and-notifications` (merged) / **awaiting the user:** v5.5.0 on `develop`, to be merged to `main` and tagged by them
 - Notify: none — no delivering channel probed in this environment; the Gmail connector is compose-only (draft, no send). Re-probe each session per `references/notifications.md`.
 - Chaining: off
 
