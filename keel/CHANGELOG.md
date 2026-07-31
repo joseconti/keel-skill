@@ -712,3 +712,24 @@ Closing the laptop at a sprint close stops costing anything. The hand-off was al
 - **The hand-off is a courier and never an authority**, now written wherever it is read: where it and the committed state disagree, `docs/PROGRESS.md` wins and the divergence is stated.
 
 **Reconciliation:** nothing to migrate and no new artifact — this is behaviour, applicable at the next sprint close and the next session start. From the next close on any project, write `docs/continuation-prompt.md` whatever the `Autonomy:` and `Chaining:` lines say, and regenerate it as the work advances rather than leaving it describing a commit that is no longer `HEAD`. **The lock block changed in substance for the second release running** — item 2 gains the read-the-hand-off-first duty and item 5 the sprint-close duty — so `CLAUDE.md` and `AGENTS.md` (and any `GEMINI.md` mirror) need a real content refresh at the next lock-freshness check, not a stamp-only rewrite.
+
+## 5.8.0
+
+Forge issues stop waiting for the next sprint to END. The after-sprint duty guarded one edge of the sprint and left the other open: between two sprints there can be days, and everything that arrived in them — a fresh bug report, or the reply on an `awaiting reporter` issue that decides whether it closes or reopens — sat unread while the new sprint was planned as if none of it existed.
+
+### Added
+
+- **A sprint kickoff sweeps the forge before it plans anything** (Phase 5, "Sprint kickoff", now step 1 — ahead of plan mode and the re-validation). It runs the same inbound sweep the close runs: new issues triaged into `docs/issues.md`, and new comments on existing issues read BY STATUS — on `awaiting reporter` the comment is the verdict (confirms → closed, recorded under `Closed by:`; "still broken" → the work reopens with that report as new evidence), and anything only the user can answer is a stop with its notification, never a guess published on a public thread. **A fresh issue the sweep turns up belongs in the same conversation as what this sprint is about to contain**, not in a note for later — that is the whole point of sweeping before the plan instead of after it.
+- **`Last inbound sweep:` in `docs/issues.md`** — one header line, stamped the moment ANY inbound sweep finishes (sprint close or maintenance touch), whether or not it found anything. It is what makes the kickoff check mechanical rather than a recollection of whether someone looked.
+- **`Issue sweep interval:` on the project card's `Autonomy:` line** — default 24h, asked once with the after-sprint duty in the session-start setup batch, `n/a` on any project that did not accept the duty. The kickoff compares it against `Last inbound sweep:`: older or missing → sweep now; within the window → say so in one line ("issues last swept Xh ago, within window") and move on. **A sprint chained seconds after a close therefore pays nothing** — the close just wrote the timestamp — which is the only difference between a genuine kickoff and a continuation, and it is decided by data rather than by the session's memory of itself.
+
+### Changed
+
+- The definition of done in `references/project-state.md` now fails a project whose `Last inbound sweep:` is older than its interval while a sprint is open — the same shape as every other state check: verifiable from the files, not from what anyone remembers doing.
+- The setup batch's description in `references/phase-1-discovery.md` and `references/adoption.md` names the interval as part of the issue question, so it is asked once with the duty instead of being invented later by whichever session first needs it.
+
+### Fixed
+
+- **`MANIFEST.md` structure**: v5.7.0's Table 3 row had been written into the middle of Table 2, and a stray blank line split Table 3 in two since v5.4.1 — both tables now parse as one table each. Content unchanged in both cases; the manifest is read mechanically after every update, so a broken table is a real defect.
+
+**Reconciliation:** nothing to migrate, no new file, and **the lock block is UNCHANGED** — after two releases that needed a real content refresh, this one is a stamp-only rewrite at the next lock-freshness check. On any project carrying the after-sprint duty: add `Issue sweep interval:` to the card's `Autonomy:` line (24h unless the user says otherwise), add the `Last inbound sweep:` line to `docs/issues.md` (`never` until the first sweep stamps it), and from the next sprint kickoff on, sweep before planning whenever that line is missing or stale. Projects on `issues: on-request` or with no forge are unaffected beyond the `n/a` card value.

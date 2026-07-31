@@ -2,13 +2,13 @@
 name: keel
 license: GPL-3.0-or-later
 metadata:
-  version: 5.7.0
+  version: 5.8.0
 description: Use this skill for ANY new software project from idea to release — websites, WordPress/WooCommerce plugins, MCP servers, web apps, components, or libraries — and for maintaining what it built (hotfixes, dependency updates, new features). Trigger when the user starts a new project or feature, says "I have an idea for a plugin/site/app", "let's plan this project", brings only a vague one-line idea with no technical background (Keel shapes it and proposes the v1 unprompted), mentions a design handoff, asks for docs or a security review of a Keel project, asks what a project will cost (quote/budget), works forge issues (GitHub/GitLab/...), prepares a release or a hotfix, resumes an in-progress Keel project (any repo with docs/PROGRESS.md), or adopts Keel in an EXISTING project. Do NOT trigger for one-off scripts, quick code questions, or repos not managed by Keel unless the user wants to adopt them. Phases load references on demand; living state makes projects resumable across chats.
 ---
 
 # Keel — project lifecycle (idea → release)
 
-**Keel v5.7.0** — Licensed under GPL-3.0-or-later. *Keel* is the structural backbone laid down first, on which the whole project is built.
+**Keel v5.8.0** — Licensed under GPL-3.0-or-later. *Keel* is the structural backbone laid down first, on which the whole project is built.
 
 ## Skill maintenance — update check & version policy (RUN FIRST, NON-BLOCKING)
 
@@ -30,7 +30,7 @@ Immediately after the maintenance block and before the entry-mode decision, Keel
 - **Verify `.claude/settings.local.json` is in `.gitignore`** either way; if not, add it (already an unconditional entry).
 - **Hygiene that follows from `env.PATH`:** Keel never prefixes a command with `export PATH=... && ...`. That prefix ALONE makes the command composite, forcing a dialog on every single call — the exact problem this step removes.
 
-**Question 2 — forge issues: the after-sprint duty.** Should Keel review the project's issues at every sprint close — new arrivals triaged into `docs/issues.md`, and issues whose fix has landed answered on the forge? **Answering is publishing** — a third party reads it — so the mechanics are fixed and not negotiable per project: Keel comments, Keel notifies the developer when a deploy is needed for the reporter to test, Keel comments again when it is testable, and **Keel never closes an issue on its own reading of the code**. Full three-beat lifecycle in `references/project-state.md` ("`docs/issues.md`") and `references/notifications.md`.
+**Question 2 — forge issues: the after-sprint duty.** Should Keel review the project's issues at every sprint close — new arrivals triaged into `docs/issues.md`, and issues whose fix has landed answered on the forge? **Answering is publishing** — a third party reads it — so the mechanics are fixed and not negotiable per project: Keel comments, Keel notifies the developer when a deploy is needed for the reporter to test, Keel comments again when it is testable, and **Keel never closes an issue on its own reading of the code**. The same duty also guards the other edge: a sprint kickoff opening more than `Issue sweep interval:` after `docs/issues.md`'s last sweep runs that same inbound check before the sprint is planned, so a gap of days between sprints never leaves a fresh report or an `awaiting reporter` reply sitting unread until the next close. If accepted, ask the interval too — default 24h, changeable per project — and record it beside the duty on the card. Full three-beat lifecycle and the kickoff sweep in `references/project-state.md` ("`docs/issues.md`"), the kickoff step in `references/phase-5-development.md` ("Sprint kickoff"), and `references/notifications.md`.
 
 **Question 3 — out-of-band notification: how does Keel reach you when it stops?** A blocked session and a working session look identical from outside, which turns a thirty-second question into a lost afternoon. Keel probes what this session can actually deliver with, offers only what answered, and asks for the recipient explicitly — never inferring an address from git config or commit history. **A channel counts only if it DELIVERS:** a connector that composes drafts but cannot send is recorded as compose-only and is not a notification. If nothing delivers, the session says so plainly, so the user knows silence means silence. Full protocol in `references/notifications.md`.
 

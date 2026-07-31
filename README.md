@@ -4,7 +4,7 @@
 
 Use it for any new project — WordPress/WooCommerce plugins, MCP servers, web apps, components, libraries, or websites. Keel runs a complete multi-phase workflow so you never have to re-explain your standing requirements every time you start something new.
 
-- **Version:** 5.7.0
+- **Version:** 5.8.0
 - **License:** GPL-3.0-or-later
 - **Author:** [José Conti](https://plugins.joseconti.com/en)
 
@@ -41,7 +41,7 @@ Project state is cross-cutting as well. From the first minute of Phase 1, Keel m
 
 Estimation and budgeting are built in, and AI-time based. At the close of Phase 1 Keel produces a preliminary estimate, and at the close of Phase 2 a firm one plus a client-ready budget (`docs/estimate.md` and `docs/budget.md`): itemized segments with hours for both the AI's working time and the developer's supervision time (answering questions, deciding, real-world testing, uploading code), the developer's hours priced at their rate, the AI's token cost computed per model and payment mode, both blocks kept separate, and everything adjusted with the user before it is final — never based on what a traditional human team would take. Actual token usage is recorded per session in `docs/token-ledger.md`, and the release closes with a reconciliation: totals by model, cost at verified prices, and the deviation against the estimate.
 
-Forge issues get their own living log. Whenever issues on the project's Git forge (GitHub, GitLab, Gitea, Bitbucket, or any other) are accessed or worked, `docs/issues.md` tracks the inventory, what was resolved and exactly how (diagnosis, resolution, commits, verification), and what remains pending — full traceability if a problem surfaces later.
+Forge issues get their own living log. Whenever issues on the project's Git forge (GitHub, GitLab, Gitea, Bitbucket, or any other) are accessed or worked, `docs/issues.md` tracks the inventory, what was resolved and exactly how (diagnosis, resolution, commits, verification), and what remains pending — full traceability if a problem surfaces later. Where the project accepted the issue duty, the forge is swept at both edges of a sprint — at the close, and again at the next kickoff whenever the last sweep is older than the project's recorded interval — so a report that arrives between two sprints is read before the next one is planned, not after it ships. Replies run in three beats (fix landed → the developer is told a deploy is needed → testable), and Keel never closes an issue on its own reading of the code.
 
 Keel has three entry modes: a new project (Phase 1 from zero), resuming an in-progress Keel project (from `docs/PROGRESS.md`), and **adoption** — applying Keel to a project already underway (`references/adoption.md`): read-only inventory, the never-made Phase 1 decisions asked, artifacts reconstructed as-built, and a gap audit against Keel's standards prioritized with the user, changing no code.
 
