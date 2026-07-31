@@ -269,7 +269,7 @@ Handover: clean
 [the continuation prompt, exactly as templated above]
 ```
 
-`Branch:` names the work branch, whether it is already merged and pushed to the integration branch, and anything sitting on `develop` awaiting the user's merge to `main` — a hand-off that does not say where the code IS sends the next session hunting. `Handover:` is `clean`, or `blocked: <one line>` naming what stopped the session. `Tree:` is `clean`, or `dirty (N files)` from `git status --porcelain` — the session that writes a hand-off while running out of context is exactly the one likely to leave work uncommitted, and `Commit:` alone says nothing about it, so the next session would inherit changes it believes do not exist.
+`Branch:` names the work branch, whether it is already merged and pushed to the integration branch, and anything sitting on `develop` awaiting the user's merge to `main` — a hand-off that does not say where the code IS sends the next session hunting. `Handover:` is `clean`, or `blocked: <one line>` naming what stopped the session — and it is `blocked` only when the SESSION could not proceed at all, never because some item in it is parked awaiting an answer, a deploy or a merge. A session that parked three questions and still shipped two slices hands off `clean`, with the parked items listed as open items. `Tree:` is `clean`, or `dirty (N files)` from `git status --porcelain` — the session that writes a hand-off while running out of context is exactly the one likely to leave work uncommitted, and `Commit:` alone says nothing about it, so the next session would inherit changes it believes do not exist.
 
 **Producing `Repo:` — three traps, all silent.** It is the SHORT root-commit hash, and the command has edges that return a wrong answer with exit 0:
 
@@ -403,7 +403,7 @@ Two reasons the warning is text the user reads and not a footnote. **It changes 
 
 Whatever the value:
 
-- **Chaining fires only on a clean hand-off.** Any "When to stop and ask" row (SKILL.md), a failed test point, an open Design Request, or the three-attempt rule → the file is written with `Handover: blocked` and the reason, and nothing is opened. Chaining a blocked state hands the next session a problem dressed as an instruction, and the next session cannot tell the difference.
+- **Chaining fires only on a clean hand-off** — but `blocked` describes the SESSION, not an item in it. A "When to stop and ask" row (SKILL.md), a failed test point, an open Design Request, or the three-attempt rule blocks the ITEM it fired on, and the hand-off is `blocked` only when that leaves the queue with nothing independent to do. Parked items with buildable work still in the queue are a `clean` hand-off that CARRIES them: the next session picks up the work and the parked list travels with it, in the hand-off's own open-items section, so nothing is lost by not stopping. Writing `blocked` because something is blocked — rather than because everything is — is the same error the item/session distinction exists to prevent, and here it costs the whole next session: nothing is opened, and the user comes back to a chain that stopped at a link that had somewhere to go. When the hand-off IS genuinely blocked, it says so with the reason and nothing is opened: chaining a blocked state hands the next session a problem dressed as an instruction, and the next session cannot tell the difference.
 - **Opening a window the user did not ask for takes over their screen**, so it is never done silently and never on `off`.
 - **An open action is a local convenience only.** It needs the tool running on the same machine as the repository, so it has no meaning in CI, in a cloud session, or anywhere the repo is not open locally. Where it does not apply, the file alone does the whole job — chaining is a convenience on top of the file, never a replacement for it.
 
@@ -609,7 +609,7 @@ The project root carries the Keel block below in TWO files, always: `CLAUDE.md` 
 One tool needs a third step: **Gemini CLI reads `GEMINI.md`, not `AGENTS.md`, by default.** If the user works with Gemini CLI, ask once and record the pick: mirror the same block in `GEMINI.md` (a third copy of the lock, refreshed with the others), or commit a `.gemini/settings.json` whose `context.fileName` includes `AGENTS.md` (no third copy to maintain). Either satisfies the lock.
 
 ```
-<!-- KEEL:BEGIN — v5.8.2 do not remove: binds every AI/session in this repo to the Keel workflow -->
+<!-- KEEL:BEGIN — v5.8.3 do not remove: binds every AI/session in this repo to the Keel workflow -->
 # Keel protocol (mandatory for ANY assistant working in this repository)
 
 This project is governed by the Keel workflow. Before reading code or changing ANYTHING:
