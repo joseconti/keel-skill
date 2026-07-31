@@ -40,6 +40,24 @@ The contents:
 {
   "permissions": {
     "defaultMode": "auto",
+    "allow": [
+      "Bash(gh issue view:*)",
+      "Bash(gh issue list:*)",
+      "Bash(gh issue comment:*)",
+      "Bash(gh issue create:*)",
+      "Bash(gh issue edit:*)",
+      "Bash(gh issue close:*)",
+      "Bash(gh issue reopen:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr list:*)",
+      "Bash(gh pr diff:*)",
+      "Bash(gh pr checks:*)",
+      "Bash(gh pr create:*)",
+      "Bash(gh pr comment:*)",
+      "Bash(gh pr edit:*)",
+      "Bash(gh pr merge:*)",
+      "Bash(gh label:*)"
+    ],
     "deny": [
       "Bash(rm -rf /*)",
       "Bash(sudo *)",
@@ -52,11 +70,14 @@ The contents:
 }
 ```
 
-**Merge, never overwrite.** If the file already exists, read it and add only what is missing: set `permissions.defaultMode` to `auto`, union the `deny` and `ask` entries with those already present, and set `env.PATH` only if it is absent. A rule the user put there is never removed or reordered, and a `deny` the user added always survives. If the existing file is unparsable, do not rewrite it — say so and use the per-session route instead.
+**Merge, never overwrite.** If the file already exists, read it and add only what is missing: set `permissions.defaultMode` to `auto`, union the `allow`, `deny` and `ask` entries with those already present, and set `env.PATH` only if it is absent. A rule the user put there is never removed or reordered, and a `deny` the user added always survives. If the existing file is unparsable, do not rewrite it — say so and use the per-session route instead.
 
-Two contents notes, told to the user when the file is written so neither surprises them later:
+Three contents notes, told to the user when the file is written so none of them surprises them later:
 
+- **The `allow` block exists because `auto` mode alone is not enough for the forge.** Setting the mode to `auto` removes the *static* matching problem described above, but `auto` still routes each command through a classifier, and that classifier treats writing to a place other people read — a comment on a client's issue, a clarifying question to the reporter, a label — as an outward-facing action to confirm. Which is the correct default for an assistant with no standing authorisation, and exactly wrong for Keel's issue cycle: answering issues and asking the reporter questions IS the work of that cycle, so a dialog on each one stops precisely the automatism the mode was set to obtain. The rules above are the standing authorisation, and they are deliberately scoped to the **conversational** surface of the forge — reading, commenting, asking, labelling, opening and closing issues, and merging a PR. What is NOT in the list is as deliberate: no `gh repo delete`, no `gh release create`, no `gh api` blanket. Publishing a release is a Phase 7 decision that the user approves by name (`references/phase-7-release.md`), and it stays a dialog.
 - **There is deliberately no `ask` entry for `git push`.** An earlier draft put one there and it was removed: it contradicts the git-flow rule head-on (SKILL.md, "Git flow"), where pushing and merging into `develop` are the assistant's own duty in automatic mode. A dialog on every push recreates the queue of unpushed commits that rule exists to abolish, and it buys no safety — the safety lives at the `develop` → `main` merge, which Keel never performs on its own initiative. Adding `ask` entries of their own is of course the user's prerogative, and a merge preserves them.
+
+  **That safety is a rule, not a mechanism, and the `allow` block above is what makes the difference matter.** `Bash(gh pr merge:*)` is a prefix rule: it cannot tell a PR based on `develop` from one based on `main`, because the two commands are the same text. Neither can an `ask`/`deny` entry, for the same reason — the target branch is not in the command line. So a user who wants the `develop` → `main` boundary *enforced* rather than merely observed needs something that resolves the real target: a `PreToolUse` hook on `Bash` that reads the current branch (`git rev-parse --abbrev-ref HEAD`, following any `checkout`/`switch` earlier in the same command line) and the PR's base (`gh pr view --json baseRefName`), denies when either is a protected branch, and fails closed when it cannot tell. That is the user's own machine configuration, not something Keel writes — but when the question comes up, this is the answer, and "the assistant simply does not do it" is not one.
 - **`env.PATH` is written EXPANDED and ABSOLUTE — never `${PATH}`, never `$HOME`, never any other variable (measured, and it breaks the machine).** This field is consumed literally: a value ending in `:${PATH}` does not append the existing PATH, it appends the seven characters `${PATH}`, and `$HOME/...` becomes a directory that does not exist. The consequence is not cosmetic — the base system directories are what get lost, so `/usr/bin` and `/bin` disappear and `git`, `ls`, `cut`, `grep` and everything else stop resolving, in every session and every project, until someone edits the file. The failure is also confusing rather than obvious: the assistant sees `command not found: git` on a machine where git plainly works, and the doctor's corroboration rule (`references/test-automation.md`) is what keeps it from concluding `MISSING` and offering to install it.
 
   **And its worst symptom does not look like a PATH problem at all: a re-authentication loop.** On macOS the keychain is reached through `/usr/bin/security`, which git and `gh` credential helpers invoke by name. Drop `/usr/bin` from `PATH` and that lookup fails, so the helper cannot read a credential that is sitting right there — and instead of an error naming a missing binary, the tool asks to authenticate, succeeds, fails to store, and asks again. The user sees an identity or login loop and starts debugging tokens, scopes, two-factor and the forge's own settings, none of which is broken. **Whenever authentication loops for no reason, check `PATH` for `/usr/bin` before touching a single credential** — and never rotate a token on that evidence, because rotating one fixes nothing here and costs whatever else was using it.
