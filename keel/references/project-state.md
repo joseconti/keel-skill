@@ -53,7 +53,7 @@ Keep it to roughly one page. Detail lives in the linked files, never accumulated
 - User guide: [languages + ships in release yes/no + dev portal yes/no and ships/repo-only / declined — asked at Phase 6; guide/ at the repo root]
 - Docs theme: [keel-docs-theme vX.Y.Z vendored in guide/_theme/ / n/a until Phase 6 — per references/guide-theme.md]
 - Durability: [git remote <name> <url> / synced folder <service> / both / repo but NO remote — <what is pending> / NONE — accepted risk (D-0XX)] — per SKILL.md "Work never lives only on this machine": the work must survive this computer. Asked as Question 0 of the session-start setup batch, before anything is created. The ANSWER is never re-asked, but the two facts behind it (a repository exists; it has a remote or the tree replicates off the machine) are re-verified every session — a remote can be removed and a folder can leave sync without anyone noticing
-- Autonomy: [automatic — Keel does not ask, and does every merge to develop and every push itself | not automatic — Keel asks every time and pushes only what was explicitly requested] / issues: [after-sprint|on-request|n/a no forge] — the session-start setup batch (SKILL.md), asked once and applied silently thereafter. Everything hangs off the first value; it is never inferred per action. The MODE lives in a per-machine file (`.claude/settings.local.json` is gitignored, so a fresh checkout has none) while this line is the recorded DECISION, so a new machine gets the file written without re-asking
+- Autonomy: [automatic — Keel does not ask, and does every merge to develop and every push itself | not automatic — Keel asks every time and pushes only what was explicitly requested] / issues: [after-sprint|on-request|n/a no forge] / Issue sweep interval: [Xh — default 24h; n/a unless after-sprint] — the session-start setup batch (SKILL.md), asked once and applied silently thereafter. Everything hangs off the first value; it is never inferred per action. `Issue sweep interval:` gates the kickoff-side check in `references/phase-5-development.md` ("Sprint kickoff") against `docs/issues.md`'s `Last inbound sweep:` line. The MODE lives in a per-machine file (`.claude/settings.local.json` is gitignored, so a fresh checkout has none) while this line is the recorded DECISION, so a new machine gets the file written without re-asking
 - Branches: [integration branch (default `develop`) / current work branch / anything on develop awaiting the user's merge to main] — per SKILL.md "Git flow": Keel merges work branches to develop and pushes; the merge to main, the tag and the release are the user's act, always
 - Notify: [channel — recipient / none — nothing delivering in this environment / declined] — the out-of-band channel per references/notifications.md; re-probed every session, because a channel that answered yesterday is not a fact about today
 - Chaining: [off (default) / prefill / start — what a CLEAN close-out does beyond writing docs/continuation-prompt.md and showing the prompt, which happen on every value including off; prefill opens the next chat pre-filled (user presses Enter), start launches and submits. Asked at Phase 1 step 0a with the warning attached, never filled in silently. start is GATED on the single-lane lock and is verified on macOS only; without both, prefill is the maximum offered. Falls back to printing]
@@ -155,6 +155,7 @@ Created the first time issues are triaged or worked (any phase — development, 
 
 > Living log of forge issues ([forge + repo URL]). Inventory first, one entry per issue worked.
 > Updated the moment an issue is triaged, worked, or closed.
+> Last inbound sweep: [date time, ISO-ish e.g. 2026-07-31 18:40 | never] — set the moment an inbound sweep finishes (new issues + new comments on existing ones), whether or not it found anything. Read at every sprint kickoff against the card's `Issue sweep interval:` to decide whether the kickoff re-sweeps before planning.
 
 ## Inventory
 | # | Title | Type | Priority | Status | Entry |
@@ -600,7 +601,7 @@ The project root carries the Keel block below in TWO files, always: `CLAUDE.md` 
 One tool needs a third step: **Gemini CLI reads `GEMINI.md`, not `AGENTS.md`, by default.** If the user works with Gemini CLI, ask once and record the pick: mirror the same block in `GEMINI.md` (a third copy of the lock, refreshed with the others), or commit a `.gemini/settings.json` whose `context.fileName` includes `AGENTS.md` (no third copy to maintain). Either satisfies the lock.
 
 ```
-<!-- KEEL:BEGIN — v5.7.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
+<!-- KEEL:BEGIN — v5.8.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
 # Keel protocol (mandatory for ANY assistant working in this repository)
 
 This project is governed by the Keel workflow. Before reading code or changing ANYTHING:
@@ -780,7 +781,7 @@ These NEVER move while the project is alive: `PROGRESS.md`, `decisions.md`, `les
 - PROGRESS.md reflects reality at all times: correct phase status, executable "Next action", complete open items.
 - Every decision that shapes the project has a D-entry; every solved failure has an L-entry.
 - Every Design Request exists as a numbered file with current status.
-- If forge issues were ever accessed: `docs/issues.md` exists, its inventory reflects the forge, and every worked issue has its entry (diagnosis, resolution, changes, verification, pending).
+- If forge issues were ever accessed: `docs/issues.md` exists, its inventory reflects the forge, every worked issue has its entry (diagnosis, resolution, changes, verification, pending), and — on the after-sprint duty — its `Last inbound sweep:` line is never older than the card's `Issue sweep interval:` while the project has an open sprint.
 - From Phase 5: `docs/api/INDEX.md` exists and matches the docs; sprint files follow the template.
 - Any session ending mid-work produced a continuation prompt — and so did every sprint close, whether or not the session stopped there, with `docs/continuation-prompt.md` left CURRENT rather than describing a commit the work has since moved past.
 - Where work was fanned out over worktrees: only the main tree's session wrote `docs/PROGRESS.md`, every worker left its `docs/.keel/slices/<n>.json` report committed on its own branch, every done-signal was written after its commit, and no `blocked` report was merged.
