@@ -77,6 +77,13 @@ Therefore **everything Keel creates is written in English by default** — every
 
 **Existing projects whose docs are in another language** (resume or adoption): ask the user once whether they want the existing documentation translated to English, stating the token/cost benefit in one line. If yes, translate it all and record the switch in `decisions.md`; if no, record the choice, keep that language consistently, and do not ask again.
 
+**The forge is the one place where both halves of this rule are wrong, so it gets its own (UNBREAKABLE).** An issue and a reply to an issue are neither a `docs/` artifact nor the conversation with the user, and reading them as either produces a defect:
+
+- **An issue Keel OPENS is always written in English** — title and body — whatever language the conversation is in and whatever language the rest of the thread uses. It is a public, permanent, indexed artifact of the project, read by contributors who were never in this conversation, and it falls under the default above like everything else Keel creates.
+- **A reply to an issue somebody else opened is written in the language THAT issue is written in.** This one does not follow the English default, and it is the case the default gets wrong: a bug report filed in Spanish answered in English pushes the translation cost onto the person who did the project the favour of reporting it, on their own thread. The language is read from **the reporter's own text** — never from the repository's language, never from the language of this conversation, never guessed from a name, a locale or a timezone. In a mixed thread, follow the language the reporter themselves last used; if their text genuinely does not settle it, English.
+
+"Perfect orthography in every language" applies to whichever language this lands in — a reply in Spanish carries every accent and every ñ, exactly like anything else Keel writes.
+
 **This is NOT about the conversation.** Keep talking to the user in whatever language the user writes (usually Spanish), exactly as always — the English default governs only what Keel *creates*. And it never removes product locales: what end users see follows the Phase 1 §6 i18n decisions; the product's translations are never dropped to save tokens.
 
 ## Why this skill exists
