@@ -1,4 +1,4 @@
-# Keel Manifest — v5.6.0
+# Keel Manifest — v5.7.0
 
 One file, three tables, one purpose: looking ONLY at this file, a session can tell (1) whether a project contains everything Keel requires at its current phase, (2) which skill files changed in which Keel version — so after an update it knows exactly what to re-read, without interpreting the changelog — and (3) what concrete actions each version asks of an existing project (the reconciliation delta).
 
@@ -76,9 +76,9 @@ After an update, re-read `SKILL.md`, the current phase's reference, and THIS fil
 
 | Skill file | Last changed in |
 |---|---|
-| `SKILL.md` | v5.6.0 |
-| `MANIFEST.md` | v5.6.0 |
-| `CHANGELOG.md` | v5.6.0 |
+| `SKILL.md` | v5.7.0 |
+| `MANIFEST.md` | v5.7.0 |
+| `CHANGELOG.md` | v5.7.0 |
 | `references/keel-maintenance.md` | v5.5.1 |
 | `references/notifications.md` | v5.5.0 |
 | `references/playground-recipes.md` | v5.1.0 |
@@ -86,10 +86,11 @@ After an update, re-read `SKILL.md`, the current phase's reference, and THIS fil
 | `references/maintenance.md` | v5.5.0 |
 | `references/guide-theme.md` | v3.2.1 |
 | `references/assistant-config.md` | v5.5.0 |
-| `references/phase-5-development.md` | v5.6.0 |
+| `references/phase-5-development.md` | v5.7.0 |
 | `references/phase-7-release.md` | v5.3.0 |
-| `references/project-state.md` | v5.6.0 |
+| `references/project-state.md` | v5.7.0 |
 | `references/phase-1-discovery.md` | v5.6.0 |
+| v5.7.0 | The hand-off stops depending on a session that happens to stop. Nothing to migrate and no new artifact — pure behaviour, applicable at the next sprint close and the next session start. **(1) Write `docs/continuation-prompt.md` at EVERY sprint close, unconditionally**, whatever the card's `Autonomy:` and `Chaining:` lines say and whether or not the session carries on afterwards. The duty existed but was framed everywhere as a session-END artifact, so in automatic mode — where a session normally continues straight into the next sprint — the close was exactly the case nothing compelled, and the close is where a person actually walks away. Chaining decides whether a next chat is OPENED, never whether the hand-off EXISTS. **(2) Regenerate it as the work advances**, at every commit point (in Phase 5, every test point that commits) and unconditionally before the session ends: the courier checks compare `Commit` and `Tree` against the repository, so a file written at a close and left behind by three more slices returns `VERDICT: STOP` — it looks like insurance right up to the moment it is needed, which makes a stale hand-off worse than none. **(3) Read it FIRST at session start, before the state files** — this is what makes a bare "continue" restart the work with no recap. Run `scripts/keel-handoff-verify` and obey the verdict; a missing file is ordinary (it is gitignored, so a fresh clone has none) and the normal reading order proceeds. **(4) `VERDICT: STOP` costs the FILE its authority, not the SESSION its work:** discard the hand-off, say so in one line, resume from the committed state. The courier table always said this; `SKILL.md`'s "stops on a `VERDICT: STOP`" read alone said the opposite, and that is the sentence a session meets first. **(5) The hand-off is a COURIER, never an authority** — where it and `docs/PROGRESS.md` disagree, the committed state wins and the divergence is stated. **The lock block CHANGED for the second release running** — item 2 gains the read-it-first duty, item 5 the sprint-close duty — so `CLAUDE.md` and `AGENTS.md` (and any `GEMINI.md` mirror) need a real content refresh at the next lock-freshness check, not a stamp-only rewrite. |
 | `references/phase-2-functional-spec.md` | v5.2.0 |
 | `references/adoption.md` | v5.6.0 |
 | `references/estimation-budget.md` | v4.0.0 |
