@@ -596,7 +596,7 @@ The project root carries the Keel block below in TWO files, always: `CLAUDE.md` 
 One tool needs a third step: **Gemini CLI reads `GEMINI.md`, not `AGENTS.md`, by default.** If the user works with Gemini CLI, ask once and record the pick: mirror the same block in `GEMINI.md` (a third copy of the lock, refreshed with the others), or commit a `.gemini/settings.json` whose `context.fileName` includes `AGENTS.md` (no third copy to maintain). Either satisfies the lock.
 
 ```
-<!-- KEEL:BEGIN — v5.5.2 do not remove: binds every AI/session in this repo to the Keel workflow -->
+<!-- KEEL:BEGIN — v5.6.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
 # Keel protocol (mandatory for ANY assistant working in this repository)
 
 This project is governed by the Keel workflow. Before reading code or changing ANYTHING:
@@ -635,7 +635,11 @@ This project is governed by the Keel workflow. Before reading code or changing A
    customer data). A finding STOPS the commit: warn the user file by file that
    pushing it is a serious security risk, and exclude it via `.gitignore` (already
    tracked: untrack it too; ever pushed: purge history AND rotate the credential)
-   before committing anything.
+   before committing anything. NEVER leave work uncommitted at the end of a block:
+   commit to `develop` or to a work branch bound for it, and where this repository
+   has only `main`/`master`, create `develop` first. If it has NO REMOTE, say so and
+   offer to publish it — a local commit survives a bad edit, not a dead disk, and
+   work that exists only on one machine is one accident from not existing at all.
 5. NEVER end a session mid-work leaving the user with nothing to continue from
    (UNBREAKABLE). Produce the continuation prompt from the embedded skill's
    `references/project-state.md`, SHOW it in the conversation ready to copy, and
