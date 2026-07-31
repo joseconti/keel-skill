@@ -45,7 +45,8 @@ This repository was adopted into its own discipline late (state files created 20
 ## Current position
 - Phase: maintenance — **v5.6.0 RELEASED** (2026-07-31): the work stops being able to exist in only one place
 - Step/sprint: v5.6.0 change set — "Work never lives only on this machine" (UNBREAKABLE cross-cutting section + Question 0 of the setup batch, now four), the `Durability:` card line, the check at Phase 1 step 0a before anything is created and at adoption step 2, two new `keel-verify` checks (remoteless repo fails instead of skipping; dirty tree fails), the never-uncommitted rule in the lock block, MANIFEST Tables 1/2/3, README. Plus the repo-root working notes deleted on the user's instruction
-- Next action: none pending on the release. The next change set starts from `develop` as usual. Open: the user's global `~/.claude/settings.json` still carries an unexpanded `env.PATH` (see deferred items) — a machine fix, not a repo change.
+- **In progress on `develop` (unreleased):** the continuation-file change set — the hand-off is written at EVERY sprint close (unconditional, whatever `Autonomy:` and `Chaining:` say) and regenerated as the work advances so it is never stale. Four reading surfaces plus the lock block. See D-012.
+- Next action: the version bump, the `CHANGELOG.md` entry and `MANIFEST.md` Tables 2 and 3 for this change set — **blocked on the user's explicit version instruction** (D-006). Proposed: v5.6.1. Open: the user's global `~/.claude/settings.json` still carries an unexpanded `env.PATH` (see deferred items) — a machine fix, not a repo change.
 
 ## Open items
 - Unresolved user questions: none
@@ -59,4 +60,4 @@ This repository was adopted into its own discipline late (state files created 20
 - **Notification reach is desktop-only unless Remote Control is connected** — severity: low — review trigger: the first time a real absence goes unnoticed, or if the user wants alerts while away from the building. The native channel covers "walked away from the desk"; an SMTP sender or messaging MCP would be the escalation, and is not built.
 - **This repo has no `scripts/keel-verify`, `keel-doctor` or `keel-handoff-verify`** — severity: low — review trigger: if the repo ever ships executable content. `tests/lint-release.py` is this project's equivalent gate and is genuinely mechanical; generating the other three would be ceremony over a Markdown package.
 
-Last updated: 2026-07-31 — maintenance, v5.6.0 released
+Last updated: 2026-07-31 — maintenance, continuation-file change set on `develop` (unreleased)

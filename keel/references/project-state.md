@@ -226,7 +226,7 @@ Updated in the same slice that adds, changes, or removes a surface — an INDEX 
 
 ## Continuation prompt (ANY phase, not just sprint closes)
 
-A chat can fill up in any phase — a long competitive scan, a long external-setup loop — not only during development. Whenever the session is ending (or the user asks to continue elsewhere), produce this ready-to-paste prompt. Phase 5's sprint close-out uses the same mechanism with sprint specifics added. Before producing the prompt, append the session's row to `docs/token-ledger.md` (per `references/estimation-budget.md`) — the continuation prompt is not complete without it. **Show it to the user proactively** — at every sprint close and whenever a session is ending, with the one-line instruction to paste it into a new chat to continue; the user never has to ask for it.
+A chat can fill up in any phase — a long competitive scan, a long external-setup loop — not only during development. Whenever the session is ending (or the user asks to continue elsewhere), produce this ready-to-paste prompt — **and at every sprint close too, even when the session carries straight on into the next sprint**, so the person can shut the laptop at a close and lose nothing (see "The continuation file" below). Phase 5's sprint close-out uses the same mechanism with sprint specifics added. Before producing the prompt, append the session's row to `docs/token-ledger.md` (per `references/estimation-budget.md`) — the continuation prompt is not complete without it. **Show it to the user proactively** — at every sprint close and whenever a session is ending, with the one-line instruction to paste it into a new chat to continue; the user never has to ask for it.
 
 ```
 Load the `keel` skill and resume [PROJECT NAME] at Phase [N] ([phase name]), [step/sprint X].
@@ -246,6 +246,10 @@ The prompt must be self-sufficient: assume the new session knows nothing except 
 The prompt is not only shown in the chat; it is also WRITTEN to `docs/continuation-prompt.md`, always at that exact path, overwritten each time. The fixed path is what makes the hand-off addressable by a short constant instruction instead of a wall of text that has to be selected, copied and pasted without losing a line, and it removes every length limit from the hand-off, because what travels between chats is a path.
 
 The file is ephemeral session state, not project history: it is listed in `.gitignore` and never committed. Showing the prompt in the chat does not stop — the file is in addition, never instead.
+
+**Three moments write it, and the third is the one that gets skipped.** A session ending, a session running out of context — those are obvious, because the session is stopping. The third is **every sprint close, whether or not the session stops there** (`references/phase-5-development.md` §5, step 11): a sprint close is where the person actually walks away, and the guarantee they need is that closing the laptop at that moment costs nothing — a new chat, opened days later by hand, needs one instruction and no memory of anything. It holds in automatic mode exactly as in manual, and on `Chaining: off` exactly as on `start`: chaining decides whether a next chat is OPENED, never whether the hand-off EXISTS.
+
+**A hand-off that is not current is worse than no hand-off (UNBREAKABLE).** The courier checks compare `Commit` and `Tree` against the repository, so once the session works past the moment the file describes, the file stops being insurance and becomes a `VERDICT: STOP` waiting to happen — and it looks exactly like protection until the day it is used. So a session that keeps working after writing one **regenerates it as the work advances** — at every commit point, which in Phase 5 means every test point that commits — and unconditionally before the session ends. Overwriting is cheap and the file is small; a stale one costs the user the reconstruction the mechanism was built to eliminate.
 
 It opens with a freshness header, then the prompt verbatim:
 
@@ -640,8 +644,13 @@ This project is governed by the Keel workflow. Before reading code or changing A
    has only `main`/`master`, create `develop` first. If it has NO REMOTE, say so and
    offer to publish it — a local commit survives a bad edit, not a dead disk, and
    work that exists only on one machine is one accident from not existing at all.
-5. NEVER end a session mid-work leaving the user with nothing to continue from
-   (UNBREAKABLE). Produce the continuation prompt from the embedded skill's
+5. NEVER end a session mid-work — and NEVER close a sprint, even if you carry on
+   working — leaving the user with nothing current to continue from
+   (UNBREAKABLE). A sprint close is where a person walks away, so the hand-off
+   must already be on disk and CURRENT at that moment, whatever the autonomy or
+   chaining settings say; if you keep working past it, rewrite the file as the
+   work advances, because a hand-off pointing at an old commit fails its own
+   verification and is worse than none. Produce the continuation prompt from the embedded skill's
    `references/project-state.md`, SHOW it in the conversation ready to copy, and
    WRITE it to `docs/continuation-prompt.md` with its freshness header
    (`Repo` / `Generated` / `Keel` / `Commit` / `Tree` / `Position` / `Handover`). Running low on
@@ -764,7 +773,7 @@ These NEVER move while the project is alive: `PROGRESS.md`, `decisions.md`, `les
 - Every Design Request exists as a numbered file with current status.
 - If forge issues were ever accessed: `docs/issues.md` exists, its inventory reflects the forge, and every worked issue has its entry (diagnosis, resolution, changes, verification, pending).
 - From Phase 5: `docs/api/INDEX.md` exists and matches the docs; sprint files follow the template.
-- Any session ending mid-work produced a continuation prompt.
+- Any session ending mid-work produced a continuation prompt — and so did every sprint close, whether or not the session stopped there, with `docs/continuation-prompt.md` left CURRENT rather than describing a commit the work has since moved past.
 - Where work was fanned out over worktrees: only the main tree's session wrote `docs/PROGRESS.md`, every worker left its `docs/.keel/slices/<n>.json` report committed on its own branch, every done-signal was written after its commit, and no `blocked` report was merged.
 - The project card carries `Keel baseline:`; a completed reconciliation updated it and left its D-entry; a deferred one is listed in PROGRESS.md open items.
 - Any reconciliation read `MANIFEST.md`, ran the full conformance sweep (Table 1 parity plus Table 3's per-version delta) and left `docs/keel-conformance.md` complete — every applicable row `present`, `declined` with its D-entry, or `n/a` with its condition. Every `missing` row reached the batched plan and ended in a user decision; the sweep table was reported to the user in full.
