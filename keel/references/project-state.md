@@ -226,7 +226,7 @@ Updated in the same slice that adds, changes, or removes a surface — an INDEX 
 
 ## Continuation prompt (ANY phase, not just sprint closes)
 
-A chat can fill up in any phase — a long competitive scan, a long external-setup loop — not only during development. Whenever the session is ending (or the user asks to continue elsewhere), produce this ready-to-paste prompt. Phase 5's sprint close-out uses the same mechanism with sprint specifics added. Before producing the prompt, append the session's row to `docs/token-ledger.md` (per `references/estimation-budget.md`) — the continuation prompt is not complete without it. **Show it to the user proactively** — at every sprint close and whenever a session is ending, with the one-line instruction to paste it into a new chat to continue; the user never has to ask for it.
+A chat can fill up in any phase — a long competitive scan, a long external-setup loop — not only during development. Whenever the session is ending (or the user asks to continue elsewhere), produce this ready-to-paste prompt — **and at every sprint close too, even when the session carries straight on into the next sprint**, so the person can shut the laptop at a close and lose nothing (see "The continuation file" below). Phase 5's sprint close-out uses the same mechanism with sprint specifics added. Before producing the prompt, append the session's row to `docs/token-ledger.md` (per `references/estimation-budget.md`) — the continuation prompt is not complete without it. **Show it to the user proactively** — at every sprint close and whenever a session is ending, with the one-line instruction to paste it into a new chat to continue; the user never has to ask for it.
 
 ```
 Load the `keel` skill and resume [PROJECT NAME] at Phase [N] ([phase name]), [step/sprint X].
@@ -246,6 +246,10 @@ The prompt must be self-sufficient: assume the new session knows nothing except 
 The prompt is not only shown in the chat; it is also WRITTEN to `docs/continuation-prompt.md`, always at that exact path, overwritten each time. The fixed path is what makes the hand-off addressable by a short constant instruction instead of a wall of text that has to be selected, copied and pasted without losing a line, and it removes every length limit from the hand-off, because what travels between chats is a path.
 
 The file is ephemeral session state, not project history: it is listed in `.gitignore` and never committed. Showing the prompt in the chat does not stop — the file is in addition, never instead.
+
+**Three moments write it, and the third is the one that gets skipped.** A session ending, a session running out of context — those are obvious, because the session is stopping. The third is **every sprint close, whether or not the session stops there** (`references/phase-5-development.md` §5, step 11): a sprint close is where the person actually walks away, and the guarantee they need is that closing the laptop at that moment costs nothing — a new chat, opened days later by hand, needs one instruction and no memory of anything. It holds in automatic mode exactly as in manual, and on `Chaining: off` exactly as on `start`: chaining decides whether a next chat is OPENED, never whether the hand-off EXISTS.
+
+**A hand-off that is not current is worse than no hand-off (UNBREAKABLE).** The courier checks compare `Commit` and `Tree` against the repository, so once the session works past the moment the file describes, the file stops being insurance and becomes a `VERDICT: STOP` waiting to happen — and it looks exactly like protection until the day it is used. So a session that keeps working after writing one **regenerates it as the work advances** — at every commit point, which in Phase 5 means every test point that commits — and unconditionally before the session ends. Overwriting is cheap and the file is small; a stale one costs the user the reconstruction the mechanism was built to eliminate.
 
 It opens with a freshness header, then the prompt verbatim:
 
@@ -561,7 +565,7 @@ Each of these was built or probed on a real machine and failed for a reason that
 
 These rules exist so sessions are cheap, deterministic, and cache-friendly. Follow them literally.
 
-1. **Fixed session-start reading order.** On resume, read in this exact order and nothing more: `docs/PROGRESS.md` → `docs/decisions.md` → `docs/lessons-learned.md` → the current phase's reference file → only the inputs PROGRESS.md names for the current position. On a runnable project, the first test point of the session also runs `scripts/keel-doctor --check` and boots the playground from `docs/playground.md` (the freshness stamp) — a session that assumes the environment still works is a session whose green results mean nothing. The same order every session keeps context predictable and maximizes prompt-cache reuse. While reading PROGRESS.md, compare the card's `Keel baseline:` with the running Keel version — if it is older or missing, offer the post-update reconciliation (see below) before continuing. In the same pass, re-verify the card's `Durability:` line against reality — two cheap commands (`git rev-parse --git-dir`, `git remote -v`) plus the project's absolute path; a card that claims a remote the repo no longer has, or a `NONE` that is now covered, is corrected on the spot and the user is told in one line (SKILL.md "Work never lives only on this machine"). A recorded `NONE — accepted risk` is not re-litigated.
+1. **Fixed session-start reading order, and `docs/continuation-prompt.md` comes FIRST.** Before the state files, check whether that file exists — it is the freshest pointer in the project and the cheapest read there is, and checking it is what makes a bare "continue" enough to restart the work. If it exists, run `scripts/keel-handoff-verify` (never compose those checks inline) and act on the verdict: **`CONTINUE`** → it names the exact position and the next action, so the session starts there instead of re-deriving it; **`STOP`** → the file is discarded as a courier and the session resumes from the committed state files instead, saying in one line that it did and why — a stale or foreign hand-off must never paralyse a session, it must only lose its authority. If the file is absent, that is ordinary (it is gitignored, so a fresh clone has none) and the order below simply proceeds. **The hand-off is a courier, never an authority:** where it and the committed state disagree, `docs/PROGRESS.md` wins and the divergence is stated. Then read in this exact order and nothing more: `docs/PROGRESS.md` → `docs/decisions.md` → `docs/lessons-learned.md` → the current phase's reference file → only the inputs PROGRESS.md names for the current position. On a runnable project, the first test point of the session also runs `scripts/keel-doctor --check` and boots the playground from `docs/playground.md` (the freshness stamp) — a session that assumes the environment still works is a session whose green results mean nothing. The same order every session keeps context predictable and maximizes prompt-cache reuse. While reading PROGRESS.md, compare the card's `Keel baseline:` with the running Keel version — if it is older or missing, offer the post-update reconciliation (see below) before continuing. In the same pass, re-verify the card's `Durability:` line against reality — two cheap commands (`git rev-parse --git-dir`, `git remote -v`) plus the project's absolute path; a card that claims a remote the repo no longer has, or a `NONE` that is now covered, is corrected on the spot and the user is told in one line (SKILL.md "Work never lives only on this machine"). A recorded `NONE — accepted risk` is not re-litigated.
 2. **Read each static reference once per session.** Phase references and templates do not change mid-session — never re-read a file already loaded in this conversation; rely on the copy in context. Single exception: immediately after a Keel update, the copies in context belong to the old version — re-read the new `SKILL.md` and the current phase's reference (see "Post-update reconciliation").
 3. **Orient by state, not by scanning code.** The project's shape lives in `docs/03-technical-plan.md` (code map, conventions), `docs/architecture.md` (once it exists), and `docs/api/INDEX.md`. A session that needs to know "where is X / does Y exist" consults these first, then opens the one specific file it needs. Tree-wide code exploration is a signal that the state files are incomplete — fix the state files, don't normalize the scanning.
 4. **Surgical code reads.** When code must be read, read the specific file/function the state points to — not whole directories "for context".
@@ -596,7 +600,7 @@ The project root carries the Keel block below in TWO files, always: `CLAUDE.md` 
 One tool needs a third step: **Gemini CLI reads `GEMINI.md`, not `AGENTS.md`, by default.** If the user works with Gemini CLI, ask once and record the pick: mirror the same block in `GEMINI.md` (a third copy of the lock, refreshed with the others), or commit a `.gemini/settings.json` whose `context.fileName` includes `AGENTS.md` (no third copy to maintain). Either satisfies the lock.
 
 ```
-<!-- KEEL:BEGIN — v5.6.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
+<!-- KEEL:BEGIN — v5.7.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
 # Keel protocol (mandatory for ANY assistant working in this repository)
 
 This project is governed by the Keel workflow. Before reading code or changing ANYTHING:
@@ -614,7 +618,16 @@ This project is governed by the Keel workflow. Before reading code or changing A
    BEFORE normal work continues, so this project is brought up to date with
    everything the new version requires — new files or directories, new
    project-card lines, this very lock block, questions never asked here.
-2. Then read `docs/PROGRESS.md` (project card, current position, next action),
+2. Then check `docs/continuation-prompt.md` BEFORE the state files — it is the
+   freshest pointer in this project, and it is what lets a bare "continue" start
+   the work with no recap. If it exists, run `scripts/keel-handoff-verify` and
+   obey the verdict: CONTINUE starts at the position it names; STOP discards it
+   as a courier and you resume from the committed state instead, saying so in
+   one line — a stale or foreign hand-off loses its authority, it never stops
+   the session. Absent is ordinary (it is gitignored, so a fresh clone has
+   none). It is a courier and never an authority: where it and the committed
+   state disagree, `docs/PROGRESS.md` wins. Then read
+   `docs/PROGRESS.md` (project card, current position, next action),
    `docs/decisions.md` (decisions are NEVER re-opened on your initiative), and
    `docs/lessons-learned.md` (recorded mistakes are never repeated), plus the
    phase reference SKILL.md names for the current phase. If the project card's
@@ -640,8 +653,13 @@ This project is governed by the Keel workflow. Before reading code or changing A
    has only `main`/`master`, create `develop` first. If it has NO REMOTE, say so and
    offer to publish it — a local commit survives a bad edit, not a dead disk, and
    work that exists only on one machine is one accident from not existing at all.
-5. NEVER end a session mid-work leaving the user with nothing to continue from
-   (UNBREAKABLE). Produce the continuation prompt from the embedded skill's
+5. NEVER end a session mid-work — and NEVER close a sprint, even if you carry on
+   working — leaving the user with nothing current to continue from
+   (UNBREAKABLE). A sprint close is where a person walks away, so the hand-off
+   must already be on disk and CURRENT at that moment, whatever the autonomy or
+   chaining settings say; if you keep working past it, rewrite the file as the
+   work advances, because a hand-off pointing at an old commit fails its own
+   verification and is worse than none. Produce the continuation prompt from the embedded skill's
    `references/project-state.md`, SHOW it in the conversation ready to copy, and
    WRITE it to `docs/continuation-prompt.md` with its freshness header
    (`Repo` / `Generated` / `Keel` / `Commit` / `Tree` / `Position` / `Handover`). Running low on
@@ -764,7 +782,7 @@ These NEVER move while the project is alive: `PROGRESS.md`, `decisions.md`, `les
 - Every Design Request exists as a numbered file with current status.
 - If forge issues were ever accessed: `docs/issues.md` exists, its inventory reflects the forge, and every worked issue has its entry (diagnosis, resolution, changes, verification, pending).
 - From Phase 5: `docs/api/INDEX.md` exists and matches the docs; sprint files follow the template.
-- Any session ending mid-work produced a continuation prompt.
+- Any session ending mid-work produced a continuation prompt — and so did every sprint close, whether or not the session stopped there, with `docs/continuation-prompt.md` left CURRENT rather than describing a commit the work has since moved past.
 - Where work was fanned out over worktrees: only the main tree's session wrote `docs/PROGRESS.md`, every worker left its `docs/.keel/slices/<n>.json` report committed on its own branch, every done-signal was written after its commit, and no `blocked` report was merged.
 - The project card carries `Keel baseline:`; a completed reconciliation updated it and left its D-entry; a deferred one is listed in PROGRESS.md open items.
 - Any reconciliation read `MANIFEST.md`, ran the full conformance sweep (Table 1 parity plus Table 3's per-version delta) and left `docs/keel-conformance.md` complete — every applicable row `present`, `declined` with its D-entry, or `n/a` with its condition. Every `missing` row reached the batched plan and ended in a user decision; the sweep table was reported to the user in full.
