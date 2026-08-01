@@ -56,7 +56,7 @@ Keep it to roughly one page. Detail lives in the linked files, never accumulated
 - Autonomy: [automatic — Keel does not ask, and does every merge to develop and every push itself | not automatic — Keel asks every time and pushes only what was explicitly requested] / issues: [after-sprint|on-request|n/a no forge] / Issue sweep interval: [Xh — default 24h; n/a unless after-sprint] / Issue capture: [on — a problem the user reports becomes a forge issue before the work starts | off | n/a no forge] — the session-start setup batch (SKILL.md), asked once and applied silently thereafter. Everything hangs off the first value; it is never inferred per action. `Issue sweep interval:` gates the kickoff-side check in `references/phase-5-development.md` ("Sprint kickoff") against `docs/issues.md`'s `Last inbound sweep:` line. The MODE lives in a per-machine file (`.claude/settings.local.json` is gitignored, so a fresh checkout has none) while this line is the recorded DECISION, so a new machine gets the file written without re-asking
 - Branches: [integration branch (default `develop`) / current work branch / anything on develop awaiting the user's merge to main] — per SKILL.md "Git flow": Keel merges work branches to develop and pushes; the merge to main, the tag and the release are the user's act, always
 - Notify: [channel — recipient / none — nothing delivering in this environment / declined] — the out-of-band channel per references/notifications.md; re-probed every session, because a channel that answered yesterday is not a fact about today
-- Chaining: [off (default) / prefill / start — what a CLEAN close-out does beyond writing docs/continuation-prompt.md and showing the prompt, which happen on every value including off; prefill opens the next chat pre-filled (user presses Enter), start launches and submits. Asked at Phase 1 step 0a with the warning attached, never filled in silently. start is GATED on the single-lane lock and is verified on macOS only; without both, prefill is the maximum offered. Falls back to printing]
+- Chaining: [off / prefill / start — default follows `Autonomy:`: automatic → the maximum tier the gates allow, otherwise off. What a CLEAN close-out does beyond writing docs/continuation-prompt.md and showing the prompt, which happen on every value including off; prefill opens the next chat pre-filled (user presses Enter), start launches and submits. Asked at Phase 1 step 0a with the warning attached, never filled in silently. start is GATED on the single-lane lock and is verified on macOS only; without both, prefill is the maximum offered. Falls back to printing]
 
 ## Phase status
 | Phase | Status | Key artifacts |
@@ -335,13 +335,13 @@ The card records what a CLEAN close-out does beyond writing the file:
 
 | `Chaining:` | What happens | Human gesture left |
 |---|---|---|
-| `off` (default) | The file is written and the prompt shown. Nothing opens. | Open a chat, paste |
+| `off` | The file is written and the prompt shown. Nothing opens. | Open a chat, paste |
 | `prefill` | The tool's recorded action opens a session with the prompt already typed | Press Enter |
 | `start` | The tool's recorded action launches AND submits | None — unless the lane is busy, in which case the new window prints the prompt |
 
 The values name the BEHAVIOUR, not the mechanism, on purpose: the same tool family does both — Claude Code's URI handler pre-fills and never submits, while its CLI, started with a prompt argument, submits immediately. A single value meaning different things on different tools is precisely the ambiguity this skill refuses everywhere else.
 
-**`start` is opt-in per project, is not the default, and is GATED on the single-lane lock below.** The protections that matter survive without a human keystroke: a blocked hand-off never chains, and a stale, foreign or misplaced one is refused on reading — all machine checks. What a keystroke uniquely guarded against was landing in the wrong place, and the absolute path, `Repo:` and containment close that.
+**`start` is opt-in per project and is GATED on the single-lane lock below.** It is the RECOMMENDED value on a card that says `Autonomy: automatic` (see the question below) and is not recommended anywhere else, but it is never selected silently on any card. The protections that matter survive without a human keystroke: a blocked hand-off never chains, and a stale, foreign or misplaced one is refused on reading — all machine checks. What a keystroke uniquely guarded against was landing in the wrong place, and the absolute path, `Repo:` and containment close that.
 
 But removing the human removes something else that nobody had accounted for, and it was found by RUNNING the mechanism rather than reading it: **the person between links was the only thing keeping the chain single-file.** A three-link chain under test produced four live sessions and four windows in sixteen seconds — two launches were still in flight while the counter was read, so the cap was passed by design rather than by accident. Two sessions live on one checkout means interleaved commits on one branch, `docs/PROGRESS.md` overwritten by whichever finishes last, a hand-off describing a state neither of them left, and edits made on reads the other has already invalidated. **None of the courier checks fire**: same repository, same starting commit, a perfectly fresh hand-off. And it escaped the person who had just written the cap, which is the part that matters — a user who merely switched `start` on has strictly worse odds.
 
@@ -397,13 +397,17 @@ So the launcher gets its own guard, and it is the simpler of the two because it 
 
 > **Do you want development to chain automatically between chats?**
 >
-> - `off` (recommended) — every chat ends with the hand-off written and the prompt ready to copy. You decide when it continues.
+> - `off` — every chat ends with the hand-off written and the prompt ready to copy. You decide when it continues.
+>
+> Recommended value: on `Autonomy: automatic`, the highest of `start` / `prefill` this project's gates allow; otherwise `off`.
 > - `prefill` — the next chat opens with the instruction already typed; you press Enter.
 > - `start` — the next chat opens **and starts by itself**, without you touching anything.
 >
 > **If you choose `start`, that happens in the CLI, not in your editor.** It is the only verified way to automate the full cycle: the VS Code URI pre-fills and does not submit, and its handler accepts no parameter that changes this. Choosing `start` means development moves to command-line sessions.
 >
 > **And it means development advances with nobody watching.** Decide whether that is acceptable on this project before choosing it.
+
+**The recommendation follows `Autonomy:`, it is not fixed.** On a project whose card says `Autonomy: automatic` the recommended value is the MAXIMUM tier the project's gates allow — `start` where the four requirements are met, `prefill` otherwise — because automatic mode means the work does not stop for a person who is not there, and a hand-off nobody opens is a stop. Outside automatic mode the recommendation is `off`. The gates never bend: a recommendation cannot promote `start` on a project that has not earned it, and the user can always answer `off`.
 
 Two reasons the warning is text the user reads and not a footnote. **It changes the tool, not just a setting** — someone working in VS Code who picks `start` expecting their editor to do something gets terminal windows instead, and that belongs before the choice, not after. **And it changes who supervises** — `off` and `prefill` keep a person between links; `start` removes the only participant who can notice that the chain has forked.
 
@@ -615,7 +619,7 @@ The project root carries the Keel block below in TWO files, always: `CLAUDE.md` 
 One tool needs a third step: **Gemini CLI reads `GEMINI.md`, not `AGENTS.md`, by default.** If the user works with Gemini CLI, ask once and record the pick: mirror the same block in `GEMINI.md` (a third copy of the lock, refreshed with the others), or commit a `.gemini/settings.json` whose `context.fileName` includes `AGENTS.md` (no third copy to maintain). Either satisfies the lock.
 
 ```
-<!-- KEEL:BEGIN — v5.9.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
+<!-- KEEL:BEGIN — v5.10.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
 # Keel protocol (mandatory for ANY assistant working in this repository)
 
 This project is governed by the Keel workflow. Before reading code or changing ANYTHING:
