@@ -330,13 +330,17 @@ Ask once, alongside the other opening decisions, and record the answer as `Chain
 
 > **Do you want development to chain automatically between chats?**
 >
-> - `off` (recommended) — every chat ends with the hand-off written to `docs/continuation-prompt.md` and the prompt ready to copy. You decide when it continues.
+> - `off` — every chat ends with the hand-off written to `docs/continuation-prompt.md` and the prompt ready to copy. You decide when it continues.
+>
+> Recommended value: on `Autonomy: automatic`, the highest of `start` / `prefill` this project's gates allow; otherwise `off`.
 > - `prefill` — the next chat opens with the instruction already typed; you press Enter.
 > - `start` — the next chat opens **and starts by itself**, without you touching anything.
 >
 > **If you choose `start`, that happens in the CLI, not in your editor.** It is the only verified way to automate the full cycle: the VS Code URI pre-fills and does not submit, and its handler accepts no parameter that changes this. Choosing `start` means development moves to command-line sessions.
 >
 > **And it means development advances with nobody watching.** Decide whether that is acceptable on this project before choosing it.
+
+**The recommendation follows `Autonomy:`, it is not fixed.** On a project whose card says `Autonomy: automatic` the recommended value is the MAXIMUM tier the project's gates allow — `start` where the four requirements are met, `prefill` otherwise — because automatic mode means the work does not stop for a person who is not there, and a hand-off nobody opens is a stop. Outside automatic mode the recommendation is `off`. The gates never bend: a recommendation cannot promote `start` on a project that has not earned it, and the user can always answer `off`.
 
 `off` and `prefill` are always available. **`start` is gated**: it is not offered until the project has the single-lane lock (`references/project-state.md`), and it is verified on macOS only — offer `prefill` as the maximum where either condition fails, and say which one. Whatever the answer, the hand-off file is written and the prompt shown at every session end; chaining only decides whether a window also opens. Full contract in `references/project-state.md`.
 
@@ -426,7 +430,7 @@ ALWAYS use this template:
 - Estimate v1 (preliminary) recorded in docs/estimate.md: AI hours [X–Y], vibe coder hours [X–Y], contingency [+N%], AI cost mode [subscription / API]
 - Token ledger created: docs/token-ledger.md (actuals recorded from here on)
 - Client budget: [yes / no — asked once here, recorded in the project card; yes → docs/budget.md at Phase 2 close, no → no budget.md and the client questions (rate, currency, budget language) are never asked]
-- Chaining: [off (default) / prefill / start — asked once here with its warning shown; start is gated on the single-lane lock and macOS-verified only, so offer prefill as the maximum where either fails]
+- Chaining: [off / prefill / start — default follows `Autonomy:`: automatic → the maximum tier the gates allow, otherwise off. Asked once here with its warning shown; start is gated on the single-lane lock and macOS-verified only, so offer prefill as the maximum where either fails]
 ## Open questions for the user
 - [anything still undefined — must be resolved before Phase 2]
 ```
