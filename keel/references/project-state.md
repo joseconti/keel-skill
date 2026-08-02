@@ -354,6 +354,21 @@ So `start` requires four things, and a project missing any of them is offered `p
 
 The residual risk stays real even with all three: a window begins working unsupervised from a hand-off composed by a session that was running out of context. That is not uniform — a routine slice is not a migration, a release, or anything touching production data — so it remains the user's call per project, recorded on the card and in `docs/decisions.md`.
 
+#### What may stop a chain — the list is CLOSED (UNBREAKABLE)
+
+A close-out on a card that says `prefill` or `start` fires `scripts/keel-continue`. It does not fire it when, and only when, one of these is true:
+
+1. The hand-off is `Handover: blocked` (the SESSION is blocked — parked items with buildable work left are `clean`, per the rule above).
+2. A gate on the card's tier fails — the single-lane lock is absent, the platform has no verified action at that tier, the allow-list entry is missing, `claude` is not on PATH.
+3. `scripts/keel-continue` does not exist on this project.
+4. The launch receipt for this hand-off is already claimed, the lane is busy, or the circuit breaker has tripped — all three are the script's own answers, not the session's.
+
+**Nothing else stops it, and the closed list is the point.** Everything not on it — a note on the card, an uneasy feeling about an untested path, the fact that a window will appear on the user's screen — resolves to FIRE. The session states which entry stopped it, by number, or it chains.
+
+**An unexercised mechanism is not a blocked one, and this is the failure that was measured.** A card carrying "the end-to-end chain has never actually fired on this project — the pieces are tested, the launch is not; the first real close that chains is its own evidence" was read as a prohibition and the close-out printed instead. The note says the opposite: it is a request for the next close to BE the evidence. Written on the card, an unexercised path is a fact about the project's history, never a veto — the only things that can veto are the four entries above, and "not yet exercised" is not among them. Where the distinction has to be made in prose, say what is missing and what unblocks it, never a bare "unverified": a note that reads like a warning will be obeyed as one.
+
+**And the close-out NEVER asks the user for permission to chain.** The card's `Chaining:` value IS that permission — asked at Phase 1 step 0a, in full, with the warning that `start` opens CLI sessions and removes the supervisor, and recorded in `docs/decisions.md`. Asking again at the close ("this will open a Terminal window on your Mac, shall I?") re-litigates a settled decision at the exact moment the user is least likely to be there to answer, which converts an automatic close into a stop. That a window becomes visible is not a new decision; it is what `start` means. The permission question was answered once and is not asked twice.
+
 #### The single-lane lock
 
 One rule, and its two properties are both consequences of how the failure actually happened:
@@ -619,7 +634,7 @@ The project root carries the Keel block below in TWO files, always: `CLAUDE.md` 
 One tool needs a third step: **Gemini CLI reads `GEMINI.md`, not `AGENTS.md`, by default.** If the user works with Gemini CLI, ask once and record the pick: mirror the same block in `GEMINI.md` (a third copy of the lock, refreshed with the others), or commit a `.gemini/settings.json` whose `context.fileName` includes `AGENTS.md` (no third copy to maintain). Either satisfies the lock.
 
 ```
-<!-- KEEL:BEGIN — v5.10.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
+<!-- KEEL:BEGIN — v5.10.1 do not remove: binds every AI/session in this repo to the Keel workflow -->
 # Keel protocol (mandatory for ANY assistant working in this repository)
 
 This project is governed by the Keel workflow. Before reading code or changing ANYTHING:
