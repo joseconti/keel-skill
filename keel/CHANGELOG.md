@@ -796,3 +796,15 @@ Automatic mode had one hole left in it, and it was at the end of every session. 
 Recorded in the three places the value is defined: `SKILL.md` (the session-end and chaining block), `references/project-state.md` (project-card line, the `Chaining:` table, the gating paragraph and the question block) and `references/phase-1-discovery.md` (card line and the step 0a question).
 
 **Reconciliation:** nothing to migrate, no new file, no new card line, and the lock block is unchanged in substance — a stamp-only rewrite at the next lock-freshness check. One action, and only where it applies: on an existing project whose card says `Autonomy: automatic` and `Chaining: off`, re-ask the chaining question once with the new recommendation and record the answer, whatever it is. Projects not in automatic mode, and projects already on `prefill` or `start`, need nothing.
+
+## 5.10.1
+
+### Fixed — what may stop a chain is a closed list, and the close-out never asks
+
+A project already on `Chaining: start`, with every gate satisfied, closed a session by printing the continuation prompt instead of firing `scripts/keel-continue` — and then asked the user whether it should fire it. Both halves are the same mistake: an automatic close that ends in a question is a stop.
+
+- **The list of things that may stop a chain is CLOSED, and has four entries:** a blocked hand-off, a failed gate on the card's tier, a missing `scripts/keel-continue`, or the script's own answers (receipt already claimed, lane busy, circuit breaker tripped). Everything else resolves to FIRE. A session that does not chain names the entry that stopped it, by number.
+- **An unexercised mechanism is not a blocked one.** The card in question carried a note saying the end-to-end chain had never actually fired on that project — the pieces tested, the launch not — which was read as a prohibition. It says the opposite: it asks the next real close to BE the evidence. An unexercised path is a fact about a project's history and never a veto. Where prose has to record one, it says what is missing and what unblocks it; a bare "unverified" reads as a warning and will be obeyed as one.
+- **The close-out never asks the user for permission to chain.** The card's `Chaining:` value is that permission — asked once at Phase 1 step 0a, in full, with the warning that `start` opens CLI sessions and removes the supervisor. That a window becomes visible is not a new decision; it is what `start` means. Asking again lands precisely when the user is least likely to be there to answer.
+
+**Reconciliation:** nothing to migrate, no new file, no card line, and the lock block is unchanged in substance — a stamp-only rewrite at the next lock-freshness check. No per-project action at all: the three rules live in `SKILL.md` and `references/project-state.md`, which every session already reads in full, so every project picks them up as soon as its copy is current.
