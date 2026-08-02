@@ -808,3 +808,17 @@ A project already on `Chaining: start`, with every gate satisfied, closed a sess
 - **The close-out never asks the user for permission to chain.** The card's `Chaining:` value is that permission — asked once at Phase 1 step 0a, in full, with the warning that `start` opens CLI sessions and removes the supervisor. That a window becomes visible is not a new decision; it is what `start` means. Asking again lands precisely when the user is least likely to be there to answer.
 
 **Reconciliation:** nothing to migrate, no new file, no card line, and the lock block is unchanged in substance — a stamp-only rewrite at the next lock-freshness check. No per-project action at all: the three rules live in `SKILL.md` and `references/project-state.md`, which every session already reads in full, so every project picks them up as soon as its copy is current.
+
+## 5.10.2
+
+### Fixed — whether to chain is decided by the script, never by the session
+
+v5.10.1 fixed the measured incident (a misread veto, a permission asked at the close) but left the session still weighing the same four conditions in prose BEFORE deciding whether to invoke `scripts/keel-continue` — the exact kind of judgment call, made under a nearly-full context with nobody watching, that produced the incident in the first place. Auditing the mechanism found the session's pre-check was pure duplication: `scripts/keel-continue`'s own contract already re-checks the hand-off's `Handover:` line and the tool tier independently. And one gate — `claude` on PATH — was checked only once, at Phase 1, never re-verified at the close, so a PATH that changed since would still read as satisfied and the fired launch would open a window running a command that no longer exists.
+
+- **The session's role at close is now exactly two mechanical steps:** write the hand-off, then run `scripts/keel-continue` whenever `Chaining:` is `prefill`/`start` — unconditionally, whether the hand-off is `clean` or `blocked` — and relay whatever it printed. The session's only remaining judgment call is `[ -x scripts/keel-continue ]`: it cannot run what does not exist.
+- **Everything that can stop a chain now lives inside the script, re-verified live on every run:** `Handover:` (unchanged), the tool-tier registry probe (unchanged), and a NEW check — `command -v claude` re-confirmed immediately before every `start` fire, never trusted from the Phase 1 preflight.
+- **New eval scenario, `tests/evals/scenarios.md` E7:** covers both the clean-fire path (a card's history note is never read as a blocker, no permission asked) and the blocked path (the script refuses and prints in its own words, not the session's paraphrase of a refusal it decided on its own) — closing the gap where the single most field-fragile mechanism in the skill (a fork, a deadlock at v5.8.1, a misread veto at v5.10.1) had zero regression coverage.
+
+Recorded in `keel/references/project-state.md` ("What may stop a chain — decided by the script, not the session", and the `scripts/keel-continue` contract, new point 5a), `keel/references/phase-5-development.md` §5 step 11, and `keel/SKILL.md`.
+
+**Reconciliation:** nothing to migrate, no new file, no card line, and the lock block is unchanged in substance — a stamp-only rewrite at the next lock-freshness check. No per-project action: the rules live in files every session reads in full, so every project picks them up as soon as its copy is current.

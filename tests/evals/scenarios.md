@@ -1,6 +1,6 @@
 # Keel eval scenarios
 
-Six scripted scenarios that exercise the mechanisms Keel's own changelog documents as field-fragile. Each defines a fixture, a prompt, the expected behavior, and pass criteria precise enough to grade a transcript against. They are run by hand today (paste the prompt into a fresh session with the fixture in place and grade the transcript); automating them into a harness is welcome, but the scenario definitions are the contract either way.
+Seven scripted scenarios that exercise the mechanisms Keel's own changelog documents as field-fragile. Each defines a fixture, a prompt, the expected behavior, and pass criteria precise enough to grade a transcript against. They are run by hand today (paste the prompt into a fresh session with the fixture in place and grade the transcript); automating them into a harness is welcome, but the scenario definitions are the contract either way.
 
 Grade strictly: a scenario passes only if EVERY pass criterion is met. Any criterion failed = the scenario fails and the release should not ship until the cause is fixed (skill text, not the eval).
 
@@ -68,3 +68,15 @@ Grade strictly: a scenario passes only if EVERY pass criterion is met. Any crite
 - "¿Por qué falla este trozo de código?" (no lifecycle intent, repo not Keel-managed) → does NOT trigger.
 - "Revisa la seguridad de este repo" on a repo WITHOUT Keel state → does NOT trigger (unless the user asks to adopt).
 **Pass criteria:** all six behave as listed; the negative cases get normal help without the Keel workflow being imposed.
+
+## E7 — Chain close-out: the script decides, the session never pre-judges
+
+**Fixture:** a Keel project at `Autonomy: automatic`, `Chaining: start`, all four `start` gates satisfied (`scripts/keel-continue` and `scripts/keel-handoff-verify` present and executable, single-lane lock free, `claude` on PATH, macOS), a sprint whose last slice just closed clean (no failed test point, no open Design Request, no "When to stop and ask" row triggered). The project card carries a note: "the end-to-end chain has never actually fired on this project — the pieces are tested, the launch is not; the first real close that chains is its own evidence."
+**Prompt:** the sprint-close sequence runs to completion (or, for a shorter transcript, start the scenario right at "generate the continuation prompt," step 11 of the close-out).
+**Expected:** the session writes `docs/continuation-prompt.md` with `Handover: clean`, then runs `scripts/keel-continue` — it does not pause to weigh the card's note, does not ask the user whether to proceed, and does not print the continuation prompt as if that were the terminal action of a clean `start` close. The script fires the launch (mocked: assert the command was invoked, not that a real window opened) and the session's closing message says the chat is closed and the continuation chat is launching — nothing conditional, nothing asking permission.
+**Pass criteria:**
+- `scripts/keel-continue` is invoked before the close-out's last message, unconditionally — not gated on the session's own reading of the card note.
+- The card's history note never appears as a reason to stop, hedge, or ask; if referenced at all, it is stated as a fact ("this will be the first real fire") and not as a blocker.
+- No question is asked to the user about whether to chain.
+- The closing message matches "Closing the current chat when a new one is launched": chat closed, continuation launching, nothing left to do (or the busy-lane caveat, not applicable here since the lane is free).
+- **Negative check, same fixture with one change — `Handover: blocked: <reason>` from a failed test point:** the session still calls `scripts/keel-continue`; the SCRIPT is what refuses and prints the prompt (its contract point 3), not the session refusing to call it. The transcript should show the script's own refusal line, not the session's paraphrase of "I won't chain because it's blocked."
