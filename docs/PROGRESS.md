@@ -23,7 +23,7 @@
 - Docs theme: n/a
 - Durability: **git remote `origin` — https://github.com/joseconti/keel-skill.git** (verified 2026-07-31 with `git remote -v`). The tree is not inside a synced folder; the remote covers the requirement on its own.
 - Autonomy: **automatic** — Keel does not ask, and does every merge to `develop` and every push itself (`.claude/settings.local.json` written by Keel, gitignored; see D-003, D-004) / issues: on-request — this repo's forge issues are worked when the user raises them / Issue sweep interval: n/a (the after-sprint duty was not accepted here)
-- Branches: integration branch `develop` (created from `main` 2026-07-30 and published) / no open work branch / v5.10.2 committed and pushed to `develop`, awaiting `main` merge + tag on the user's explicit instruction
+- Branches: integration branch `develop` (created from `main` 2026-07-30 and published) / no open work branch / nothing awaiting `main` — v5.10.2 merged and tagged on the user's explicit instruction
 - Notify: **native Claude Code notification** — desktop always; phone only while Remote Control is connected. No address needed. The Gmail connector is compose-only (draft, no send) and is not a channel. Re-probe each session per `references/notifications.md`.
 - Chaining: off — pending re-ask under the v5.10.0 recommendation (this card is `Autonomy: automatic`)
 
@@ -43,20 +43,20 @@ This repository was adopted into its own discipline late (state files created 20
 | 8 Website | n/a — website intent: no | — |
 
 ## Current position
-- Phase: maintenance — **v5.10.2 committed to `develop`** (2026-08-02): whether to chain is now decided by `scripts/keel-continue` itself, never by the session's own reading of the card (v5.10.1, the same day: the closed list of four stop conditions; v5.10.0, the day before: automatic mode stops writing a hand-off nobody opens)
-- Step/sprint: v5.10.2 change set — the session's role at close-out drops to two mechanical steps (write the hand-off, always run `scripts/keel-continue` when `Chaining:` allows it) with every stop condition re-verified LIVE inside the script, including a new live re-check of `claude` on PATH before a `start` fire (previously trusted from the one-time Phase 1 preflight). New eval scenario `tests/evals/scenarios.md` E7 covers the clean-fire and blocked-fire paths — closing a coverage gap in the skill's most field-fragile mechanism (fork, v5.8.1 deadlock, v5.10.1 misread veto — zero prior regression coverage). See D-024. `python3 tests/lint-release.py` passed.
-- Next action: two independent items, neither blocking the other — (1) merge `develop` to `main` and tag `v5.10.2` on the user's explicit instruction, whenever they want it released; (2) put the chaining question to the user for THIS repository — its card still says `Autonomy: automatic` and `Chaining: off`, unchanged since v5.10.0's reconciliation asked for a re-ask that has not happened yet. Answering it here on the user's behalf is the one thing the change forbids.
+- Phase: maintenance — **v5.10.2 RELEASED** (2026-08-02): whether to chain is now decided by `scripts/keel-continue` itself, never by the session's own reading of the card (v5.10.1, the same day: the closed list of four stop conditions; v5.10.0, the day before: automatic mode stops writing a hand-off nobody opens)
+- Step/sprint: v5.10.2 change set — the session's role at close-out drops to two mechanical steps (write the hand-off, always run `scripts/keel-continue` when `Chaining:` allows it) with every stop condition re-verified LIVE inside the script, including a new live re-check of `claude` on PATH before a `start` fire (previously trusted from the one-time Phase 1 preflight). New eval scenario `tests/evals/scenarios.md` E7 covers the clean-fire and blocked-fire paths — closing a coverage gap in the skill's most field-fragile mechanism (fork, v5.8.1 deadlock, v5.10.1 misread veto — zero prior regression coverage). See D-024. `python3 tests/lint-release.py` passed. Merged to `main` and tagged `v5.10.2` on the user's explicit instruction; GitHub release published by the `release.yml` pipeline (https://github.com/joseconti/keel-skill/releases/tag/v5.10.2).
+- Next action: put the chaining question to the user for THIS repository — its card still says `Autonomy: automatic` and `Chaining: off`, unchanged since v5.10.0's reconciliation asked for a re-ask that has not happened yet. Answering it here on the user's behalf is the one thing the change forbids.
 
 ## Open items
 - Unresolved user questions: none
 - Open Design Requests: none
 - Unverified external steps/assets: none
 - Forge issues in progress: none
-- **Ready for `main`:** v5.10.2 — committed and pushed to `develop`; merge + tag await the user's explicit instruction, same as v5.10.1.
+- **Ready for `main`:** nothing. v5.10.2 shipped; `main` and `develop` are level at the release commit.
 
 ### Deferred items (consciously postponed work)
 - **The user's `~/.claude/settings.json` carries an unexpanded `env.PATH`** (`$HOME/...:${PATH}` literal), which removes `/usr/bin` and `/bin` and breaks `git`, `ls`, `cut` and `grep` in every session on this machine — worked around all release day with absolute paths and `/usr/bin/env`. Severity: high (machine-wide, every project) — review trigger: the user's go-ahead; it is their personal global config, so Keel proposed the one-line fix and did not apply it. v5.5.0 fixed the RECIPE that would have propagated it.
 - **Notification reach is desktop-only unless Remote Control is connected** — severity: low — review trigger: the first time a real absence goes unnoticed, or if the user wants alerts while away from the building. The native channel covers "walked away from the desk"; an SMTP sender or messaging MCP would be the escalation, and is not built.
 - **This repo has no `scripts/keel-verify`, `keel-doctor` or `keel-handoff-verify`** — severity: low — review trigger: if the repo ever ships executable content. `tests/lint-release.py` is this project's equivalent gate and is genuinely mechanical; generating the other three would be ceremony over a Markdown package.
 
-Last updated: 2026-08-02 — maintenance, v5.10.2 committed to `develop`
+Last updated: 2026-08-02 — maintenance, v5.10.2 released
