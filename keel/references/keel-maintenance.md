@@ -65,7 +65,7 @@ The contents:
     ]
   },
   "env": {
-    "PATH": "/opt/local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+    "PATH": "/Users/<user>/.local/bin:/opt/local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
   }
 }
 ```
@@ -83,6 +83,8 @@ Three contents notes, told to the user when the file is written so none of them 
   **And its worst symptom does not look like a PATH problem at all: a re-authentication loop.** On macOS the keychain is reached through `/usr/bin/security`, which git and `gh` credential helpers invoke by name. Drop `/usr/bin` from `PATH` and that lookup fails, so the helper cannot read a credential that is sitting right there — and instead of an error naming a missing binary, the tool asks to authenticate, succeeds, fails to store, and asks again. The user sees an identity or login loop and starts debugging tokens, scopes, two-factor and the forge's own settings, none of which is broken. **Whenever authentication loops for no reason, check `PATH` for `/usr/bin` before touching a single credential** — and never rotate a token on that evidence, because rotating one fixes nothing here and costs whatever else was using it.
 
   So: **enumerate every directory literally, and always include the system ones** — `/usr/bin`, `/bin`, `/usr/sbin`, `/sbin` — even when the interesting entries are the ones in front. The value above is the verified macOS/MacPorts+Homebrew case. On a machine whose layout differs, or where a version manager's directory must lead, resolve the real path first (`echo $PATH` in the user's login shell) and write the RESULT, never the expression that produced it. Before writing the key at all, check whether an existing `env.PATH` — in this file or in the user-level `~/.claude/settings.json` — already carries an unexpanded variable, and fix it in the same breath: a broken PATH inherited from user-level config poisons every project on the machine, not just this one.
+
+  **Always include the user's own per-user installer directory, expanded to its literal absolute value — never the system-package-manager list alone.** Claude Code's native (non-npm) installer places its binary at `~/.local/share/claude/versions/<version>`, symlinked from `~/.local/bin/claude` — a per-user location the MacPorts/Homebrew/system list above does not, and structurally cannot, contain, because it targets package managers rather than per-user installers. Missing it does not merely leave `claude` unresolved for arbitrary commands: `scripts/keel-continue`'s own live re-check (its contract, point 5a) runs `command -v claude` against exactly this `env.PATH`, so on a machine where Claude Code was installed natively, that check reports "not on PATH" while Claude Code is actively running — the single most misleading shape this failure can take. Resolve the real value (`echo $HOME` in the user's login shell, e.g. `/Users/jconti`) and prepend `<that>/.local/bin` the same way every other entry here is written literally; never write the string `$HOME` itself into the file (that is exactly the unexpanded-variable failure two paragraphs up). More generally, before reporting any `command -v <bin>` failure as "not installed," consider whether a per-user installer path (`~/.local/bin`, `~/.local/share/*/bin`) is missing from the list rather than the binary being genuinely absent.
 
 ### Alternative route — per session
 
