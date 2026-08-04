@@ -1,6 +1,6 @@
 # Test automation — the assistant drives every test it can drive
 
-Load this at five moments: (a) Phase 1 §5a, for the environment preflight as soon as the project type and target platforms are fixed; (b) Phase 2 §4/§4d, when the technical plan picks the drivers and writes the environment requirements table; (c) the Phase 5 scaffold, when `scripts/keel-doctor` is generated and the drivers are stood up; (d) every Phase 5 test point and sprint close, when the tests are actually driven; (e) the Phase 7 gate, for the clean-machine run.
+Load this at five moments: (a) Phase 1 §5a, for the environment preflight as soon as the project type and target platforms are fixed; (b) Phase 2 §4/§4d/§4e, when the technical plan picks the drivers, writes the environment requirements table and settles the test-first policy; (c) the Phase 5 scaffold, when `scripts/keel-doctor` is generated and the drivers are stood up; (d) every Phase 5 test point and sprint close, when the tests are actually driven; (e) the Phase 7 gate, for the clean-machine run.
 
 It is the operating manual for one rule. `references/playground-recipes.md` says WHAT environment each project type gets; this file says WHO exercises it and how that is proven.
 
@@ -63,6 +63,99 @@ Two of these need their own rule, because they are the ones that could otherwise
 **The scope rule for `JUDGMENT`.** `JUDGMENT` never substitutes for functional verification. The criterion is driven and asserted exactly as any other; `JUDGMENT` covers only the product question that remains AFTER the test passed — "this is what it does now, is that what you meant?" — and it is asked over the captured evidence, never by asking the user to reproduce the flow to form an opinion. A `JUDGMENT` tag on a criterion that has no driven test beside it is the laziest escape in the whole contract, and it is a defect.
 
 **The scope rule for `CREDENTIAL`.** A credential blocks only the leg that needs it, never the whole flow. A checkout that cannot complete against a real gateway is still driven end to end against an offline payment method, with only the gateway leg delegated. Delegating the entire purchase because one payment method needs a key is the most common way this contract gets quietly broken.
+
+## When the test is written — the test-first policy
+
+Everything above settles WHO drives a test. This section settles WHEN it is written, and it exists for one failure the rest of this file cannot catch.
+
+**A test written after the implementation is written by someone who already knows how the implementation works.** It describes what the code does, not what the requirement asked for. Where those two differ — which is exactly the case worth catching — the difference is invisible, because it is present in both the code and the test. The suite goes green, stays green, and the defect is now protected by a passing test that everyone will read, correctly, as evidence. It is "declared is not delivered" (SKILL.md) in its most convincing disguise, and no amount of driving fixes it: a driven test that asserts the wrong thing is driven, recorded, reproducible and wrong.
+
+A test written BEFORE the code cannot copy the implementation, because there is nothing to copy. That is the whole argument, and it is the only one this section rests on. The classic case for test-first — design pressure on the API — carries much less weight here, since the shape of the code is already fixed by the technical plan; do not use it to justify going further than the scopes below.
+
+### It is a policy, not a doctrine — three values, one card line
+
+Test-first is deliberately NOT applied uniformly. Where it is cheap it is mandatory; where it is expensive it is opt-in and decided per project; where it is counterproductive it is forbidden outright, and "more rigour" is not a reason to overrule that. The project's choice is one line on the project card — `Test-first policy:` — asked once at Phase 2 §4e and recorded with the rest of the technical plan.
+
+Two levels are referred to throughout, and they are defined in full just below: **Level B** is test-first on pure logic (the cheap half), **Level A** is the slice's acceptance criterion turned into a failing check first (the expensive half).
+
+| Value | What it means |
+|---|---|
+| `pure-logic` | **Default for new projects.** Level B is mandatory; Level A is not applied. |
+| `pure-logic + acceptance` | Levels A and B are both mandatory. |
+| `none` | Neither level applies. Requires its own `docs/decisions.md` entry — the default is never dropped silently. |
+
+**The bug-reproduction rule below is not part of this policy and does not move with it.** It applies on every project, at every value, including `none`.
+
+### Level B — pure logic, test first (the half that always pays)
+
+Mandatory wherever the policy is not `none`. It covers code that is a function of its inputs, with a closed contract and no framework state to stand up:
+
+- signature computation and verification, token and hash derivation, cryptographic envelopes;
+- parsers, serializers, format converters, encoders;
+- validators (identifiers, bank codes, postal formats, schema checks);
+- state machines and their transition tables (subscription lifecycles, retry ladders, order status);
+- money: proration, tax, rounding, currency conversion, totals;
+- entitlement and expiry resolution (licences, trials, grace periods);
+- anything else whose test needs no environment beyond the language runtime.
+
+Here the test costs minutes to write, runs in milliseconds, and is where a defect costs the most in the field — a wrong signature or a wrong proration reaches real money. Writing it first is not a ceremony on this code; it is the cheapest verification the project will ever buy.
+
+### Level A — the acceptance criterion first (the opt-in half)
+
+Applied only where the card says `pure-logic + acceptance`. The slice begins by translating the acceptance criterion it implements — the `AC-nn` from `docs/02-functional-spec.md` §6, not a paraphrase of it — into ONE executable check that fails, at whatever level the criterion actually lives (integration, driven end-to-end, a real call against the playground). Then the slice is built until that check passes, and the rest of the slice's tests are written as usual.
+
+This is the level that carries the argument at the top of this section into user-visible behaviour, and it is also the expensive one: expect it to add materially to the front of each slice, concentrated in the slices that need a driver stood up. It is opt-in for exactly that reason. A project that wants it on one subsystem and not on the whole codebase records that scope in the technical plan's `## Testing`, beside the policy line, rather than pretending the card value covers it.
+
+### Where test-first is NOT applied — on any policy value
+
+Naming this is as much of the policy as the mandatory half is, because a rule with no boundary gets applied where it does damage and then gets abandoned entirely:
+
+| Not applied to | Because |
+|---|---|
+| UI markup, layout, styling, block editor markup | The assertion is a design judgment until the design exists; the test would encode the first guess |
+| Framework glue — hook registrations, service wiring, bootstrapping | Standing up the global state costs more than the check is worth, and the playground already exercises it |
+| Exploratory integration with a third party whose real behaviour is not yet known | See the spike rule below — a test written against a guessed response shape is a guess with an assertion on it |
+| One-line configuration, constants, generated files | There is nothing to get wrong that a compile or a lint does not catch |
+
+Coverage of these still exists — it comes from the driven tests, the playground and the static checks that the rest of this file already mandates. What changes is only the ORDER, and only where the order buys something.
+
+### The spike escape hatch (and its closing condition)
+
+When the real shape of a third-party response, a platform API or an undocumented behaviour is unknown, writing the test first is writing fiction. The correct move is a spike: explore against the real thing until the shape is known, in code that is understood to be disposable. **The escape hatch closes the moment the shape is known** — the behaviour is then pinned with a test, and the spike code is either deleted or rewritten behind it. A spike that quietly becomes the implementation, with its test written afterwards from the code it produced, is the exact failure this section exists to prevent, arriving by the one door left open for it. Record the spike and its closing in the slice's notes.
+
+### Guard 1 — the test is not edited to make it pass (UNBREAKABLE)
+
+When a test-first test fails, the cheapest available action is to change the test. It is also, almost always, the wrong one — and an assistant under pressure to reach a green gate will find it first.
+
+**A test derived from a recorded requirement — an `AC-nn`, or a reproduced bug — is NEVER modified to make it pass.** If the test is genuinely wrong, then the REQUIREMENT is wrong, and that is a decision the user makes: it takes a `docs/decisions.md` entry, or a Design Request where a design contract is involved (`references/phase-4-faithful-build.md`). The assistant proposes; it does not settle it by editing the assertion and moving on.
+
+What is NOT covered by this rule, and needs no entry: renaming a test, moving it between files, improving its failure message, fixing its own scaffolding (a broken import, a wrong fixture path, a flaky wait). The line is precise and it is about the assertion: **if the set of behaviours that would pass the test changes, the rule applies.** If it does not, the rule does not.
+
+This is the same rule as `references/phase-5-development.md`'s "never 'fix' the failure by deleting, skipping, or loosening the test" (§2, the three-attempt rule), stated for the one case where the loosening looks like authorship rather than damage — because the test was written minutes ago, by this session, and feels like its own to change.
+
+### Guard 2 — the red is observed, and for the right reason
+
+A test that has never failed is not evidence of anything, and a test that fails on a missing import is evidence of even less. Before the production code is written:
+
+1. **Run the test and observe the failure.** Not "expect it to fail" — run it.
+2. **Confirm the failure message matches the absent behaviour**, not a setup error, a syntax error, a missing dependency or a typo'd fixture. A red for the wrong reason is a green in waiting: it goes away when the setup is fixed, whether or not the behaviour was ever built.
+3. **Record the red beside the green.** The one-line failure output goes in the test point's evidence cell, and the row's `Red first` column says `observed`.
+
+Skip step 2 and the project accumulates tests that could never have failed — the most expensive failure mode in this whole file, because it produces confidence with nothing underneath it, and nobody ever re-examines a green test.
+
+### The bug-reproduction rule (every project, every policy value)
+
+**A bug fix begins with a test that reproduces the bug and fails, before the fix is written.** This applies on every project regardless of the `Test-first policy:` line, in Phase 5 slices, in maintenance and in hotfixes (`references/maintenance.md`).
+
+Keel already required that every fixed bug carry a regression test. The order is what this rule adds, and it is not cosmetic: a test written after the fix demonstrates that the code now does what the code now does. It never actually reproduced the bug, so nothing proves it would catch the bug's return — which is the only thing a regression test is for. The reproduction failing first is the proof that the test and the bug are about the same thing.
+
+Under time pressure — a production hotfix, an incident — this is the rule most likely to be skipped, and it is the one whose absence surfaces three versions later as the same report from the same customer. It costs minutes. It is not tradeable against urgency; if the fix is urgent enough to ship without it, that is a `docs/decisions.md` entry with the consequence stated, not a silent omission.
+
+### What is recorded, and what checks it
+
+- **The policy** — the project card's `Test-first policy:` line, plus any narrower scope in `docs/03-technical-plan.md` `## Testing`.
+- **The red** — `docs/05-test-points.md` gains a `Red first` column, holding exactly one of five values: `observed` (the failure line is in the evidence cell), `n/a — policy` (the card's `Test-first policy:` does not cover this row — `none`, or a Level A row on a `pure-logic` project), `n/a — out of scope` (the row is in the not-applied table above), `n/a — predates` (the row existed before the project adopted the policy — it is not retroactive), `n/a — delegated` (the row's `Coverage` is one of the eight tags, so nobody here ran it; on `NO-EXECUTION` the test is still WRITTEN first and handed over, and that goes in the delegation steps).
+- **`scripts/keel-verify`** checks three things, and the asymmetry between them is deliberate. It **FAILS** a row whose `Red first` cell is empty or holds anything outside the five values — the same enum check `Coverage` already gets, and the reason both enums are closed is that a script can only count what it can recognise. It **FAILS** a row claiming `observed` with no failure output in its evidence cell — a claim without its evidence, which is the one thing this skill never tolerates. And it **REPORTS**, never fails, every row whose value is not `observed` and not `n/a — delegated` — the delegated ones are already accounted for by their tag and their steps, and everything else is an escape valve. The rule is deliberately blunt for one reason: the script cannot decide whether a given piece of code is pure logic, so ANY judgment-bearing value has to be visible, or the assistant simply picks the mildest one that nobody looks at. The list goes in the sprint-close report for a person to judge. On a project whose card says `none` the report is one line naming the policy and its decision entry instead of a row list — there the escape was taken deliberately, once, on the record.
 
 ## Make the product drivable (this is a build requirement, not a test requirement)
 
@@ -280,3 +373,7 @@ Recorded here so it is never rediscovered as a surprise mid-project:
 - Every delegation to the user carries its tag and its exact steps; a delegation without a tag is a defect, and `JUDGMENT` or `PRODUCTION-RISK` on a criterion with no driven test beside it is the same defect wearing a label.
 - Anything that could not be driven is `⚠ unverified` with its reason — never silently absent and never reported as passing.
 - Where the session's environment is protected (no network where the files are, no deletion, no `localhost`, execution and files on separate filesystems), the limitation was stated at Phase 1 §5a and the affected legs carry `NO-EXECUTION` naming the missing half — not the whole suite, and never the user's clicking.
+- The project card carries a `Test-first policy:` value, and where it is `none` that value has its `docs/decisions.md` entry.
+- Every test written under the policy was seen to fail first, for the absent behaviour and not for a setup error, with the failure line recorded and its row's `Red first` column set.
+- No test derived from an `AC-nn` or from a reproduced bug was modified to make it pass without a decision entry or a Design Request behind the change.
+- Every bug fixed in this project — slice, maintenance or hotfix — was reproduced by a failing test BEFORE the fix, on any policy value.
