@@ -280,6 +280,60 @@ is not optional. `keel-verify` fails on a due row that is `missing` with no deci
 
 ---
 
+### 12c. The test edited until it passed
+
+**The trap.** A test derived from an acceptance criterion fails. The assertion is adjusted, the expected
+value is widened, the awkward case is removed — and the suite goes green. The commit reads like
+authorship, because the test was written by this same session, minutes ago, and feels like its own to
+change.
+
+**Why it happens.** It is the cheapest action available at the exact moment the pressure is highest: a
+gate is one red away from green, the fix is not obvious, and the test is right there and editable. It
+does not feel like loosening a standard; it feels like correcting a first draft. Test-first makes this
+trap MORE likely, not less, because the test is newest and least defended precisely when it is doing its
+most valuable work.
+
+**What it costs.** Everything the test was worth. The requirement now has a test that no longer tests
+it, and the mismatch is invisible: the suite is green, the coverage check passes, the criterion has a
+row. It is worse than having no test at all, because a missing test is a visible gap and a hollowed-out
+one is counted as evidence.
+
+**The rule.** A test derived from a recorded requirement — an `AC-nn`, or a reproduced bug — is never
+modified to make it pass. If the test is genuinely wrong, then the REQUIREMENT is wrong, and that is the
+user's call: a `docs/decisions.md` entry, or a Design Request where a design contract is involved. The
+boundary is precise and it is about the assertion: **if the set of behaviours that would pass the test
+changes, the rule applies**; renaming, moving, improving the failure message and fixing the test's own
+scaffolding do not. This is `references/phase-5-development.md` §2's "never 'fix' the failure by deleting,
+skipping, or loosening the test" stated for the one case where it looks like editing your own draft
+(`references/test-automation.md`, "When the test is written").
+
+---
+
+### 12d. The test that could never have failed
+
+**The trap.** A test written before the code, run once, seen to fail, and taken as red — when the
+failure was a broken import, a missing fixture, a typo in the module path. The setup is fixed, the code
+is written, the test goes green, and nobody ever asks which of the two produced the green.
+
+**Why it happens.** Step one of test-first is "see it fail", and a failure is easy to produce. Reading
+the failure message to confirm it names the ABSENT BEHAVIOUR — and not the scaffolding — is a separate
+step, it takes ten seconds, and it is the one that gets skipped when the red is expected anyway.
+
+**What it costs.** A test that asserts nothing, permanently, wearing the exact appearance of a test that
+asserts something. It never fails again, so it is never re-examined; it is counted in coverage, it
+satisfies the criterion's row, and it will still be green on the day the behaviour it names is deleted.
+The project has bought confidence with nothing underneath it — the most expensive purchase in this
+entire catalogue, because unlike every other trap here it produces no symptom at all.
+
+**The rule.** The red is observed, and the failure message is confirmed to be the absent behaviour before
+any production code is written. The failure line is recorded in the test point's evidence cell and the
+row's `Red first` column says `observed`. `keel-verify` fails a `Red first` cell that is empty or
+outside the five values, fails a row that claims `observed` with no failure output beside it — a claim
+without its evidence, which is the same defect as entry 7 — and reports every other row for a person to
+judge.
+
+---
+
 ## WordPress and WooCommerce
 
 ### 13. The user-facing string that skipped i18n
@@ -478,13 +532,15 @@ recollection** — an answer given from memory is not an answer, it is the trap 
 12. Is every document in `docs/` reachable from an index, and does every internal link resolve?
 13. Does every user-visible acceptance criterion have either a driven test with its evidence, or one of the eight delegation tags with its steps — and is there any criterion whose only evidence is a person's verdict without a tag?
 14. Does `scripts/keel-doctor --check` pass on this machine, so the suite's green result actually means the suite ran?
-15. Does every applicable row of `MANIFEST.md` Table 1 carry a state in `docs/keel-conformance.md`, with every `n/a` quoting the manifest's own condition and every `declined` citing a real decision entry?
-16. (WordPress) Does `wp i18n make-pot` report zero untranslated or wrongly-domained user-facing strings?
-17. (WordPress) Does uninstall remove every option, table, meta key and scheduled event the plugin creates?
-18. (WordPress) Does every entry point — admin, AJAX, REST, bulk, CLI — check its capability and its nonce?
-19. (MCP) Has every ability been called through a real client with its documented arguments this release?
-20. (Web) Is every protected surface refused on a direct server request, with JavaScript disabled?
-21. (Library) Is every dependency in the manifest backed by a decision entry?
+15. Was every test written under the project's `Test-first policy:` seen to fail first, for the absent behaviour rather than for a setup error, with its failure line recorded?
+16. Did every bug fixed since the last audit start from a failing reproduction test — and can any test derived from an `AC-nn` or a reproduced bug be shown to have been edited to make it pass, without a decision entry behind the change?
+17. Does every applicable row of `MANIFEST.md` Table 1 carry a state in `docs/keel-conformance.md`, with every `n/a` quoting the manifest's own condition and every `declined` citing a real decision entry?
+18. (WordPress) Does `wp i18n make-pot` report zero untranslated or wrongly-domained user-facing strings?
+19. (WordPress) Does uninstall remove every option, table, meta key and scheduled event the plugin creates?
+20. (WordPress) Does every entry point — admin, AJAX, REST, bulk, CLI — check its capability and its nonce?
+21. (MCP) Has every ability been called through a real client with its documented arguments this release?
+22. (Web) Is every protected surface refused on a direct server request, with JavaScript disabled?
+23. (Library) Is every dependency in the manifest backed by a decision entry?
 
 ## Maintaining this file
 
