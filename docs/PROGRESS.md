@@ -44,7 +44,7 @@ This repository was adopted into its own discipline late (state files created 20
 
 ## Current position
 - Phase: maintenance — **v5.10.3 RELEASED** (2026-08-04): the `scripts/keel-continue` contract closes four gaps found on a real macOS `start` launch (three quoting/parser bugs that hid behind each other, plus a canonical `env.PATH` template that made the script's own live PATH re-check report `claude` as absent on a machine actively running it) — reported against this skill from a downstream project (`docs/keel-continue-launch-postmortem.md` / `docs/keel-skill-bug-report-keel-continue.md` in WHMWP). v5.10.2, the day before: whether to chain is decided by the script, never the session.
-- Step/sprint: v5.10.3 change set — new contract points 6a (script-file-by-path, never an interpolated string; the BSD `mktemp` suffix trap) and 6b (never pass the hand-off's raw `---`-prefixed content as `claude`'s CLI argument) in `references/project-state.md`, plus point 8 stating the exit-code trap explicitly; `references/keel-maintenance.md`'s `env.PATH` template now always includes the user's own per-user installer directory (`~/.local/bin`, literal absolute path). `python3 tests/lint-release.py` passed. Committed to `develop` and pushed; PR to `main` opened at the user's explicit instruction — the `main` merge and the tag/release itself are performed by the user, never by the assistant (`protect-main.sh` enforces this mechanically).
+- Step/sprint: v5.10.3 change set — new contract points 6a (script-file-by-path, never an interpolated string; the BSD `mktemp` suffix trap) and 6b (never pass the hand-off's raw `---`-prefixed content as `claude`'s CLI argument) in `references/project-state.md`, plus point 8 stating the exit-code trap explicitly; `references/keel-maintenance.md`'s `env.PATH` template now always includes the user's own per-user installer directory (`~/.local/bin`, literal absolute path). `python3 tests/lint-release.py` passed. Merged to `main` (PR #4, by the user — `protect-main.sh` reserves that step) and tagged `v5.10.3`; GitHub release published by the `release.yml` pipeline (https://github.com/joseconti/keel-skill/releases/tag/v5.10.3).
 - Next action: put the chaining question to the user for THIS repository — its card still says `Autonomy: automatic` and `Chaining: off`, unchanged since v5.10.0's reconciliation asked for a re-ask that has not happened yet. Answering it here on the user's behalf is the one thing the change forbids.
 
 ## Open items
@@ -52,11 +52,11 @@ This repository was adopted into its own discipline late (state files created 20
 - Open Design Requests: none
 - Unverified external steps/assets: none
 - Forge issues in progress: none
-- **Ready for `main`:** v5.10.3 — PR #4 (`develop` → `main`) open at https://github.com/joseconti/keel-skill/pull/4. Merging `main` and tagging/publishing the release are the user's own step (`protect-main.sh` blocks the assistant mechanically; release creation is a deliberate dialog by design — see `references/keel-maintenance.md`).
+- **Ready for `main`:** nothing. v5.10.3 shipped; `main` and `develop` are level at the release commit.
 
 ### Deferred items (consciously postponed work)
 - **The user's `~/.claude/settings.json` carries an unexpanded `env.PATH`** (`$HOME/...:${PATH}` literal), which removes `/usr/bin` and `/bin` and breaks `git`, `ls`, `cut` and `grep` in every session on this machine — worked around all release day with absolute paths and `/usr/bin/env`. Severity: high (machine-wide, every project) — review trigger: the user's go-ahead; it is their personal global config, so Keel proposed the one-line fix and did not apply it. v5.5.0 fixed the RECIPE that would have propagated it.
 - **Notification reach is desktop-only unless Remote Control is connected** — severity: low — review trigger: the first time a real absence goes unnoticed, or if the user wants alerts while away from the building. The native channel covers "walked away from the desk"; an SMTP sender or messaging MCP would be the escalation, and is not built.
 - **This repo has no `scripts/keel-verify`, `keel-doctor` or `keel-handoff-verify`** — severity: low — review trigger: if the repo ever ships executable content. `tests/lint-release.py` is this project's equivalent gate and is genuinely mechanical; generating the other three would be ceremony over a Markdown package.
 
-Last updated: 2026-08-04 — maintenance, v5.10.3 committed to `develop` and pushed, PR #4 open against `main`
+Last updated: 2026-08-04 — maintenance, v5.10.3 released
