@@ -512,6 +512,44 @@ changes").
 
 ---
 
+### 24. The site that looks like the last one
+
+**The trap.** A website ships. It is complete, accessible, fast, faithful to its handoff, and it passes
+every gate. It also looks like the previous site the same process produced, and like the one before
+that, and like a large fraction of everything else built by an assistant that year.
+
+**Why it happens.** Three causes that compound, and none of them is a mistake anyone made. The brief
+asks for the aesthetic in adjectives, and an adjective points at the average of everything it has ever
+described. Nothing is forbidden, so the model reaches for the patterns most represented in its training
+data, which are exactly the patterns readers have learned to recognise as machine-made. And nothing in
+the process remembers the previous site: project memory and class memory both exist, cross-project
+memory does not, so two similar briefs MUST produce the same site because nothing knows the other one
+exists.
+
+**What it costs.** For a site whose job is to sell a person's work, the generic look is not neutral: it
+reads as low effort by the very audience the site is trying to convince, and it undoes the credibility
+the product earned. It is also the most expensive defect to find late, because nothing is broken — a
+rebuild is the only fix, and it lands after launch, when someone finally says out loud that they all
+look the same.
+
+**The rule.** `references/phase-8-art-direction.md` runs before the brief, and its gate is the same
+shape as every other Keel gate: a definition of done checked item by item, with no advance on an open
+✗. The Design Read is declared in a sentence, the four dials are set with reasons, the machine-local
+ledger at `~/.keel/art-ledger.md` blocks the last three sites' typeface, palette, hero paradigm, grid
+and signature elements, three directions from three named aesthetic families are produced for one
+section with at least one deliberate risk, one is chosen and recorded in `docs/decisions.md`, one or
+two signature elements are consolidated into `SPEC/art-direction.md`, and the ledger entry is written
+at the close. **Mechanical check:** the Phase 4 completeness gate fails a website handoff with no
+`SPEC/art-direction.md`, and fails any signature element named there that is absent from the delivered
+CSS. The blacklist's em-dash rule is binary and greppable across every string visible on the site.
+
+**What this trap is NOT.** It is not "the design was bad" — the design is usually competent. And the
+fix is not loosening the anti-drift discipline that makes Keel work: it is opening one bounded step
+where invention is mandatory, closing it with a recorded decision, and resuming the normal regime
+unchanged.
+
+---
+
 ## The self-audit
 
 Run this against any Keel project at a sprint close, at the Phase 7 gate, at adoption, and whenever a
@@ -541,6 +579,7 @@ recollection** — an answer given from memory is not an answer, it is the trap 
 21. (MCP) Has every ability been called through a real client with its documented arguments this release?
 22. (Web) Is every protected surface refused on a direct server request, with JavaScript disabled?
 23. (Library) Is every dependency in the manifest backed by a decision entry?
+24. (Website) Does `SPEC/art-direction.md` exist with its read, dials, chosen direction and signature elements — is every signature element actually present in the delivered CSS, does `~/.keel/art-ledger.md` carry this site's entry, and does a grep for `—` and `–` across every string visible on the built site return zero?
 
 ## Maintaining this file
 

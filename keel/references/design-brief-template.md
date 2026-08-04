@@ -44,6 +44,22 @@ If any of the above is "ask user", you must request it before finalizing — do 
 
 If the design system is **existing**, the values above are canonical and closed: do not introduce new colors, typefaces, or component styles outside it without asking the user first. If **founding**, document everything you define in `SPEC/design-tokens.md` and `artifacts/styles/` knowing they become the brand's canonical system for future projects.
 
+## 2b. Art direction (websites — carried verbatim from the closed art direction)
+
+Fill this ONLY from the recorded output of `references/phase-8-art-direction.md`. Do not paraphrase it into adjectives and do not invent any part of it here: an adjective returns the average of everything it has ever described, which is the look this section exists to avoid. If the art direction has not been closed, stop and close it first.
+
+- **Design Read:** [the one sentence: site type, audience, archetype, named aesthetic family]
+- **Dials, each with its one-line reason:** `LAYOUT_VARIANCE` [n] — [reason]; `VISUAL_DENSITY` [n] — [reason]; `MOTION_INTENSITY` [n] — [reason]; `EVIDENCE_RATIO` [n] — [reason]
+- **Chosen direction:** [the named aesthetic family, its tokens, and the one-sentence fit rationale] — **rejected alternatives:** [the other two families and why not] — **recorded in `docs/decisions.md` as:** [D-nn]
+- **Signature elements (1-2):** [what each is, exactly where it recurs across the site, its CSS treatment]
+- **Blocked by the anti-repetition ledger (last three sites):** [typefaces, palettes, hero paradigms, grids and signature elements that must NOT be reused] — or "ledger empty/absent, no constraint"
+- **Anything the ledger blocked that could not be varied:** [what, and why] — or "none"
+- **Blacklist:** the full list in `references/phase-8-art-direction.md` §6 applies as delivered. Any override is an explicit user decision recorded here: [list, or "none"]
+- **Em-dash rule:** `—` and separator `–` are forbidden in EVERY string visible on the built site (headlines, eyebrows, labels, buttons, body copy, quotes, attributions, captions, alt text, meta descriptions, structured-data strings). Ranges use a hyphen. This is a binary check: one visible em-dash fails it.
+- **Self-critique (answer both, specifically, in `SPEC/art-direction.md`):** which parts of this are the default any assistant would have produced from this brief; and which specific thing makes this site this site rather than the archetype.
+
+Non-website projects skip this section.
+
 ## 3. Screen inventory (split for reuse)
 
 **Unique screens** (each built individually, each gets a SPEC file):

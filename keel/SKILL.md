@@ -2,13 +2,13 @@
 name: keel
 license: GPL-3.0-or-later
 metadata:
-  version: 5.11.0
+  version: 5.12.0
 description: Use this skill for ANY new software project from idea to release — websites, WordPress/WooCommerce plugins, MCP servers, web apps, components, or libraries — and for maintaining what it built (hotfixes, dependency updates, new features). Trigger when the user starts a new project or feature, says "I have an idea for a plugin/site/app", "let's plan this project", brings only a vague one-line idea with no technical background (Keel shapes it and proposes the v1 unprompted), mentions a design handoff, asks for docs or a security review of a Keel project, asks what a project will cost (quote/budget), works forge issues (GitHub/GitLab/...), prepares a release or a hotfix, resumes an in-progress Keel project (any repo with docs/PROGRESS.md), or adopts Keel in an EXISTING project. Do NOT trigger for one-off scripts, quick code questions, or repos not managed by Keel unless the user wants to adopt them. Phases load references on demand; living state makes projects resumable across chats.
 ---
 
 # Keel — project lifecycle (idea → release)
 
-**Keel v5.11.0** — Licensed under GPL-3.0-or-later. *Keel* is the structural backbone laid down first, on which the whole project is built.
+**Keel v5.12.0** — Licensed under GPL-3.0-or-later. *Keel* is the structural backbone laid down first, on which the whole project is built.
 
 ## Skill maintenance — update check & version policy (RUN FIRST, NON-BLOCKING)
 
@@ -146,7 +146,7 @@ Work through these in order. The reference file for a phase is the authoritative
 | 5. Development | How to build: sprints planned in plan mode, assumption re-validation at every kickoff, test points, a real playground, debug logs with a switch, independent review, assistant-driven verification with evidence per sprint | `references/phase-5-development.md` |
 | 6. Documentation | `docs/`: API, classes, functions, usage, architecture — plus the end-user HTML guide (`guide/`: languages asked, English suggested as principal; ships-in-release asked) | `references/phase-6-documentation.md` |
 | 7. Release | git hygiene, package hygiene, release prep, full-suite gate on the candidate | `references/phase-7-release.md` |
-| 8. Project website (conditional) | study the product, plan & build its site: site type, sections, domain, design direction, vanilla build, self-hosted fonts, product screenshots, SEO + AEO, launch, operations | `references/phase-8-website.md` |
+| 8. Project website (conditional) | study the product, plan & build its site: site type, sections, domain, art direction (read, dials, divergence round, signature elements, blacklist, anti-repetition ledger), design direction, vanilla build, self-hosted fonts, product screenshots, SEO + AEO, launch, operations | `references/phase-8-website.md` |
 
 Phases 3 and 4 are skipped only if Phase 2 concludes the project genuinely needs no UI/design. If there is any UI, they are mandatory.
 
@@ -350,6 +350,7 @@ Ending a session mid-work (any phase) — **and closing a sprint, whether or not
 - `references/phase-8-site-discovery.md`
 - `references/phase-8-section-catalogue.md`
 - `references/phase-8-domain-decision.md`
+- `references/phase-8-art-direction.md` (the site's visual language: Design Read, the four dials, the divergence round, signature elements, the blacklist, the cross-project anti-repetition ledger)
 - `references/phase-8-design-direction.md`
 - `references/phase-8-technical-seo.md`
 - `references/phase-8-launch-checklist.md`

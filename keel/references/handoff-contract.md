@@ -36,7 +36,12 @@ design-handoff/
     └── open-questions.md      # anything undefined; MUST be empty/resolved before build starts
 ```
 
-**Website projects (Phase 8) add one file to `SPEC/`:** `screenshots.md` — every reserved product-screenshot slot (what it shows, which product screen/state, approximate size, the slot's reserved CSS container), per `references/phase-8-design-direction.md`. All the completeness rules below apply to it equally. Non-website projects do not include it.
+**Website projects (Phase 8) add two files to `SPEC/`:**
+
+- `screenshots.md` — every reserved product-screenshot slot (what it shows, which product screen/state, approximate size, the slot's reserved CSS container), per `references/phase-8-design-direction.md`.
+- `art-direction.md` — the site's visual language as decided, per `references/phase-8-art-direction.md`: the Design Read; the four dial values each with its one-line reason; the chosen direction with the alternatives that were rejected and the `docs/decisions.md` entry that records it; every signature element with what it is, exactly where it recurs and its CSS treatment; the blacklist overrides if any; and the two self-critique answers (what here is the default, and what specifically is not). It is a contract artifact and not a note: the Phase 4 completeness gate checks each signature element against the delivered artifacts, so an element named here and absent from the CSS is a Design Request. A file that restates the direction as adjectives, or whose second self-critique answer would read identically pasted into another project, is incomplete.
+
+All the completeness rules below apply to both equally. Non-website projects include neither.
 
 ## Rules baked into the contract
 
@@ -78,6 +83,7 @@ The handoff is complete when:
 - Every font in the delivered styles either ships its files at their final paths (the used weights/styles, in the platform's formats, with `@font-face`/equivalent pointing at them) or carries its complete acquisition block (exact source, license note, exact files, exact target path). A font that is only named is incomplete.
 - Every external-software configuration the user must perform by hand has every value captured in `SPEC/external-setup.md` (no implicit values left inside artifact files).
 - `SPEC/accessibility.md` and every unique screen's accessibility are complete per `references/accessibility.md` (contrast pairs, focus order, name/role/state, heading/landmark structure, target sizes, reduced-motion, error identification) — nothing left for the build to invent.
+- (Websites) `SPEC/art-direction.md` is complete per `references/phase-8-art-direction.md`: read, four dials with reasons, chosen direction with its rejected alternatives and decision entry, every signature element with its recurrence points and CSS treatment present in the delivered artifacts, and both self-critique answers given specifically. Every string visible on the site passes the em-dash check at zero.
 - `open-questions.md` has zero unresolved items.
 
 Anything short of this is an incomplete handoff and the Build phase must treat the gaps as a Design Request, not as license to improvise.
