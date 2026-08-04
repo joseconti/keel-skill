@@ -280,6 +280,60 @@ is not optional. `keel-verify` fails on a due row that is `missing` with no deci
 
 ---
 
+### 12c. The test edited until it passed
+
+**The trap.** A test derived from an acceptance criterion fails. The assertion is adjusted, the expected
+value is widened, the awkward case is removed — and the suite goes green. The commit reads like
+authorship, because the test was written by this same session, minutes ago, and feels like its own to
+change.
+
+**Why it happens.** It is the cheapest action available at the exact moment the pressure is highest: a
+gate is one red away from green, the fix is not obvious, and the test is right there and editable. It
+does not feel like loosening a standard; it feels like correcting a first draft. Test-first makes this
+trap MORE likely, not less, because the test is newest and least defended precisely when it is doing its
+most valuable work.
+
+**What it costs.** Everything the test was worth. The requirement now has a test that no longer tests
+it, and the mismatch is invisible: the suite is green, the coverage check passes, the criterion has a
+row. It is worse than having no test at all, because a missing test is a visible gap and a hollowed-out
+one is counted as evidence.
+
+**The rule.** A test derived from a recorded requirement — an `AC-nn`, or a reproduced bug — is never
+modified to make it pass. If the test is genuinely wrong, then the REQUIREMENT is wrong, and that is the
+user's call: a `docs/decisions.md` entry, or a Design Request where a design contract is involved. The
+boundary is precise and it is about the assertion: **if the set of behaviours that would pass the test
+changes, the rule applies**; renaming, moving, improving the failure message and fixing the test's own
+scaffolding do not. This is `references/phase-5-development.md` §2's "never 'fix' the failure by deleting,
+skipping, or loosening the test" stated for the one case where it looks like editing your own draft
+(`references/test-automation.md`, "When the test is written").
+
+---
+
+### 12d. The test that could never have failed
+
+**The trap.** A test written before the code, run once, seen to fail, and taken as red — when the
+failure was a broken import, a missing fixture, a typo in the module path. The setup is fixed, the code
+is written, the test goes green, and nobody ever asks which of the two produced the green.
+
+**Why it happens.** Step one of test-first is "see it fail", and a failure is easy to produce. Reading
+the failure message to confirm it names the ABSENT BEHAVIOUR — and not the scaffolding — is a separate
+step, it takes ten seconds, and it is the one that gets skipped when the red is expected anyway.
+
+**What it costs.** A test that asserts nothing, permanently, wearing the exact appearance of a test that
+asserts something. It never fails again, so it is never re-examined; it is counted in coverage, it
+satisfies the criterion's row, and it will still be green on the day the behaviour it names is deleted.
+The project has bought confidence with nothing underneath it — the most expensive purchase in this
+entire catalogue, because unlike every other trap here it produces no symptom at all.
+
+**The rule.** The red is observed, and the failure message is confirmed to be the absent behaviour before
+any production code is written. The failure line is recorded in the test point's evidence cell and the
+row's `Red first` column says `observed`. `keel-verify` fails a `Red first` cell that is empty or
+outside the five values, fails a row that claims `observed` with no failure output beside it — a claim
+without its evidence, which is the same defect as entry 7 — and reports every other row for a person to
+judge.
+
+---
+
 ## WordPress and WooCommerce
 
 ### 13. The user-facing string that skipped i18n
@@ -458,6 +512,44 @@ changes").
 
 ---
 
+### 24. The site that looks like the last one
+
+**The trap.** A website ships. It is complete, accessible, fast, faithful to its handoff, and it passes
+every gate. It also looks like the previous site the same process produced, and like the one before
+that, and like a large fraction of everything else built by an assistant that year.
+
+**Why it happens.** Three causes that compound, and none of them is a mistake anyone made. The brief
+asks for the aesthetic in adjectives, and an adjective points at the average of everything it has ever
+described. Nothing is forbidden, so the model reaches for the patterns most represented in its training
+data, which are exactly the patterns readers have learned to recognise as machine-made. And nothing in
+the process remembers the previous site: project memory and class memory both exist, cross-project
+memory does not, so two similar briefs MUST produce the same site because nothing knows the other one
+exists.
+
+**What it costs.** For a site whose job is to sell a person's work, the generic look is not neutral: it
+reads as low effort by the very audience the site is trying to convince, and it undoes the credibility
+the product earned. It is also the most expensive defect to find late, because nothing is broken — a
+rebuild is the only fix, and it lands after launch, when someone finally says out loud that they all
+look the same.
+
+**The rule.** `references/phase-8-art-direction.md` runs before the brief, and its gate is the same
+shape as every other Keel gate: a definition of done checked item by item, with no advance on an open
+✗. The Design Read is declared in a sentence, the four dials are set with reasons, the machine-local
+ledger at `~/.keel/art-ledger.md` blocks the last three sites' typeface, palette, hero paradigm, grid
+and signature elements, three directions from three named aesthetic families are produced for one
+section with at least one deliberate risk, one is chosen and recorded in `docs/decisions.md`, one or
+two signature elements are consolidated into `SPEC/art-direction.md`, and the ledger entry is written
+at the close. **Mechanical check:** the Phase 4 completeness gate fails a website handoff with no
+`SPEC/art-direction.md`, and fails any signature element named there that is absent from the delivered
+CSS. The blacklist's em-dash rule is binary and greppable across every string visible on the site.
+
+**What this trap is NOT.** It is not "the design was bad" — the design is usually competent. And the
+fix is not loosening the anti-drift discipline that makes Keel work: it is opening one bounded step
+where invention is mandatory, closing it with a recorded decision, and resuming the normal regime
+unchanged.
+
+---
+
 ## The self-audit
 
 Run this against any Keel project at a sprint close, at the Phase 7 gate, at adoption, and whenever a
@@ -478,13 +570,16 @@ recollection** — an answer given from memory is not an answer, it is the trap 
 12. Is every document in `docs/` reachable from an index, and does every internal link resolve?
 13. Does every user-visible acceptance criterion have either a driven test with its evidence, or one of the eight delegation tags with its steps — and is there any criterion whose only evidence is a person's verdict without a tag?
 14. Does `scripts/keel-doctor --check` pass on this machine, so the suite's green result actually means the suite ran?
-15. Does every applicable row of `MANIFEST.md` Table 1 carry a state in `docs/keel-conformance.md`, with every `n/a` quoting the manifest's own condition and every `declined` citing a real decision entry?
-16. (WordPress) Does `wp i18n make-pot` report zero untranslated or wrongly-domained user-facing strings?
-17. (WordPress) Does uninstall remove every option, table, meta key and scheduled event the plugin creates?
-18. (WordPress) Does every entry point — admin, AJAX, REST, bulk, CLI — check its capability and its nonce?
-19. (MCP) Has every ability been called through a real client with its documented arguments this release?
-20. (Web) Is every protected surface refused on a direct server request, with JavaScript disabled?
-21. (Library) Is every dependency in the manifest backed by a decision entry?
+15. Was every test written under the project's `Test-first policy:` seen to fail first, for the absent behaviour rather than for a setup error, with its failure line recorded?
+16. Did every bug fixed since the last audit start from a failing reproduction test — and can any test derived from an `AC-nn` or a reproduced bug be shown to have been edited to make it pass, without a decision entry behind the change?
+17. Does every applicable row of `MANIFEST.md` Table 1 carry a state in `docs/keel-conformance.md`, with every `n/a` quoting the manifest's own condition and every `declined` citing a real decision entry?
+18. (WordPress) Does `wp i18n make-pot` report zero untranslated or wrongly-domained user-facing strings?
+19. (WordPress) Does uninstall remove every option, table, meta key and scheduled event the plugin creates?
+20. (WordPress) Does every entry point — admin, AJAX, REST, bulk, CLI — check its capability and its nonce?
+21. (MCP) Has every ability been called through a real client with its documented arguments this release?
+22. (Web) Is every protected surface refused on a direct server request, with JavaScript disabled?
+23. (Library) Is every dependency in the manifest backed by a decision entry?
+24. (Website) Does `SPEC/art-direction.md` exist with its read, dials, chosen direction and signature elements — is every signature element actually present in the delivered CSS, does `~/.keel/art-ledger.md` carry this site's entry, and does a grep for `—` and `–` across every string visible on the built site return zero?
 
 ## Maintaining this file
 

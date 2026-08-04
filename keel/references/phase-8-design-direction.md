@@ -1,6 +1,8 @@
 # Phase 8 — Project Website: Design Direction
 
-This is what to tell Claude Design about the *visual direction* of the site, so it isn't guessing. It is added on top of the design-brief and handoff contract — it does not replace them. Without this, Design invents a look and you get drift; this is the input that prevents it.
+This is what to tell Claude Design about the *technical and logistical* side of the site's visuals, so it isn't guessing. It is added on top of the design-brief and handoff contract — it does not replace them. Without this, Design invents a look and you get drift; this is the input that prevents it.
+
+**Run `references/phase-8-art-direction.md` FIRST.** That reference produces the site's visual LANGUAGE (the Design Read, the four dials, the divergence round, the signature elements, the blacklist and the anti-repetition ledger). This one carries the constraints that language has to live inside. Both go into the brief; neither replaces the other, and filling this one in without having closed the art direction is how a site ends up technically correct and visually identical to the last one.
 
 ## Non-negotiable technical constraints (state these to Design first)
 
@@ -31,8 +33,8 @@ Two-branch failure handling, same as the rest of Keel:
 ### 1. Identity relationship
 The default is inheritance: the site uses the brand's design system recorded in the PROGRESS.md project card (Phase 1 step 9) — the product's canonical tokens, logo, typography and component styles. Point Design at the exact source (e.g. the product's `SPEC/design-tokens.md` + `artifacts/styles/` + logo assets). A site-specific identity is the exception: it is the user's explicit, recorded decision, never drift — and even then the user decides the palette/type now; Design must ask, not invent (same ask-don't-invent rule as Phase 3). If no design system exists yet (the product had no UI), the site's design founds it: say so in the brief, per Phase 1 step 9.
 
-### 2. Tone / personality
-One or two lines: e.g. "technical and sober, developer audience, no marketing fluff" vs "bold and conversion-focused" vs "minimal and editorial". This single decision drives layout density, imagery, and copy voice. Vague tone → inconsistent design.
+### 2. Visual language (carried from the art direction — do NOT restate it as adjectives)
+This section used to ask for one or two lines of tone ("technical and sober", "minimal and editorial"). That is exactly the input that produces the average: an adjective points at the mean of everything it has ever described, so a brief built on adjectives returns the look every reader has already seen. It is replaced by the recorded output of `references/phase-8-art-direction.md`, carried into the brief verbatim: the Design Read, the four dial values with their reasons, the chosen direction with the alternatives that were rejected, and the signature elements. If the art direction has not been run, this section cannot be filled — run it first.
 
 ### 3. Reference points
 If the user has sites they like/dislike, capture them as direction (not to copy — as a vocabulary for what "good" means here) — and capture them as SCREENSHOTS, never as URLs: ask the user for captures of exactly the parts they mean (a hero, a pricing table, a nav pattern), each annotated with one line on what to take from it, and attach them to the brief. If the user offers a URL instead, tell them plainly (field-tested): handing Design screenshots of what you want is far more effective than pointing it at an address — Design may not browse, live pages change and render differently per viewport, and a URL says nothing about which part matters; the URL may be kept next to the capture as provenance only. If none, state that and let Design propose, but Design still must specify exactly what it chose in the SPEC.
@@ -70,7 +72,8 @@ Two-branch failure handling, same as the rest of Keel:
 ## Definition of done (this reference)
 
 - Vanilla constraint and self-hosted-fonts constraint stated at the top of the brief; any vanilla exception explicitly approved by the user and recorded.
-- Identity relationship, tone, density/layout intent and imagery strategy decided and written into the brief.
+- `references/phase-8-art-direction.md` closed before this reference was filled in; its output (read, dials, chosen direction, signature elements) carried into the brief verbatim, not restated as adjectives.
+- Identity relationship, density/layout intent and imagery strategy decided and written into the brief.
 - Any chosen font declared as an external asset (family, weights, formats, legal source + license) for the guided procurement loop.
 - Every product screenshot declared in `SPEC/screenshots.md` with reserved slot, target screen/state, approx size and slot CSS — for the guided capture loop and CSS-fit in the build.
 - Reference points captured or explicitly absent.
