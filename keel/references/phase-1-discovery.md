@@ -431,6 +431,7 @@ ALWAYS use this template:
 - Token ledger created: docs/token-ledger.md (actuals recorded from here on)
 - Client budget: [yes / no — asked once here, recorded in the project card; yes → docs/budget.md at Phase 2 close, no → no budget.md and the client questions (rate, currency, budget language) are never asked]
 - Chaining: [off / prefill / start — default follows `Autonomy:`: automatic → the maximum tier the gates allow, otherwise off. Asked once here with its warning shown; start is gated on the single-lane lock and macOS-verified only, so offer prefill as the maximum where either fails]
+- Chaining model: [the model every chained chat launches with, e.g. `opus` — asked in the same breath as `Chaining:` whenever the answer is not `off`, proposing the model in use in this session. Passed as `claude --model <value>` at every link, because a new process inherits nothing from the one that launched it. `n/a` when `Chaining: off`]
 ## Open questions for the user
 - [anything still undefined — must be resolved before Phase 2]
 ```
@@ -464,7 +465,7 @@ ALWAYS use this template:
 - If design is needed: the design-system decision is recorded (existing with source/location, founding with future home, or one-off with reason) in the discovery doc, `decisions.md`, and the project card — including the target surfaces/platforms the system must cover (marking which ship in this project vs which it anticipates for reuse).
 - Preliminary estimate produced per `references/estimation-budget.md`: `docs/estimate.md` (Estimate v1 — itemized AI hours and vibe coder hours, contingency, AI cost mode, assumptions stated, wide ranges marked as such) and `docs/token-ledger.md` created. No number is based on traditional human development time.
 - The client question was asked once — is there a client to bill or a quote to produce? — and `Client budget: yes/no` is on the project card (yes → `docs/budget.md` at Phase 2 close; no → the client questions are never asked).
-- The chaining question was asked once, WITH its warning shown (that `start` moves development to CLI sessions rather than the editor, and that it removes the only person supervising), and `Chaining:` is on the project card. If the answer was `start`, the single-lane lock exists and the platform is verified; otherwise `prefill` was offered instead and the reason recorded.
+- The chaining question was asked once, WITH its warning shown (that `start` moves development to CLI sessions rather than the editor, and that it removes the only person supervising), and `Chaining:` is on the project card — together with `Chaining model:` whenever the answer is not `off`, since an unstated model means the chain silently resolves one from settings rather than keeping the one in use. If the answer was `start`, the single-lane lock exists and the platform is verified; otherwise `prefill` was offered instead and the reason recorded.
 - `docs/01-discovery.md` exists and has zero open questions left unresolved.
 
 Do not enter Phase 2 with open discovery questions — an unresolved idea-level question becomes an expensive rework later.
