@@ -334,6 +334,215 @@ judge.
 
 ---
 
+### 12e. The second session writing into a checkout somebody else is working in
+
+**The trap.** A repository is open in one session that is mid-slice, with uncommitted work in the
+tree. A second session — opened by hand, chained, scheduled, or running on another surface — starts
+writing into the same directory. Both are correct in isolation. Together they interleave commits on
+one branch, overwrite each other's `docs/PROGRESS.md`, and sweep each other's in-flight files into
+unrelated commits.
+
+**Why it happens.** Nothing about the directory announces that it is busy. The single-lane lock
+guards CHAINED launches, and it is keyed to the working directory precisely for this reason — but a
+session a person opens themselves, or one running on a different surface, never passes through the
+launcher and therefore never meets the lane. The second session sees an ordinary repository.
+
+**What it costs.** Measured: a session opened on another surface committed with `git add -A` into a
+repository whose live session was mid-slice, swept two of its in-flight files into a documentation
+commit under an unrelated message, and appended a decision entry with an ID that was already taken
+120 entries earlier. Nothing was destroyed, and the recovery still cost more than the work was worth.
+The damage is silent at the moment it happens: every command succeeds.
+
+**The rule.** **Before the first WRITE into a repository this session did not start work in, establish
+that nobody else is working in it** — mechanically, never by assumption. Two commands answer it:
+`git status --porcelain` (uncommitted work is the first signal) and, for anything it lists, the
+modification times of those paths. Files changed in the last few minutes, in an order that looks like
+authoring, mean a live session. `claude agents --json --cwd <path>` settles it where the CLI is
+available. If another session is working there, do not write: hand the change to that session as a
+ready-to-paste instruction, which is the same boundary rule the skill already applies to every other
+tool crossing. Reading is always safe; writing is what needs the check.
+
+### 12f. The copy in context read as if it were the repository
+
+**The trap.** A session holds a file in context — a reference, a state file, the skill itself — and
+reasons from it for the rest of the session. Meanwhile the repository on disk has moved: another
+session edited it, an update landed, the working tree advanced several versions.
+
+**Why it happens.** The skill's own context discipline says to read each static reference once per
+session and never re-read what is already in context, which is correct for cost and for cache
+behaviour, and which quietly becomes wrong the moment the file on disk is a moving target.
+
+**What it costs.** Measured: a session reasoned for an entire working block from a v5.11.0 copy of
+this skill while the repository it was working in held an uncommitted v5.14.0 — then proposed, in
+detail, a four-part change that the working tree already contained in full. The advice was coherent,
+well-argued and useless, and nothing in the session could have detected it.
+
+**The rule.** **The repository on disk is the authority; a copy in context is a cache with no
+invalidation.** Re-read from disk, without exception, in three cases: when the session is working ON
+the repository that a file in context came from; after any external process may have touched the tree
+(an update, another session, a merge); and before asserting anything about a version, a phase or a
+recorded decision. The cheap form is one command — read the frontmatter, the phase status, the
+current position — not the whole file.
+
+### 12g. The repair whose effect was never checked
+
+**The trap.** A command that fixes something returns exit 0, and the fix is reported as done. It did
+nothing. Restores, checkouts, file replacements and permission changes all have environments in which
+they fail without failing loudly.
+
+**Why it happens.** Exit codes report whether the command ran, not whether reality changed, and the
+gap between the two is invisible unless someone looks. On restricted filesystems the gap is routine:
+a mount that forbids `unlink` lets `git checkout <commit> -- <path>` return success while leaving the
+file exactly as it was.
+
+**What it costs.** Measured: two files were reported "restored verbatim" in a commit message, and the
+commit that claimed it changed nothing in them. The false claim then sat in the history, which is
+worse than the original error, because the next reader has no reason to check.
+
+**The rule.** **A repair is verified by its EFFECT, never by its exit code**, and the verification is
+the command that would have caught the failure: `git diff <ref> -- <paths>` after a restore, a
+re-read after a write, a re-run after a fix. This is "declared is not delivered" applied to the
+commands a session runs on its own behalf. A commit message may only claim what a check confirmed.
+
+### 12h. `git add -A` in a tree you did not author
+
+**The trap.** A session stages everything and commits, in a repository where some of the changes are
+not its own — another session's in-flight work, a half-finished slice, a generated file that was
+about to be reverted.
+
+**Why it happens.** `-A` is the reflex, and in a tree the session authored entirely it is correct and
+convenient.
+
+**What it costs.** Somebody else's incomplete work is now committed, under a message that describes
+something unrelated, at a moment they did not choose. The content survives, so nothing looks broken —
+but the history now says a slice was finished when it was not, and the ordering evidence a sprint
+close depends on is gone.
+
+**The rule.** **Stage explicit paths whenever the session did not author every change in the tree.**
+`git status --porcelain` before every commit, and anything on that list the session cannot account
+for stops the commit until it is explained. In a tree the session authored end to end, `-A` remains
+fine.
+
+### 12i. The identifier chosen from memory
+
+**The trap.** A new entry is appended to an append-only log — a decision, a lesson, a test point, an
+acceptance criterion — with the next ID inferred from what the session remembers seeing, rather than
+derived from the file.
+
+**Why it happens.** The session read the file earlier, or read a fragment of it, or created it and
+assumes it knows its size. Appending is a one-line operation that feels too small to warrant a read.
+
+**What it costs.** Measured: a decision was filed as `D-009` in a log that already ran to `D-105`,
+colliding with an unrelated entry. Two entries with one ID break every cross-reference pointing at
+either, and the log's whole value is that a reference resolves to exactly one entry.
+
+**The rule.** **Derive the next identifier from the file, in the same command that appends** — one
+`grep` for the ID pattern, take the highest, add one. Never from context, never from the last one the
+session happens to have seen. `scripts/keel-verify` gains a check that no ID appears twice in any
+append-only log the project keeps.
+
+### 12j. The network call inside an unconditional hook
+
+**The trap.** A `PreToolUse` hook matching every command of a class — every `Bash`, every edit — makes
+a network call to decide. Every command in the session now waits for the network.
+
+**Why it happens.** The hook's logic genuinely needs the remote answer for the handful of commands it
+exists to guard, and the broad matcher is what guarantees it never misses one. Breadth looks like
+safety.
+
+**What it costs.** Measured: a branch-protection hook calling `gh pr view` took 44 seconds to time out
+on every git command in the session, read-only ones included. And a hook that times out is a hook
+that has failed — so the second, larger cost is the one nobody sees: if it fails OPEN, the protection
+is absent exactly when the network is bad, while continuing to look installed.
+
+**The rule.** Three parts, and the third is the one that gets skipped. **Match only the commands the
+hook actually guards** — a read-only command cannot violate a rule about pushing. **Split the check by
+what it needs**: the local half (`git rev-parse --abbrev-ref HEAD`) is instant and usually decides,
+and only the remainder needs the remote. **Bound the remote call with a timeout and fail CLOSED on
+it** — denying an action because it could not be verified is cheap and recoverable; hanging and then
+allowing is the worst of both. A protection hook's failure mode is part of its specification and is
+stated in `docs/decisions.md` when the hook is adopted.
+
+### 12k. The matcher that only sees the start of the command
+
+**The trap.** A rule — a permission entry, a hook matcher, a guard — matches on the beginning of a
+command string. `git push` is matched; `git add -A && git push` is not, because it begins with
+`git add`.
+
+**Why it happens.** Prefix matching is what the tooling offers by default, and it reads as if it
+covers the command.
+
+**What it costs.** The guard is bypassed by the most ordinary thing a session does. Keel already
+documents the cost side of this for permissions — a composite command fails to match an `allow` rule
+and opens a dialog — and this is the same mechanism with the sign reversed: a composite command fails
+to match a DENY rule and sails through. The performance version is an annoyance; the security version
+is a hole.
+
+**The rule.** **A guard matches the command line, not its prefix.** Anything that denies, protects or
+gates searches for its target anywhere in the string, including after `&&`, `;` and a pipe. Narrowing
+a matcher for performance is only correct once this holds — otherwise the narrowing is a security
+regression wearing a performance argument.
+
+### 12l. The control that passes by answering a different question
+
+**The trap.** A check runs, passes, and is trusted — and the question it answers is not the question
+that matters. It is not broken, and no output ever suggests it might be.
+
+**Why it happens.** The check was written for a real question. The concern then shifted by one step —
+from "is the mechanism configured?" to "is this run leaving what the mechanism needs?", from "does
+the file exist?" to "does it say something true" — and nothing forces a check to re-state its own
+scope when the concern moves.
+
+**What it costs.** Measured twice in one project. A chain checker passed all twelve of its rows on two
+consecutive nights while the chain did not fire, because it verified that chaining was configured and
+nobody verified that the session was leaving a current hand-off. A test-identifier check reported zero
+findings for weeks because it was line-scoped and structurally incapable of ever seeing a real one.
+**A control in this state is worse than no control**, because its green result is actively spent as
+reassurance.
+
+**The rule.** **Every check states, in one line beside it, the question it answers** — and a check
+that has never failed is audited against a case that SHOULD fail it, rather than trusted for its
+record. When a green result is used to justify a conclusion, the conclusion is checked against the
+check's stated scope, not against its colour. A control whose scope is not written down cannot be
+audited, so writing it down is part of adding the control.
+
+### 12m. The guard keyed to the directory enforcing a duty that belongs to the session
+
+**The trap.** A guard reads the state of a working tree and acts on it — blocks, warns, refuses. The
+state is a fact about the DIRECTORY; the duty it enforces belongs to a SESSION. With one session in
+the checkout the two are the same thing and the guard is correct. With two, it punishes whichever
+session did not make the mess, and the one that did carries on untouched.
+
+**Why it happens.** `git status`, `HEAD`, a lock file, a log keyed by working directory: every cheap
+way to ask "what is going on here?" answers for the directory, because that is the only thing the
+filesystem knows about. Nothing in the answer says which session produced it, so the scope is
+inherited by accident rather than chosen — and it is invisible until a second session exists, which
+is usually long after the guard was written and trusted.
+
+**What it costs.** Measured, on this skill's own `scripts/keel-stop-hook` two days after it shipped.
+Session A was blocked naming two files session B had modified eight seconds earlier and was still
+editing. The remedy the block offered was "commit to `develop`" — that is, `git add -A` in a tree it
+did not author (12h). Worse, the anti-spin brake never engaged: its fingerprint covered the whole
+tree, so B's keystrokes renewed it every turn and A stayed blocked for eight turns until the hourly
+cap released it. **Not a block that expires — a block renewed by somebody else's work.** The same
+guard's block log was keyed by working directory too, with the sign reversed: two sessions shared one
+anti-spin history, so one session's block could satisfy the other's "nothing changed" test and
+RELEASE a stop that should have been blocked.
+
+**The rule.** **Every piece of state a guard writes or reads states its scope — repository or session
+— and that scope is checked against the duty being enforced, not against what was convenient to
+read.** Where the duty is the session's, the state is keyed by the session (`keel_session_pid`), and
+the guard establishes concurrency BEFORE acting: another live session, and a guard that cannot be
+satisfied by this session CEDES — allowing, saying it ceded and naming to whom — rather than blocking
+somebody for work they cannot commit. Ceding is not a hole: the duty moves to the session that
+authored the work and carries the same guard. Two boundaries hold it in place. **Concurrency is
+detected, authorship is never attributed** — git records that a path changed and never who changed
+it, so per-file attribution is a guess and a guess shipped as a check is worse than the gap it fills.
+And **a probe that cannot answer means "not established", which keeps the original behaviour**; a fix
+that turns an unanswered question into a licence has traded a loud failure for a quiet one. The tell
+is never "keyed by directory" on its own — a lock that serialises a TREE is correctly keyed by the
+tree — it is state keyed by directory while the duty belongs to one session.
+
 ## WordPress and WooCommerce
 
 ### 13. The user-facing string that skipped i18n
@@ -573,6 +782,10 @@ recollection** — an answer given from memory is not an answer, it is the trap 
 15. Was every test written under the project's `Test-first policy:` seen to fail first, for the absent behaviour rather than for a setup error, with its failure line recorded?
 16. Did every bug fixed since the last audit start from a failing reproduction test — and can any test derived from an `AC-nn` or a reproduced bug be shown to have been edited to make it pass, without a decision entry behind the change?
 17. Does every applicable row of `MANIFEST.md` Table 1 carry a state in `docs/keel-conformance.md`, with every `n/a` quoting the manifest's own condition and every `declined` citing a real decision entry?
+17a. Before this session's first WRITE into a repository it did not start, was another session ruled out with `git status --porcelain` plus the modification times of whatever it listed — rather than assumed absent?
+17b. Does every append-only log (`docs/decisions.md`, `docs/lessons-learned.md`, `docs/05-test-points.md`) have zero duplicate identifiers, checked by grep rather than by recollection?
+17c. Does every check the project relies on state the question it answers — and for any check that has never failed, has it been run against a case that should fail it?
+17d. Does every piece of state a guard reads or writes declare its scope — repository or session — and is that the scope the duty it enforces actually has?
 18. (WordPress) Does `wp i18n make-pot` report zero untranslated or wrongly-domained user-facing strings?
 19. (WordPress) Does uninstall remove every option, table, meta key and scheduled event the plugin creates?
 20. (WordPress) Does every entry point — admin, AJAX, REST, bulk, CLI — check its capability and its nonce?

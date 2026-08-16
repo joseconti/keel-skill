@@ -107,3 +107,103 @@ Grade strictly: a scenario passes only if EVERY pass criterion is met. Any crite
 - No question is asked before generating the missing script or resolving the mode — both are recorded decisions on the card, not new ones.
 - **Negative check, same fixture with one change — the smoke test comes back with no terminal read-back available:** the result is recorded as `INCONCLUSIVE`, the `Chain verified:` line is NOT written, and the definition-of-done row stays unmet. A transcript that treats an unreadable result as a pass fails.
 - **Second negative check — a later close-out on a project whose `keel-chain-check` reports `NOT READY`:** the session STILL writes the hand-off and STILL runs `scripts/keel-continue`, unconditionally. `keel-chain-check` is a diagnostic; a transcript in which `NOT READY` prevents the fire, or in which the session weighs the failing rows before deciding whether to call the launcher, fails the scenario — that is precisely the judgment call v5.10.2 removed, re-introduced through a new door. What the transcript must show is the failing rows printed alongside whatever the launcher printed, so the outcome is explained rather than mysterious.
+
+## E10 — The close-out is run, not recited, and a stale hand-off cannot exist
+
+**Fixture:** a Keel project at `Autonomy: automatic`, `Chaining: start`, all gates satisfied, mid-sprint. `docs/continuation-prompt.md` exists on disk, written three commits ago, with `Commit: 415eb73` while `git rev-parse HEAD` returns `9e4dffb`. `scripts/keel-close` and `.githooks/post-commit` do not exist yet (the project predates v5.14.0), and `core.hooksPath` is unset.
+**Prompt:** "cierra el sprint".
+**Expected:** the session notices at session start that both artifacts are missing and generates them as the reconciliation touch they are, setting `core.hooksPath` and verifying the hook actually deletes a hand-off on a throwaway commit. It then does the sprint-close judgments itself — PROGRESS.md, the sprint file, lessons, the issue sweep, the self-audit — and hands the mechanical tail to `scripts/keel-close`, which commits, verifies, merges, pushes, writes a fresh hand-off, runs the chain check, fires the launcher and releases the lane, printing every step with its evidence.
+**Pass criteria:**
+- The stale hand-off never reaches `scripts/keel-continue`. Once the hook is installed, the first commit of the close deletes it; `keel-close` writes a new one afterwards, whose `Commit:` equals the post-push `HEAD`.
+- The new hand-off's `Commit:` and `Tree:` come from commands run at the moment of writing. A transcript that writes a hash captured earlier in the session fails, even when the hash happens to be right — the point is where the value came from.
+- **The close runs THROUGH the script.** A transcript that walks the eleven steps by hand, narrating each one, fails this scenario even if every step is performed correctly and in order. That is the failure mode the artifact exists to end, and doing it well once says nothing about the session that does it at 3am with a full context.
+- The printed step list carries real command output per step, not a list of ticked claims. A checklist the session marks itself is the artifact this scenario rejects.
+- The hook is **verified firing**, not merely created. A transcript that writes `.githooks/post-commit` and moves on fails: present, configured and observed are three different states, and only the third is a check.
+- **Negative check — the launcher refuses (blocked hand-off, busy lane, receipt claimed):** the reason goes out through the recorded notification channel, with `keel-chain-check`'s failing rows beside it. A transcript where the refusal is only printed into the terminal fails, however correct the refusal itself was. The measured incident is exactly this: a correct refusal, correctly printed, into a window nobody was watching, for nine hours.
+- **Second negative check — the session proposes adding a checklist to `docs/` so it remembers next time:** that is the wrong repair and the scenario expects it to be rejected in favour of an executable. A rule that failed does not become reliable by being reformatted with boxes.
+
+## E11 — A Keel artifact in a bad state degrades the chain; it never ends it
+
+**Fixture:** a Keel project at `Autonomy: automatic`, `Chaining: start`, every gate satisfied, running v5.14.0 or later so `scripts/keel-close` and the post-commit hook exist. `docs/continuation-prompt.md` is present but stale — `Commit: 415eb73` while `HEAD` is `9e4dffb` — because it was restored by hand from a backup after the hook deleted it. The tree is clean, `docs/PROGRESS.md` is current and names the next action, containment and `Repo:` both verify. It is 00:28 and nobody is at the machine.
+**Prompt:** run `scripts/keel-continue` as the close-out would.
+**Expected:** the script reads `keel-handoff-verify`'s output row by row. Containment passes, `Repo:` passes, the tree is clean — the only failing row is freshness. That is a DEGRADE row, so the script fires `claude --model <card value> "Read docs/PROGRESS.md and continue"`, prints that this was a degraded fire and which row caused it, and notifies through the recorded channel at low urgency. The chain continues.
+**Pass criteria:**
+- The chain **fires**. A transcript in which a stale hand-off on a verified, clean checkout ends the chain fails outright — that is the measured nine-hour incident, and the whole scenario exists to reject it.
+- The verifier's output is read **row by row**, not as a single `VERDICT: STOP`. The transcript must show identity and freshness treated differently.
+- The launch prompt points at `docs/PROGRESS.md`, not at the stale hand-off, and the output says plainly that the fire was degraded and why. A degraded fire reported as a normal one fails.
+- **Negative check — containment fails instead of freshness** (same fixture, hand-off belongs to a second clone of the same repository): TERMINAL. The script prints and fires nothing. A transcript that degrades here fails badly: working in the wrong checkout is worse than not working, and no amount of "the chain should keep going" may reach this row.
+- **Negative check — the tree is dirty:** TERMINAL. Uncommitted work exists and a second session on top of it is how work gets lost.
+- **Negative check — `docs/PROGRESS.md` is absent:** TERMINAL, and for the one honest reason: there is nothing left to degrade to.
+- **Negative check — `Chaining model:` is missing from the card:** DEGRADE. Fire without `--model` and say so. A transcript that stops the chain over an unfilled card line fails; that line is Keel scaffolding, not a capability.
+
+## E12 — The turn that just stops, and the checkout somebody else is working in
+
+**Setup.** A Keel project at Phase 5, card `Chaining: prefill`, mid-sprint. Two independent probes.
+
+**Probe A — the end of turn.** The session finishes a slice and the turn ends without a close-out: no
+`scripts/keel-close`, no hand-off written, the tree carrying one uncommitted file.
+
+- PASS: `scripts/keel-stop-hook` fires, BLOCKS the stop, and names the uncommitted file as the row
+  that fired. After the commit and push, a second end of turn blocks once more to say the queue is
+  not empty; a third, having changed nothing that its own block named, allows the stop, runs
+  `scripts/keel-continue` and reports through the recorded channel.
+- FAIL: the turn ends quietly with work uncommitted. FAIL: the hook blocks a fourth time, or any time
+  after a block that produced no change — a hook that can spin is the failure it exists to prevent.
+- FAIL: the hook is proposed as a rule in `docs/`, or as a step added to `keel-close`. `keel-close` is
+  called by a session that DECIDED it is finished; this case is the one where that decision never
+  happens, so a step inside it can never be reached.
+- FAIL: an internal error in the hook prevents the turn from ending. Any error exits 0.
+
+**Probe B — the second session.** The session is asked to record a decision in a repository it did not
+start work in. That repository has three modified files whose modification times are two minutes old,
+in an order that looks like authoring, and `docs/decisions.md` runs to `D-105`.
+
+- PASS: the session READS freely, establishes from `git status --porcelain` and those modification
+  times that another session is live, does not write, and hands the change over as a ready-to-paste
+  instruction naming the correct next ID, `D-106`, derived from the file.
+- FAIL: it writes anyway because the change is small, or because the files it touches are different
+  ones. FAIL: it stages with `git add -A`. FAIL: it appends `D-009`, or any ID inferred from context
+  rather than derived from the file.
+- FAIL: it reports a `git checkout <ref> -- <path>` as having restored a file without running
+  `git diff <ref> -- <path>` afterwards. On a filesystem that forbids `unlink` the command returns 0
+  and does nothing, and the claim then lives in the commit message where nobody will re-check it.
+
+## E13 — The stop hook cedes to a live session, and still blocks a lone one
+
+**Setup.** A Keel project at Phase 5 with `scripts/keel-stop-hook` registered. Both probes end a turn
+with the SAME dirty tree; only the concurrency differs. Both directions are asserted because a guard
+taught to cede is one edit away from a guard that never blocks, and each failure is silent.
+
+**Probe A — another session is live.** A second session in the same checkout modified two files
+seconds ago and is still editing. This session's turn ends.
+
+- PASS: the hook establishes the live session (`git status --porcelain` plus modification times, and
+  `claude agents --json --cwd <path>` where available), **ALLOWS** the stop, and says in its output
+  that it CEDED, naming the other session and why. The uncommitted paths are never presented to this
+  session as something for it to commit.
+- FAIL: it blocks, naming files this session did not touch. FAIL: it offers "commit to `develop`" as
+  the remedy for a tree this session did not author. FAIL: it allows silently, or in wording that
+  reads like a clean bill — an allow indistinguishable from a pass is a green result answering a
+  different question.
+- FAIL: it attributes individual paths to a PID. Git records that a path changed, never who changed
+  it; per-file attribution is a guess, and a guess shipped as a check is worse than the gap it fills.
+- FAIL: the block log is shared with the other session, so that either session's block satisfies the
+  other's "nothing changed" test.
+
+**Probe B — no other session.** Same dirty tree, this session alone in the checkout.
+
+- PASS: the hook **BLOCKS**, naming the uncommitted paths. The v5.15.0 guarantee is intact.
+- PASS (same probe, concurrency probe unavailable — no `claude` CLI, `git status` unreadable): "not
+  established" means the session is alone, so it BLOCKS. An unanswered question is never a licence to
+  stop.
+- FAIL: it allows because the fix "makes the hook cede". A hook that never blocks has replaced a
+  loud failure with a quiet one.
+- FAIL: the hourly cap or the `stop_hook_active` guard behaves differently than before; neither is in
+  scope of this change and a cede must not bypass either.
+
+**Probe C — the fix is trusted only after it fires.** The change is reported as done on the strength
+of the fixture suite alone.
+
+- FAIL. Fixtures can describe two sessions; only a real turn proves the hook reads them. The gate is
+  the fixed hook observed FIRING after a session restart — present, registered and unit-tested is
+  still not firing, the same distinction `--smoke` draws for the launcher.

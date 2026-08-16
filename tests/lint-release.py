@@ -221,6 +221,41 @@ if not any(f.startswith("MANIFEST Table 1:") for f in failures):
     ok(f"every phase-required Table 1 row is named by its phase reference "
        f"({t1_checked} checked, {len(DELEGATED)} delegated, {t1_out_of_scope} event-based rows out of scope)")
 
+# ---- Markdown tables: no unescaped pipe inside a cell -----------------------
+# A literal "|" in a cell splits the row into an extra column. It renders as a
+# mangled table and, worse, it is invisible in the source: this exact bug
+# ("Issue capture: on|off" in a Table 3 row) shipped in the vendored MANIFEST.md
+# and survived several releases, because nothing looked. A row's pipe count is a
+# mechanical fact, so it gets a mechanical check.
+table_rows_checked = 0
+for md in sorted(ROOT.rglob("*.md")):
+    if any(part in {".git", "node_modules"} for part in md.parts):
+        continue
+    lines = md.read_text(encoding="utf-8").split("\n")
+    rel = md.relative_to(ROOT)
+    i, fenced = 0, False
+    while i < len(lines):
+        if lines[i].lstrip().startswith("```"):
+            fenced = not fenced
+        if not fenced and lines[i].startswith("|"):
+            j = i
+            while j < len(lines) and lines[j].startswith("|"):
+                j += 1
+            block = lines[i:j]
+            counts = [len(re.findall(r"(?<!\\)\|", b)) for b in block]
+            expected = max(set(counts), key=counts.count)
+            table_rows_checked += len(block)
+            for k, (row, c) in enumerate(zip(block, counts)):
+                if c != expected:
+                    fail(f"{rel}:{i + k + 1}: markdown table row has {c} unescaped "
+                         f"pipes, the table uses {expected} — escape the literal "
+                         f"one as \\| ({row[:70]}...)")
+            i = j
+        else:
+            i += 1
+if not any("markdown table row" in f for f in failures):
+    ok(f"markdown tables: no unescaped pipe inside a cell ({table_rows_checked} rows)")
+
 # ---- Result ----------------------------------------------------------------
 print()
 if failures:
