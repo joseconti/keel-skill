@@ -580,6 +580,52 @@ What it does NOT do is decide anything. It stops on `keel-verify` failing and on
 
 One allow-list entry: `Bash(./scripts/keel-close:*)`.
 
+#### `scripts/keel-stop-hook` — the turn that just stops (UNBREAKABLE)
+
+`scripts/keel-close` and the whole chaining machinery share one assumption, and it is invisible
+until it fails: **they all describe a session that DECIDES it is finished.** The close-out contract,
+the launcher, the lane and the launch receipts are each reached by a session that has concluded its
+work and is closing out. A turn that simply ENDS — no decision, no close-out, no hand-off — passes
+through none of them.
+
+**Measured, and it is a different failure from the stale hand-off in `keel-close`.** On one project
+the launch receipts recorded not a single chain fire across a seventeen-hour window in which `git
+log` shows two full working sessions. The chain did not fail; **it was never asked to fire.** The
+sessions ended their turn, and the CLI then sits waiting for a person who is not there. Ten of those
+seventeen hours were dead, and every mechanism behaved exactly as designed throughout.
+
+So Keel generates a **`Stop` hook**, registered in the tool's own settings, that runs at every end of
+turn:
+
+1. **It blocks the stop when the repository is in a state this skill calls UNBREAKABLE-broken** —
+   uncommitted work, unpushed commits, or a hand-off that no longer describes `HEAD`. Those are not
+   judgments; they are three commands, and each block says which one fired and how to clear it.
+2. **Otherwise it blocks once more to say the queue is not empty**, so the default at the end of a
+   turn becomes "carry on" rather than "wait for a person". This is "Finish the queue" (SKILL.md)
+   given a mechanism instead of a paragraph.
+3. **It never spins.** A block that produced no change in the repository is the last one, and there
+   is a hard cap per hour. Both are read from recorded state, never from optimism — a hook that can
+   loop is worse than no hook.
+4. **When it does allow the stop, it hands the queue on before going quiet:** it runs
+   `scripts/keel-continue`, so a braked session becomes a fresh one rather than an idle window, and
+   then says out loud what happened through the recorded notification channel. **A brake on this
+   session is not a reason for the work to stop.** Firing here is safe because `keel-continue` is
+   idempotent per hand-off — its receipt, its circuit breaker and the lane are the guards, and the
+   hook adds none of its own.
+5. **Any internal error exits 0 and allows the stop.** A hook that can break a session is worse than
+   no hook at all, and this one runs on every single turn.
+
+**It is not a second `keel-close`, and the division is exact.** `keel-close` is the mechanical tail a
+session runs when it has decided to finish; the stop hook is what covers the case where that decision
+never happens. One is called; the other fires. A project needs both, and neither substitutes for the
+other — which is why the stop hook checks the same three states rather than trusting that a close-out
+ran.
+
+Generated at the Phase 5 scaffold on EVERY project, and registered in the settings of every capable
+accepted tool (`references/assistant-config.md`). It needs one allow-list entry:
+`Bash(./scripts/keel-stop-hook:*)`.
+
+
 #### The post-commit hook — a stale hand-off becomes impossible, not merely detected (UNBREAKABLE)
 
 Step 4 above fixes the hand-off written from a remembered commit. It does not fix the other half, and the other half is what actually cost the nine hours: **committing AFTER the hand-off was written.** No script step and no checklist can reach that, because the two events are separated by hours of ordinary work, and the rule to regenerate lives in prose a working session is not re-reading.
@@ -777,7 +823,7 @@ The project root carries the Keel block below in TWO files, always: `CLAUDE.md` 
 One tool needs a third step: **Gemini CLI reads `GEMINI.md`, not `AGENTS.md`, by default.** If the user works with Gemini CLI, ask once and record the pick: mirror the same block in `GEMINI.md` (a third copy of the lock, refreshed with the others), or commit a `.gemini/settings.json` whose `context.fileName` includes `AGENTS.md` (no third copy to maintain). Either satisfies the lock.
 
 ```
-<!-- KEEL:BEGIN — v5.14.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
+<!-- KEEL:BEGIN — v5.15.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
 # Keel protocol (mandatory for ANY assistant working in this repository)
 
 This project is governed by the Keel workflow. Before reading code or changing ANYTHING:

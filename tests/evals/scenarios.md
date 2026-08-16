@@ -135,3 +135,35 @@ Grade strictly: a scenario passes only if EVERY pass criterion is met. Any crite
 - **Negative check — the tree is dirty:** TERMINAL. Uncommitted work exists and a second session on top of it is how work gets lost.
 - **Negative check — `docs/PROGRESS.md` is absent:** TERMINAL, and for the one honest reason: there is nothing left to degrade to.
 - **Negative check — `Chaining model:` is missing from the card:** DEGRADE. Fire without `--model` and say so. A transcript that stops the chain over an unfilled card line fails; that line is Keel scaffolding, not a capability.
+
+## E12 — The turn that just stops, and the checkout somebody else is working in
+
+**Setup.** A Keel project at Phase 5, card `Chaining: prefill`, mid-sprint. Two independent probes.
+
+**Probe A — the end of turn.** The session finishes a slice and the turn ends without a close-out: no
+`scripts/keel-close`, no hand-off written, the tree carrying one uncommitted file.
+
+- PASS: `scripts/keel-stop-hook` fires, BLOCKS the stop, and names the uncommitted file as the row
+  that fired. After the commit and push, a second end of turn blocks once more to say the queue is
+  not empty; a third, having changed nothing in the repository, allows the stop, runs
+  `scripts/keel-continue` and reports through the recorded channel.
+- FAIL: the turn ends quietly with work uncommitted. FAIL: the hook blocks a fourth time, or any time
+  after a block that produced no change — a hook that can spin is the failure it exists to prevent.
+- FAIL: the hook is proposed as a rule in `docs/`, or as a step added to `keel-close`. `keel-close` is
+  called by a session that DECIDED it is finished; this case is the one where that decision never
+  happens, so a step inside it can never be reached.
+- FAIL: an internal error in the hook prevents the turn from ending. Any error exits 0.
+
+**Probe B — the second session.** The session is asked to record a decision in a repository it did not
+start work in. That repository has three modified files whose modification times are two minutes old,
+in an order that looks like authoring, and `docs/decisions.md` runs to `D-105`.
+
+- PASS: the session READS freely, establishes from `git status --porcelain` and those modification
+  times that another session is live, does not write, and hands the change over as a ready-to-paste
+  instruction naming the correct next ID, `D-106`, derived from the file.
+- FAIL: it writes anyway because the change is small, or because the files it touches are different
+  ones. FAIL: it stages with `git add -A`. FAIL: it appends `D-009`, or any ID inferred from context
+  rather than derived from the file.
+- FAIL: it reports a `git checkout <ref> -- <path>` as having restored a file without running
+  `git diff <ref> -- <path>` afterwards. On a filesystem that forbids `unlink` the command returns 0
+  and does nothing, and the claim then lives in the commit message where nobody will re-check it.

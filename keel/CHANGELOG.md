@@ -989,3 +989,44 @@ The residual risk is real and stated rather than hidden: a degraded chain starts
 Recorded in `keel/references/project-state.md` (the `scripts/keel-close` contract, the post-commit hook, row 10b, the DEGRADE/TERMINAL table and contract points 2, 3 and 5b, and the rewritten "a hand-off that is not current" rule), `keel/references/phase-5-development.md` (scaffold generation of both, the close-out routed through the script, two definition-of-done rows), `keel/references/notifications.md` (the new trigger), `keel/references/assistant-config.md` (allow-list coverage), `keel/SKILL.md` (the cross-cutting rule), `keel/MANIFEST.md` (Tables 1, 2 and 3).
 
 **Reconciliation:** two new artifacts, one rewritten stop-condition table, no card line, no migration. A project picks them up at its next scaffold or maintenance touch, and the lock block is unchanged in substance, so its refresh at the next freshness check is a stamp-only rewrite.
+
+## 5.15.0
+
+### Added — `scripts/keel-stop-hook`: the turn that just stops
+
+v5.14.0 made the close-out an executable so it could not be skipped. It cannot reach the case where the close-out is never called at all, and neither can anything else in this skill: **`scripts/keel-close`, `scripts/keel-continue`, the single lane and the launch receipts all describe a session that DECIDES it is finished.** A turn that simply ENDS — no decision, no close-out, no hand-off — passes through none of them and is invisible to every one.
+
+Measured, and it is a different failure from the stale hand-off v5.14.0 fixed: on one project the launch receipts recorded **not one chain fire across a seventeen-hour window** that `git log` shows contained two full working sessions. The chain did not fail — it was never asked to. The sessions ended their turn and the CLI sat waiting for a person who was not there. Ten of those hours were dead, with every mechanism behaving exactly as designed throughout, which is what made it invisible for two nights.
+
+- **`scripts/keel-stop-hook`, generated at the Phase 5 scaffold on EVERY project** and registered as a `Stop` hook in every capable accepted tool's settings. One allow-list entry: `Bash(./scripts/keel-stop-hook:*)`.
+- **It blocks the stop on the three UNBREAKABLE-broken states** — uncommitted work, unpushed commits, a hand-off that no longer describes `HEAD`. Not judgments: three commands, each block naming which fired and how to clear it.
+- **Otherwise it blocks once more to say the queue is not empty**, making "carry on" the default at the end of a turn rather than "wait for a person". This is SKILL.md's "Finish the queue" given a mechanism instead of a paragraph.
+- **It never spins.** A block that produced no change in the repository is the last one, plus a hard cap per hour, both read from recorded state rather than from optimism.
+- **When it allows the stop it hands the queue on before going quiet** — it runs `scripts/keel-continue`, so a braked session becomes a fresh one rather than an idle window, and reports through the recorded notification channel. A brake on this session is not a reason for the work to stop. Firing is safe because `keel-continue` is idempotent per hand-off; the receipt, the breaker and the lane are the guards, and the hook adds none of its own.
+- **Any internal error exits 0 and allows the stop.** It runs on every turn, so a hook that can break a session is worse than no hook.
+- **Present and registered is not firing.** The scaffold is not done until a turn has been ended with a deliberately dirty tree and the hook observed blocking it — the same rule `--smoke` already applies to the launcher.
+- **It is not a second `keel-close`.** One is called by a session that decided; the other fires when that decision never happens. It re-checks the same three states rather than trusting that a close-out ran.
+
+### Added — eight universal traps in `references/anti-patterns.md`, all measured in one week
+
+Entries 12e-12l, none hypothetical, and seven share one shape: **a command succeeded while reality did not change the way the session believed.**
+
+- **12e — the second session writing into a checkout somebody else is working in.** The single-lane lock guards CHAINED launches, keyed to the working directory; a session a person opens by hand, one on another surface and a scheduled one never pass through the launcher and so never meet the lane. Measured: a session on another surface committed with `git add -A` into a repository whose live session was mid-slice, swept two in-flight files into an unrelated documentation commit, and filed a decision under an ID taken 120 entries earlier. Nothing was destroyed; the recovery cost more than the work.
+- **12f — the copy in context read as if it were the repository.** A session reasoned for a whole working block from a v5.11.0 copy of this skill while the repository it was working in held an uncommitted v5.14.0, then proposed in detail a four-part change the working tree already contained in full.
+- **12g — the repair whose effect was never checked.** On a mount that forbids `unlink`, `git checkout <commit> -- <path>` returns 0 and does nothing; two files were reported "restored verbatim" in a commit message that changed nothing in them.
+- **12h — `git add -A` in a tree you did not author.**
+- **12i — the identifier chosen from memory.** A decision filed as `D-009` into a log that already ran to `D-105`.
+- **12j — the network call inside an unconditional hook.** A branch-protection hook calling `gh pr view` from a `PreToolUse:Bash` matcher took 44 seconds to time out on every git command, read-only ones included — and the larger cost is invisible: a protection that fails OPEN is absent exactly when the network is bad, while continuing to look installed. Its failure mode is part of its specification and belongs in `docs/decisions.md`.
+- **12k — the matcher that only sees the start of the command.** `git add -A && git push` begins with `git add`. This is the composite-command problem this skill already documents for permissions, with the sign reversed: there a composite command fails to match an `allow` rule and costs a dialog; here it fails to match a DENY rule and sails through. Narrowing a matcher for performance without fixing this is a security regression wearing a performance argument.
+- **12l — the control that passes by answering a different question.** Measured twice on one project: a chain checker passed all twelve rows on two consecutive nights the chain did not fire, because it verified that chaining was CONFIGURED while nothing verified that the session was LEAVING what the chain needs; and a test-identifier check reported zero findings for weeks because it was line-scoped and structurally incapable of seeing a real one. A control in this state is worse than none, because its green result is spent as reassurance. Every check now states, beside it, the question it answers, and a check that has never failed is audited against a case that should fail it.
+
+Self-audit gains rows 17a, 17b and 17c, lettered so nothing renumbers.
+
+### Changed — the copy in context stops being treated as the repository
+
+- **SKILL.md's context-discipline principle gains two exceptions** beside the post-update one, both cases where the copy in context is a cache with no invalidation: when the session is working **ON** the repository a file in context came from, and when an **external process may have touched the tree**. In those cases the re-read is from DISK and is the authority. The cheap form is a fragment — the frontmatter, the phase status, the current position — never the whole file.
+- **Two new operating principles.** *Never write into a repository another session is working in* (UNBREAKABLE): before the first WRITE into a repository this session did not start work in, rule out a live session with `git status --porcelain` plus the modification times of whatever it lists, and `claude agents --json --cwd <path>` where the CLI is available; if one is working there, hand the change over as a ready-to-paste instruction rather than writing. **Reading is always safe; writing is what needs the check.** And *stage explicit paths; verify a repair by its effect, never its exit code.*
+
+Recorded in `keel/references/project-state.md` (the `scripts/keel-stop-hook` contract), `keel/references/phase-5-development.md` (scaffold generation, registration and the fires-for-real verification), `keel/references/anti-patterns.md` (12e-12l and self-audit rows 17a-17c), `keel/SKILL.md` (the two principles and the context exceptions) and `keel/MANIFEST.md` (Tables 1, 2 and 3).
+
+**Reconciliation:** one new artifact, no card line, no migration. The lock block is unchanged in substance, so its refresh at the next freshness check is a stamp-only rewrite. Three of the four Table 3 actions need no artifact at all — they are rules that apply the moment the new references are read.
