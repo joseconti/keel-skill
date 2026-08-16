@@ -506,6 +506,43 @@ record. When a green result is used to justify a conclusion, the conclusion is c
 check's stated scope, not against its colour. A control whose scope is not written down cannot be
 audited, so writing it down is part of adding the control.
 
+### 12m. The guard keyed to the directory enforcing a duty that belongs to the session
+
+**The trap.** A guard reads the state of a working tree and acts on it — blocks, warns, refuses. The
+state is a fact about the DIRECTORY; the duty it enforces belongs to a SESSION. With one session in
+the checkout the two are the same thing and the guard is correct. With two, it punishes whichever
+session did not make the mess, and the one that did carries on untouched.
+
+**Why it happens.** `git status`, `HEAD`, a lock file, a log keyed by working directory: every cheap
+way to ask "what is going on here?" answers for the directory, because that is the only thing the
+filesystem knows about. Nothing in the answer says which session produced it, so the scope is
+inherited by accident rather than chosen — and it is invisible until a second session exists, which
+is usually long after the guard was written and trusted.
+
+**What it costs.** Measured, on this skill's own `scripts/keel-stop-hook` two days after it shipped.
+Session A was blocked naming two files session B had modified eight seconds earlier and was still
+editing. The remedy the block offered was "commit to `develop`" — that is, `git add -A` in a tree it
+did not author (12h). Worse, the anti-spin brake never engaged: its fingerprint covered the whole
+tree, so B's keystrokes renewed it every turn and A stayed blocked for eight turns until the hourly
+cap released it. **Not a block that expires — a block renewed by somebody else's work.** The same
+guard's block log was keyed by working directory too, with the sign reversed: two sessions shared one
+anti-spin history, so one session's block could satisfy the other's "nothing changed" test and
+RELEASE a stop that should have been blocked.
+
+**The rule.** **Every piece of state a guard writes or reads states its scope — repository or session
+— and that scope is checked against the duty being enforced, not against what was convenient to
+read.** Where the duty is the session's, the state is keyed by the session (`keel_session_pid`), and
+the guard establishes concurrency BEFORE acting: another live session, and a guard that cannot be
+satisfied by this session CEDES — allowing, saying it ceded and naming to whom — rather than blocking
+somebody for work they cannot commit. Ceding is not a hole: the duty moves to the session that
+authored the work and carries the same guard. Two boundaries hold it in place. **Concurrency is
+detected, authorship is never attributed** — git records that a path changed and never who changed
+it, so per-file attribution is a guess and a guess shipped as a check is worse than the gap it fills.
+And **a probe that cannot answer means "not established", which keeps the original behaviour**; a fix
+that turns an unanswered question into a licence has traded a loud failure for a quiet one. The tell
+is never "keyed by directory" on its own — a lock that serialises a TREE is correctly keyed by the
+tree — it is state keyed by directory while the duty belongs to one session.
+
 ## WordPress and WooCommerce
 
 ### 13. The user-facing string that skipped i18n
@@ -748,6 +785,7 @@ recollection** — an answer given from memory is not an answer, it is the trap 
 17a. Before this session's first WRITE into a repository it did not start, was another session ruled out with `git status --porcelain` plus the modification times of whatever it listed — rather than assumed absent?
 17b. Does every append-only log (`docs/decisions.md`, `docs/lessons-learned.md`, `docs/05-test-points.md`) have zero duplicate identifiers, checked by grep rather than by recollection?
 17c. Does every check the project relies on state the question it answers — and for any check that has never failed, has it been run against a case that should fail it?
+17d. Does every piece of state a guard reads or writes declare its scope — repository or session — and is that the scope the duty it enforces actually has?
 18. (WordPress) Does `wp i18n make-pot` report zero untranslated or wrongly-domained user-facing strings?
 19. (WordPress) Does uninstall remove every option, table, meta key and scheduled event the plugin creates?
 20. (WordPress) Does every entry point — admin, AJAX, REST, bulk, CLI — check its capability and its nonce?

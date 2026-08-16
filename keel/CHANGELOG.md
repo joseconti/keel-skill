@@ -1030,3 +1030,37 @@ Self-audit gains rows 17a, 17b and 17c, lettered so nothing renumbers.
 Recorded in `keel/references/project-state.md` (the `scripts/keel-stop-hook` contract), `keel/references/phase-5-development.md` (scaffold generation, registration and the fires-for-real verification), `keel/references/anti-patterns.md` (12e-12l and self-audit rows 17a-17c), `keel/SKILL.md` (the two principles and the context exceptions) and `keel/MANIFEST.md` (Tables 1, 2 and 3).
 
 **Reconciliation:** one new artifact, no card line, no migration. The lock block is unchanged in substance, so its refresh at the next freshness check is a stamp-only rewrite. Three of the four Table 3 actions need no artifact at all — they are rules that apply the moment the new references are read.
+
+## 5.15.1
+
+### Fixed — the stop hook stops blocking the session that did not make the mess
+
+v5.15.0's hook fires correctly. What it reads is scoped wrong: rules 1 and 3 are written as facts about the REPOSITORY, and one checkout can hold two sessions — which this skill says itself, in the UNBREAKABLE principle forbidding a write into a repository another session is working in. One half of the skill recognised the concurrency while the other defined the state as though it could not happen.
+
+Measured two days after the release. Session A was blocked by rule 1 naming two integration-test files that session B had modified eight seconds earlier and was still editing. Two consequences, and the second is the serious one:
+
+- **The remedy the block offered is the thing this skill forbids.** "Commit to `develop`" means `git add -A` in a tree you did not author (12h): the blocked session was told to clear a mess it could not clear without committing somebody else's unfinished work under its own message.
+- **The anti-spin brake never engaged.** Rule 3's fingerprint was `sha256(HEAD + git status --porcelain)` — the whole tree — so every save in the other session changed it and "this block changed nothing" never came true. A stayed blocked for eight turns, until the hourly cap released it. **That is not a block that expires; it is a block renewed by somebody else's work.**
+
+The same root cause wears a second hat with the sign reversed: the block log was keyed by working directory, so two sessions shared one anti-spin history and one session's block could satisfy the OTHER's "nothing changed" test — releasing a stop that should have been blocked.
+
+- **The uncommitted-work rule is scoped to the SESSION.** Before it blocks, the hook establishes whether another session is live in this checkout — the same two commands the write rule already requires, plus its own identity — and where one is, it **CEDES**: it ALLOWS the stop and says so, naming the session it ceded to and why. A cede is printed as a cede, never as a pass.
+- **Ceding drops no guarantee; it moves it to the session that can act.** The uncommitted work belongs to a session carrying this same hook, which will be blocked by it on its own next turn and can commit under its own message. What is given up is blocking the one participant who could not have fixed it.
+- **Unpushed commits and a stale hand-off block whether or not the hook cedes** — both are facts about `HEAD`, and clearing either authors nothing that is not already committed.
+- **The block log is keyed by repository AND session**, and the no-change fingerprint covers only what the block itself named: `HEAD`, the unpushed count, the hand-off's identity, and the status entries for the paths THIS block listed.
+- **Concurrency is detected; authorship is never attributed.** Git records that a path changed and never who changed it, so mapping a working-tree path to a PID is a guess, and a guess shipped as a check is worse than the gap it fills.
+- **Nothing is loosened.** The three UNBREAKABLE-broken states, the queue block, the hourly cap, `stop_hook_active` and rule 5 (any internal error exits 0; there is deliberately no `ERR` trap) are all unchanged. A probe that cannot answer means "not established", which BLOCKS — a lone session with a dirty tree still blocks exactly as before, because a fix that turns an unanswered question into a licence to stop trades a loud failure for a quiet one.
+- **The single lane is NOT this bug** and must not be re-keyed alongside it: it serialises a TREE, so the tree is the correct key, and two worktrees of one repository are two legitimate lanes. The tell is never "keyed by directory" on its own — it is state keyed by directory while the duty belongs to one session.
+- **Both directions are asserted, and the hook is observed firing for real.** A guard taught to cede is one edit from a guard that never blocks, and both failures are silent: dirty tree with another session live allows and says why; dirty tree with no other session still blocks; two sessions' block logs are independent; the cap and `stop_hook_active` still behave. Fixtures can describe two sessions — only a real turn proves the hook reads them.
+
+### Added — `scripts/keel-session-pid.sh`, one answer to "who am I"
+
+One sourced file exposing one function, `keel_session_pid`: this session's identity, derived once from its own process (the PID together with that process's start time, so a reused number cannot impersonate a dead session) and returned unchanged for the life of the process. It is what the single lane's owner, the launch receipt's `launcher-pid`, the baton, and the stop hook's concurrency probe and block-log key all read. On most projects it is not new work — wherever `scripts/keel-handoff-verify` and `scripts/keel-continue` already record a PID they already compute it. What is new is the NAME: a helper nobody names is a helper each caller re-derives slightly differently, and three slightly different answers to "who am I" is this same failure one level down. Sourced, never executed, so it needs no allow-list entry.
+
+### Added — anti-pattern 12m and self-audit row 17d
+
+**12m — the guard keyed to the directory enforcing a duty that belongs to the session.** With one session in the checkout the two scopes coincide and the guard is correct; with two it punishes whichever session did not make the mess while the one that did carries on untouched. Every cheap way to ask "what is going on here?" — `git status`, `HEAD`, a lock file, a log keyed by working directory — answers for the DIRECTORY, so the scope is inherited by accident rather than chosen, and it is invisible until a second session exists. Row **17d** makes it auditable: does every piece of state a guard reads or writes declare its scope, and is that the scope the duty it enforces actually has?
+
+Recorded in `keel/references/project-state.md` (the stop-hook contract and the new `scripts/keel-session-pid.sh` section), `keel/references/phase-5-development.md` (scaffold generation and the both-directions verification), `keel/references/anti-patterns.md` (12m, row 17d), `keel/SKILL.md` (the write-rule principle gains the guard clause) and `keel/MANIFEST.md` (Tables 1, 2 and 3).
+
+**Reconciliation:** regenerate `scripts/keel-stop-hook`, generate `scripts/keel-session-pid.sh`, re-verify the hook in both directions and observe it firing. No card line, no migration, and the lock block is unchanged in substance — a stamp-only refresh at the next freshness check.

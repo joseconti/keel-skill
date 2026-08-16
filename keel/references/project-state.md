@@ -600,12 +600,16 @@ turn:
 1. **It blocks the stop when the repository is in a state this skill calls UNBREAKABLE-broken** —
    uncommitted work, unpushed commits, or a hand-off that no longer describes `HEAD`. Those are not
    judgments; they are three commands, and each block says which one fired and how to clear it.
+   **Where the checkout holds another live session, the first of the three CEDES instead of
+   blocking** — "The state it reads is the SESSION's" below.
 2. **Otherwise it blocks once more to say the queue is not empty**, so the default at the end of a
    turn becomes "carry on" rather than "wait for a person". This is "Finish the queue" (SKILL.md)
    given a mechanism instead of a paragraph.
-3. **It never spins.** A block that produced no change in the repository is the last one, and there
-   is a hard cap per hour. Both are read from recorded state, never from optimism — a hook that can
-   loop is worse than no hook.
+3. **It never spins.** A block that produced no change in **what that block itself named** is the
+   last one, and there is a hard cap per hour. Both are read from recorded state, never from
+   optimism — a hook that can loop is worse than no hook. The fingerprint and the block log are
+   scoped to the SESSION; scoped to the repository, as they were in v5.15.0, both are defeated by a
+   second session's ordinary work.
 4. **When it does allow the stop, it hands the queue on before going quiet:** it runs
    `scripts/keel-continue`, so a braked session becomes a fresh one rather than an idle window, and
    then says out loud what happened through the recorded notification channel. **A brake on this
@@ -614,6 +618,91 @@ turn:
    hook adds none of its own.
 5. **Any internal error exits 0 and allows the stop.** A hook that can break a session is worse than
    no hook at all, and this one runs on every single turn.
+
+**The state it reads is the SESSION's, never the directory's (UNBREAKABLE).** Rules 1 and 3 were
+written as facts about the REPOSITORY, and one checkout can hold two sessions — this skill says so
+itself, in the operating principle that forbids writing into a repository another session is working
+in (`SKILL.md`; `references/anti-patterns.md`, 12e). One half of the skill recognised the
+concurrency while the other defined the state as though it could not happen. Measured on a real
+project: session A was blocked by rule 1 naming two integration-test files that session B had
+modified eight seconds earlier and was still editing. Two consequences follow, and the second is the
+serious one.
+
+- **The remedy the block offers is the thing this skill forbids.** "Commit to `develop`" means
+  `git add -A` in a tree you did not author (12h): the blocked session is told to clear a mess it
+  cannot clear without committing somebody else's unfinished work under its own message.
+- **The anti-spin brake does not release it.** Rule 3's fingerprint was `sha256(HEAD + git status
+  --porcelain)` — the whole tree — so every save in the other session changed it and "this block
+  changed nothing" never came true. The blocked session stayed blocked until the hourly cap let it
+  go, eight turns later. **That is not a block that expires; it is a block renewed by somebody else's
+  work**, and a brake defeated by ordinary activity elsewhere in the tree is not a brake.
+
+The same root cause wears a second hat with the sign reversed: the block log
+(`stop-blocks-<repo-key>.log` in the user's state directory) was keyed by working directory, so two
+sessions shared one anti-spin history and one session's block could satisfy the OTHER's
+"nothing changed" test, releasing a stop that should have been blocked. One bug, two hats —
+**state keyed to the directory enforcing a duty that belongs to the session.**
+
+- **Before rule 1 blocks on uncommitted work, the hook establishes whether another session is live in
+  this checkout**, by the same two commands the write rule already requires — `git status
+  --porcelain` plus the modification times of what it lists, and `claude agents --json --cwd <path>`
+  where the CLI is available — and its own identity from `scripts/keel-session-pid.sh`.
+- **Another live session, and the uncommitted paths are not this session's to commit → the hook
+  CEDES: it ALLOWS the stop and says so**, naming the other session and why it ceded. A cede is
+  printed as a cede and never as a pass: an allow that reads like a clean bill is a green result
+  answering a different question (12l).
+- **Ceding drops no guarantee; it moves it to the session that can act.** The uncommitted work
+  belongs to a session carrying this same hook, which will be blocked by it on its own next turn and
+  can commit under its own message. What is given up is blocking the one participant who could not
+  have fixed it.
+- **The other two states block whether or not the hook cedes.** Unpushed commits and a hand-off that
+  no longer describes `HEAD` are facts about `HEAD`, and clearing either authors nothing that is not
+  already committed.
+- **The block log is keyed by repository AND session**, and rule 3's fingerprint covers only what the
+  block itself named: `HEAD`, the unpushed count, the hand-off's identity, and the status entries for
+  the paths THIS block listed. A change in a path this block did not name is not a change to this
+  block, and the brake counts it as unchanged.
+
+**Concurrency is detected; authorship is never attributed.** Git records that a path changed and
+never who changed it, so mapping a working-tree path to a PID is a guess, and a guess shipped as a
+check is worse than the gap it fills. Whether a second session is live is a fact two commands
+establish; who touched a given file is not, and no amount of care makes it one.
+
+**A probe that cannot answer means "not established", and not-established BLOCKS.** That is the
+v5.15.0 behaviour preserved exactly — a lone session with a dirty tree still blocks — because a fix
+that turns an unanswered question into a licence to stop has replaced one silent failure with a
+quieter one. **Rule 5 is untouched:** an internal error still exits 0, there is still deliberately no
+`ERR` trap (read the comment that says why before touching that part), and a cede is a decision the
+hook prints on its normal path, not an error exit. The hourly cap and `stop_hook_active` are
+unchanged, and a cede never bypasses either.
+
+**The single lane is NOT this bug and must not be "fixed" alongside it.** It is keyed to the working
+directory on purpose and correctly: what it serialises is the tree being written to, and two
+worktrees of one repository are two legitimate lanes. The tell is never "keyed by directory" on its
+own — it is state keyed by directory while the duty it enforces belongs to one session.
+
+**Verified in both directions, and observed firing for real.** A guard taught to cede is one edit
+away from a guard that never blocks, and both directions fail silently: the tests assert that a dirty
+tree with another session live ALLOWS and says why, that a dirty tree with no other session still
+BLOCKS, that two sessions' block logs are independent, and that the cap and `stop_hook_active` still
+behave. Fixtures can describe two sessions; only a real turn proves the hook reads them — so the
+change is not done until the fixed hook has been seen firing after a session restart. Present,
+registered and unit-tested is still not firing.
+
+#### `scripts/keel-session-pid.sh` — one answer to "who am I" (UNBREAKABLE)
+
+Every mechanism above that records or compares a session needs the same identity and needs it to be
+the same in every script: the single lane's owner, the launch receipt's `launcher-pid`, the baton,
+and now the stop hook's concurrency probe and its block-log key. It is one sourced file exposing one
+function, `keel_session_pid`, which derives this session's identity once from its own process — the
+PID together with that process's start time, so a reused number cannot impersonate a dead session —
+and returns it unchanged for the life of the process. Generated at the Phase 5 scaffold beside
+`scripts/keel-verify`, dependency-light, **sourced and never re-implemented inline**.
+
+On most projects this is not new work: wherever `scripts/keel-handoff-verify` and
+`scripts/keel-continue` already record a PID, they already compute it. What v5.15.1 adds is the
+NAME. A helper nobody names is a helper each caller re-derives slightly differently, and three
+slightly different answers to "who am I" is the failure this section describes, one level down.
 
 **It is not a second `keel-close`, and the division is exact.** `keel-close` is the mechanical tail a
 session runs when it has decided to finish; the stop hook is what covers the case where that decision
@@ -823,7 +912,7 @@ The project root carries the Keel block below in TWO files, always: `CLAUDE.md` 
 One tool needs a third step: **Gemini CLI reads `GEMINI.md`, not `AGENTS.md`, by default.** If the user works with Gemini CLI, ask once and record the pick: mirror the same block in `GEMINI.md` (a third copy of the lock, refreshed with the others), or commit a `.gemini/settings.json` whose `context.fileName` includes `AGENTS.md` (no third copy to maintain). Either satisfies the lock.
 
 ```
-<!-- KEEL:BEGIN — v5.15.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
+<!-- KEEL:BEGIN — v5.15.1 do not remove: binds every AI/session in this repo to the Keel workflow -->
 # Keel protocol (mandatory for ANY assistant working in this repository)
 
 This project is governed by the Keel workflow. Before reading code or changing ANYTHING:

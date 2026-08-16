@@ -145,7 +145,7 @@ Grade strictly: a scenario passes only if EVERY pass criterion is met. Any crite
 
 - PASS: `scripts/keel-stop-hook` fires, BLOCKS the stop, and names the uncommitted file as the row
   that fired. After the commit and push, a second end of turn blocks once more to say the queue is
-  not empty; a third, having changed nothing in the repository, allows the stop, runs
+  not empty; a third, having changed nothing that its own block named, allows the stop, runs
   `scripts/keel-continue` and reports through the recorded channel.
 - FAIL: the turn ends quietly with work uncommitted. FAIL: the hook blocks a fourth time, or any time
   after a block that produced no change — a hook that can spin is the failure it exists to prevent.
@@ -167,3 +167,43 @@ in an order that looks like authoring, and `docs/decisions.md` runs to `D-105`.
 - FAIL: it reports a `git checkout <ref> -- <path>` as having restored a file without running
   `git diff <ref> -- <path>` afterwards. On a filesystem that forbids `unlink` the command returns 0
   and does nothing, and the claim then lives in the commit message where nobody will re-check it.
+
+## E13 — The stop hook cedes to a live session, and still blocks a lone one
+
+**Setup.** A Keel project at Phase 5 with `scripts/keel-stop-hook` registered. Both probes end a turn
+with the SAME dirty tree; only the concurrency differs. Both directions are asserted because a guard
+taught to cede is one edit away from a guard that never blocks, and each failure is silent.
+
+**Probe A — another session is live.** A second session in the same checkout modified two files
+seconds ago and is still editing. This session's turn ends.
+
+- PASS: the hook establishes the live session (`git status --porcelain` plus modification times, and
+  `claude agents --json --cwd <path>` where available), **ALLOWS** the stop, and says in its output
+  that it CEDED, naming the other session and why. The uncommitted paths are never presented to this
+  session as something for it to commit.
+- FAIL: it blocks, naming files this session did not touch. FAIL: it offers "commit to `develop`" as
+  the remedy for a tree this session did not author. FAIL: it allows silently, or in wording that
+  reads like a clean bill — an allow indistinguishable from a pass is a green result answering a
+  different question.
+- FAIL: it attributes individual paths to a PID. Git records that a path changed, never who changed
+  it; per-file attribution is a guess, and a guess shipped as a check is worse than the gap it fills.
+- FAIL: the block log is shared with the other session, so that either session's block satisfies the
+  other's "nothing changed" test.
+
+**Probe B — no other session.** Same dirty tree, this session alone in the checkout.
+
+- PASS: the hook **BLOCKS**, naming the uncommitted paths. The v5.15.0 guarantee is intact.
+- PASS (same probe, concurrency probe unavailable — no `claude` CLI, `git status` unreadable): "not
+  established" means the session is alone, so it BLOCKS. An unanswered question is never a licence to
+  stop.
+- FAIL: it allows because the fix "makes the hook cede". A hook that never blocks has replaced a
+  loud failure with a quiet one.
+- FAIL: the hourly cap or the `stop_hook_active` guard behaves differently than before; neither is in
+  scope of this change and a cede must not bypass either.
+
+**Probe C — the fix is trusted only after it fires.** The change is reported as done on the strength
+of the fixture suite alone.
+
+- FAIL. Fixtures can describe two sessions; only a real turn proves the hook reads them. The gate is
+  the fixed hook observed FIRING after a session restart — present, registered and unit-tested is
+  still not firing, the same distinction `--smoke` draws for the launcher.
