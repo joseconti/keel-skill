@@ -46,6 +46,7 @@ Keep it to roughly one page. Detail lives in the linked files, never accumulated
 - Design system: [existing — source/location / founding — canonical, will live at X / one-off / n/a no UI]
 - Keel portability: [lock only / lock + embedded vX.Y.Z]
 - Assistant config: [none / rules / rules+agents / full] (tools: [claude, codex, copilot, cursor, gemini, windsurf, ...]) — per references/assistant-config.md
+- CI runs on: [main (default) — push to main, version tags, and PRs targeting main / main+develop / all-branches / n/a — no forge CI or config package declined] — asked once at Phase 1 step 0a in the same batch as the assistant-config package, never inferred from the repo or from `Autonomy:`. The default keeps the forge out of the assistant's commit loop: Keel drives the full suite locally at every test point and runs `scripts/keel-verify` before every commit, so CI on every develop push re-runs seconds later what already passed, and a stream of green checks nobody reads stops being evidence. What the default costs is real and recorded: a break only CI's environment surfaces is found at the merge rather than at the commit. Version tags fire on EVERY value — the tag is what publishes the release. Per references/assistant-config.md ("The CI workflow")
 - Models: [orchestrator=<model> / reviewer=<model> / mechanical=<model>, per accepted tool — role→model map, per references/assistant-config.md; n/a if no agents]
 - Keel baseline: [vX.Y.Z — last Keel version this project was reconciled to]
 - Website intent: [yes — own domain|subdomain / no]
@@ -972,7 +973,7 @@ The project root carries the Keel block below in TWO files, always: `CLAUDE.md` 
 One tool needs a third step: **Gemini CLI reads `GEMINI.md`, not `AGENTS.md`, by default.** If the user works with Gemini CLI, ask once and record the pick: mirror the same block in `GEMINI.md` (a third copy of the lock, refreshed with the others), or commit a `.gemini/settings.json` whose `context.fileName` includes `AGENTS.md` (no third copy to maintain). Either satisfies the lock.
 
 ```
-<!-- KEEL:BEGIN — v5.15.2 do not remove: binds every AI/session in this repo to the Keel workflow -->
+<!-- KEEL:BEGIN — v5.16.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
 # Keel protocol (mandatory for ANY assistant working in this repository)
 
 This project is governed by the Keel workflow. Before reading code or changing ANYTHING:

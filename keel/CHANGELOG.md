@@ -1086,3 +1086,33 @@ A new UNBREAKABLE operating principle in `SKILL.md`, and the reason this release
 Recorded in `keel/references/project-state.md` (rules 2 and 3, the cede and discharge conditions, the per-rule fingerprint table, the queue's source), `keel/references/phase-5-development.md` (scaffold generation and the both-directions-for-every-rule verification), `keel/references/anti-patterns.md` (12m, row 17e), `keel/SKILL.md` (the new principle) and `keel/MANIFEST.md` (Tables 1, 2 and 3).
 
 **Reconciliation:** regenerate `scripts/keel-stop-hook` and re-verify it in both directions for every rule, then observe it firing. No new artifact, no card line, no migration, and the lock block is unchanged in substance — a stamp-only refresh at the next freshness check.
+
+## 5.16.0
+
+### Added — `CI runs on:`, because when CI fires is a decision, not a template
+
+The CI workflow was specified as "running on push and on pull request". In automatic mode Keel commits to `develop` many times per sprint and pushes each one, so that trigger meant the forge ran the full suite dozens of times a day on work that had already been tested — and produced a stream of green checks nobody reads. **A check nobody reads has stopped being evidence** (`references/anti-patterns.md`, 12l), and it is a duplicate besides: the session drives the whole suite locally at the test point and runs `scripts/keel-verify` before the commit, seconds earlier, on the same code.
+
+The merge to `main` is different in kind. It is the one act in the whole flow that is always the user's (SKILL.md, "Git flow"), and it is the moment the work reaches users. That is where an independent net is worth paying for.
+
+- **New project-card line `CI runs on:`**, asked once at Phase 1 step 0a in the same batch as the assistant-config package — which is already where CI is decided at all — and never inferred afterwards.
+  - `main` (**default**) — push to `main`, version tags, and pull requests TARGETING `main`.
+  - `main+develop` — the above, plus push to `develop` and PRs targeting it. For an integration branch that must stay green for someone other than the session that wrote it.
+  - `all-branches` — every push and every pull request.
+  - `n/a` — no forge CI, or the config package was declined.
+- **The cost of the default is recorded beside it, not hidden.** A break that only CI's environment surfaces — another OS, a clean checkout, a dependency that exists on the developer's machine and nowhere else — is then found at the merge rather than at the commit that caused it. That is exactly what the wider values buy, and it is why this is a question and not a decision.
+- **It is never inferred** — not from the repository, not from how busy the forge looks, and not from `Autonomy:`. A fully automatic project can still want `develop` green for a human collaborator.
+- **Version tags fire on every value**, `main` included: the tag is what builds and publishes the release, and that is never traded away for a trigger preference. The setting governs which ORDINARY commits are checked.
+- **Changing it later is an ordinary maintenance change** — one edit to the workflow's `on:` block, one to the card line, one D-entry saying why.
+
+### Fixed — this repository's own workflow, as the sweep the previous release made mandatory
+
+v5.15.2's new principle requires the release that generalises a defect to sweep every instance of the class it can reach and to name where it looked. Named:
+
+- **`keel-skill`** — its pushes were already `main`-only, but its `pull_request:` carried no branch filter, so it fired on pull requests to every branch including `develop`. Corrected to `branches: [main]`, and the workflow's header comment now states when it runs and why. **A PR trigger with no branch filter is the case to look for**: it reads as "on pull request" and quietly covers the integration branch, so a repo that looks compliant on its push triggers can still be running CI where nobody chose to.
+- **`keel-docs-theme`** — no CI at all. `n/a`, nothing to sweep.
+- **Not reached:** every project scaffolded before this release keeps its current workflow until its next maintenance touch, which is what Table 3's action row is for.
+
+Recorded in `keel/references/assistant-config.md` (the CI workflow's triggers, the value table, the argument and its cost), `keel/references/project-state.md` (the card line), `keel/references/phase-1-discovery.md` (the question, in the step 0a batch), `keel/references/phase-5-development.md` (the scaffold reads the card line rather than a template) and `keel/MANIFEST.md` (Tables 1, 2 and 3).
+
+**Reconciliation:** ask the question once on every existing project that has forge CI and an accepted config package, record the card line, and regenerate the workflow's `on:` block to match at the next maintenance touch. No new artifact, no migration, and the lock block is unchanged in substance — a stamp-only refresh at the next freshness check.
