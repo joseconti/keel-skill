@@ -543,6 +543,13 @@ that turns an unanswered question into a licence has traded a loud failure for a
 is never "keyed by directory" on its own — a lock that serialises a TREE is correctly keyed by the
 tree — it is state keyed by directory while the duty belongs to one session.
 
+**And fixing the reported instance is not fixing the class.** Measured on this same hook: the release
+that wrote this entry fixed the rule that had been reported and left its sibling — three lines away
+in the same file, same defect, same file — untouched, so the next project met it again with the
+anti-pattern already written down. A generalisation does not travel to its siblings by itself.
+**The release that generalises a defect sweeps every instance of the class it can reach and names
+where it looked**, because "we understand the shape now" is a belief and the sweep is a list.
+
 ## WordPress and WooCommerce
 
 ### 13. The user-facing string that skipped i18n
@@ -786,6 +793,7 @@ recollection** — an answer given from memory is not an answer, it is the trap 
 17b. Does every append-only log (`docs/decisions.md`, `docs/lessons-learned.md`, `docs/05-test-points.md`) have zero duplicate identifiers, checked by grep rather than by recollection?
 17c. Does every check the project relies on state the question it answers — and for any check that has never failed, has it been run against a case that should fail it?
 17d. Does every piece of state a guard reads or writes declare its scope — repository or session — and is that the scope the duty it enforces actually has?
+17e. For each defect generalised into a rule this release, was every reachable instance of that class swept and the places looked at named — rather than only the instance that was reported?
 18. (WordPress) Does `wp i18n make-pot` report zero untranslated or wrongly-domained user-facing strings?
 19. (WordPress) Does uninstall remove every option, table, meta key and scheduled event the plugin creates?
 20. (WordPress) Does every entry point — admin, AJAX, REST, bulk, CLI — check its capability and its nonce?
