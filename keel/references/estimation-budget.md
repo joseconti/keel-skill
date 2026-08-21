@@ -36,6 +36,8 @@ Baseline table — adjust per project and say why (state the scope basis next to
 | Phase 3 — design brief + Design producing the handoff | 1–4 h (scales with screens; template reuse lowers it) |
 | Phase 4 — handoff audit, BUILD-SPEC, guided external setup | 1–3 h (scales with setup items / Design Requests) |
 | Phase 5 — development | the bulk: **0.5–2 h per slice** (code + tests + docs + test point) |
+
+**On a project that carries a sprint plan, the Phase 5 line is DERIVED, not estimated twice.** Each slice's `hours` in `docs/sprints/sprint-<N>.md` is its partida, and this line is their sum — which is what "totals come *from* the lines" already requires, applied one level down. `scripts/keel-verify` fails when the two disagree, because a plan and a budget that each carry their own Phase 5 hours are two different projects the moment either is edited. Deferred items carry hours too (`docs/sprints/deferred.md`), and they are NOT in this total: they are what the next version would cost, which is exactly what makes "what goes in this release" a decision with a number attached (`references/project-state.md`, "The sprint plan").
 | Phase 6 — documentation consolidation | 1–2 h |
 | Phase 7 — release | 0.5–1.5 h |
 | Phase 8 — website (only if intent = yes; usually quoted separately) | 3–8 h |

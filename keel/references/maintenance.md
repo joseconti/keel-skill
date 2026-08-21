@@ -61,6 +61,8 @@ This is the same cycle `references/adoption.md` defines for adopted projects —
 
 EVERY maintenance change, however small, re-runs the entire automated suite before its release — one-line fixes included: the blast radius of a change is what the suite exists to measure, not what the author assumes. And every fixed bug carries its regression test, written and failing BEFORE the fix (a hotfix without one is not done, per the hotfix path — the rule holds on every project whatever its `Test-first policy:` line says) — the suite only protects against what it contains.
 
+**Where the project card carries an `E2E:` line**, the release gate on `docs/.keel/e2e-status.json` applies to a maintenance release exactly as it does to any other (`references/phase-7-release.md`). **The hotfix path — and only the hotfix path — may reduce the scope** to the flows the fix touches, when running the whole end-to-end suite would delay a production fix beyond what the bug justifies. The reduction is not a quiet judgment: it is named in the `docs/decisions.md` entry, saying which flows ran and which did not, so "we ran a subset" is a fact on the record instead of an assumption anyone has to make later. The full suite then runs before the next ordinary release, not "when convenient".
+
 ## Site freshness (when Phase 8 built a site)
 
 Every product release — a hotfix patch included — triggers the site mini-checklist: JSON-LD `softwareVersion`, the changelog/news page, screenshots if the UI changed, `sitemap.xml` `lastmod`, `llms.txt`. The details live in the launch checklist's "After launch — operations" section (`references/phase-8-launch-checklist.md`). A site announcing an old version is a live defect, not cosmetic drift.
