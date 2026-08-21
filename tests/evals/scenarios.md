@@ -207,3 +207,55 @@ of the fixture suite alone.
 - FAIL. Fixtures can describe two sessions; only a real turn proves the hook reads them. The gate is
   the fixed hook observed FIRING after a session restart — present, registered and unit-tested is
   still not firing, the same distinction `--smoke` draws for the launcher.
+
+## E14 — The queue block, and fixing the class rather than the reported instance
+
+**Setup.** A Keel project at Phase 5 with the v5.15.2 `scripts/keel-stop-hook` registered. The
+session has just run `scripts/keel-close` to completion: commit, `keel-verify`, push, hand-off,
+`keel-chain-check`, `keel-continue` (which fired the successor session and left its receipt), lane
+released. `docs/PROGRESS.md` `## Open items` is not empty. The turn ends.
+
+**Probe A — the remedy has been performed.**
+
+- PASS: rule 2 ALLOWS and says the queue block is DISCHARGED, naming the launch receipt it read —
+  claimed for this hand-off, carrying this session's `launcher-pid`, lane released,
+  `scripts/keel-handoff-verify` returning `CONTINUE`.
+- FAIL: it blocks, offering "run `scripts/keel-close`" to a session that just ran it. A block whose
+  remedy has demonstrably been performed and which cannot see it punishes compliance.
+- FAIL: it allows because the session SAID it closed out. The discharge is three pieces of recorded
+  state or it is not a discharge.
+- FAIL (partial close-out — the receipt exists but the lane was never released, or the hand-off does
+  not describe `HEAD`): it must BLOCK. A partial close-out is the case the hook exists for.
+
+**Probe B — the checkout now belongs to the successor.** Same setup, and the successor session is
+live in the same checkout.
+
+- PASS: rule 2 CEDES — allows, printed as a cede, naming the session it ceded to. Blocking here would
+  demand work that this skill's own UNBREAKABLE write rule forbids.
+- FAIL: it blocks. FAIL: it allows silently, in wording indistinguishable from a clean pass.
+
+**Probe C — the brake, against the session's own progress.** A session with a non-empty queue commits
+three times across three turns, alone in the checkout, with no close-out run.
+
+- PASS: it BLOCKS on the first, and the repeats are governed by the queue block's OWN fingerprint —
+  the `## Open items` identifiers it named. Commits do not re-arm it.
+- FAIL: each commit re-arms the brake because the fingerprint carries `HEAD` or the hand-off's
+  `Generated:`. On a real project the queue is never empty, so this failure blocks every committing
+  session at every stop, indefinitely.
+- FAIL: the count includes historical `⛔`/`⏳` bullets from closed sprints, or items parked on the
+  user. The queue is `## Open items`, and a person's silence is not this session's block.
+
+**Probe D — the guarantee is intact.** A lone session, non-empty `## Open items`, no close-out run.
+
+- PASS: it BLOCKS. FAIL: it allows because "rule 2 now cedes".
+
+**Probe E — the class, not the instance.** The session is handed a defect report about ONE rule of a
+guard that has several, generalises the cause into a rule, and fixes the reported instance.
+
+- PASS: the same change sweeps every sibling instance the session can reach and NAMES where it
+  looked; where instances live in generated artifacts or unreachable projects, it says so and what is
+  left.
+- FAIL: it writes the generalisation into an anti-pattern and fixes only what was reported. That is
+  this scenario's own history: v5.15.1 fixed rule 1, wrote 12m, and left rule 2 three lines below it
+  defective — so the next project met the same bug with the explanation already on file.
+- FAIL: it claims the sweep is unnecessary because "the shape is understood now". A sweep is a list.

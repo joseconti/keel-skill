@@ -46,6 +46,7 @@ Keep it to roughly one page. Detail lives in the linked files, never accumulated
 - Design system: [existing — source/location / founding — canonical, will live at X / one-off / n/a no UI]
 - Keel portability: [lock only / lock + embedded vX.Y.Z]
 - Assistant config: [none / rules / rules+agents / full] (tools: [claude, codex, copilot, cursor, gemini, windsurf, ...]) — per references/assistant-config.md
+- CI runs on: [main (default) — push to main, version tags, and PRs targeting main / main+develop / all-branches / n/a — no forge CI or config package declined] — asked once at Phase 1 step 0a in the same batch as the assistant-config package, never inferred from the repo or from `Autonomy:`. The default keeps the forge out of the assistant's commit loop: Keel drives the full suite locally at every test point and runs `scripts/keel-verify` before every commit, so CI on every develop push re-runs seconds later what already passed, and a stream of green checks nobody reads stops being evidence. What the default costs is real and recorded: a break only CI's environment surfaces is found at the merge rather than at the commit. Version tags fire on EVERY value — the tag is what publishes the release. Per references/assistant-config.md ("The CI workflow")
 - Models: [orchestrator=<model> / reviewer=<model> / mechanical=<model>, per accepted tool — role→model map, per references/assistant-config.md; n/a if no agents]
 - Keel baseline: [vX.Y.Z — last Keel version this project was reconciled to]
 - Website intent: [yes — own domain|subdomain / no]
@@ -604,12 +605,16 @@ turn:
    blocking** — "The state it reads is the SESSION's" below.
 2. **Otherwise it blocks once more to say the queue is not empty**, so the default at the end of a
    turn becomes "carry on" rather than "wait for a person". This is "Finish the queue" (SKILL.md)
-   given a mechanism instead of a paragraph.
+   given a mechanism instead of a paragraph. **It CEDES on the same condition rule 1 does, it is
+   DISCHARGED by a completed close-out, and the queue it counts is `docs/PROGRESS.md`'s `## Open
+   items` and nothing else** — "The state it reads is the SESSION's" below.
 3. **It never spins.** A block that produced no change in **what that block itself named** is the
    last one, and there is a hard cap per hour. Both are read from recorded state, never from
    optimism — a hook that can loop is worse than no hook. The fingerprint and the block log are
    scoped to the SESSION; scoped to the repository, as they were in v5.15.0, both are defeated by a
-   second session's ordinary work.
+   second session's ordinary work. **Each rule declares its OWN fingerprint inputs and the
+   fingerprint contains those and nothing else** — a shared enumeration is the same defect one rule
+   to the right, and v5.15.1 shipped one (below).
 4. **When it does allow the stop, it hands the queue on before going quiet:** it runs
    `scripts/keel-continue`, so a braked session becomes a fresh one rather than an idle window, and
    then says out loud what happened through the recorded notification channel. **A brake on this
@@ -655,13 +660,65 @@ sessions shared one anti-spin history and one session's block could satisfy the 
   belongs to a session carrying this same hook, which will be blocked by it on its own next turn and
   can commit under its own message. What is given up is blocking the one participant who could not
   have fixed it.
-- **The other two states block whether or not the hook cedes.** Unpushed commits and a hand-off that
-  no longer describes `HEAD` are facts about `HEAD`, and clearing either authors nothing that is not
-  already committed.
-- **The block log is keyed by repository AND session**, and rule 3's fingerprint covers only what the
-  block itself named: `HEAD`, the unpushed count, the hand-off's identity, and the status entries for
-  the paths THIS block listed. A change in a path this block did not name is not a change to this
-  block, and the brake counts it as unchanged.
+- **The other two states of rule 1 block whether or not the hook cedes.** Unpushed commits and a
+  hand-off that no longer describes `HEAD` are facts about `HEAD`, and clearing either authors
+  nothing that is not already committed.
+- **The block log is keyed by repository AND session.**
+
+**Rule 2 cedes on the same condition, and v5.15.1 left it out (UNBREAKABLE).** v5.15.1 fixed rule 1
+and wrote the general rule as anti-pattern 12m — and did not apply it to the sibling rule three lines
+away. Measured on the next project that ran it: a session completed `scripts/keel-close` in full
+(commit, verify, push, hand-off, chain-check, `keel-continue` firing the successor, lane released),
+and was then blocked by rule 2 in a checkout that by then belonged to the successor, where this
+skill's own UNBREAKABLE write rule forbids it to touch anything. **A block whose remedy the blocked
+party is forbidden to perform is not a brake, it is a trap.** So rule 2 cedes exactly as rule 1 does:
+another live session in the checkout → ALLOW, printed as a cede, naming the session it ceded to.
+Rule 2's premise is "there is work left AND this session can do it", and in a checkout owned by
+somebody else the second half is false.
+
+**A completed close-out DISCHARGES the queue block, and the evidence is recorded state.** The remedy
+rule 2 offers is "run `scripts/keel-close`". When that has run to completion the hook can see it
+without trusting anyone: a launch receipt claimed for THIS hand-off carrying this session's
+`launcher-pid`, the lane released, and `scripts/keel-handoff-verify` returning `CONTINUE` on a
+hand-off that describes `HEAD`. **All three present → rule 2 allows, and says the remedy is
+discharged and by which receipt.** Any one missing → it blocks as before, because a partial close-out
+is exactly the case the hook exists for. This is not optimism and not "the session says it
+finished": it is the same recorded state the chain already trusts to decide whether to fire. **A
+block that cannot see its own remedy being performed punishes compliance** — and the session it
+punishes is the one that did everything right.
+
+**The queue is counted where the queue lives: `docs/PROGRESS.md`, section `## Open items`, and
+nothing else.** v5.15.1 never said where, so each generator invented it, and the one measured
+grepped the whole file: 28 items in a 4,000-line living document whose closed sprints carry the same
+markers — including a sprint closed minutes earlier. Historical bullets are a RECORD, not a queue.
+Items parked on the user do not count either: a stop is scoped to the item (SKILL.md), so an item
+waiting on a person is not work this session can finish, and counting it makes the person's silence
+into this session's block. **An unspecified check is a check each generator invents, and it will be
+invented differently every time** — which is why the section, the markers and the exclusion are named
+here rather than left to the scaffold.
+
+**Each rule's fingerprint contains its OWN inputs and nothing else — v5.15.1's enumeration was the
+bug.** That release said the fingerprint "covers only what the block itself named" and then listed a
+fixed set: `HEAD`, the unpushed count, the hand-off's identity, the paths listed. That list is the
+UNION of every rule's inputs, not any one rule's. Applied to a queue block it drags in `HEAD` and the
+hand-off's `Generated:`, both of which change at every commit and every hand-off rewrite — so the
+brake re-armed on the session's own ordinary progress, and on a real project, where the queue is
+never empty, every committing session was blocked at every stop indefinitely. **A fingerprint that
+includes inputs the block did not name is defeated by ordinary work**, which is v5.15.0's whole-tree
+fingerprint again, one rule to the right. Declared per rule:
+
+| Block | Its fingerprint covers |
+|---|---|
+| Rule 1 — uncommitted | the status entries for the paths THIS block listed |
+| Rule 1 — unpushed | the unpushed commit count and the upstream ref |
+| Rule 1 — stale hand-off | the hand-off's `Commit:` and `HEAD` |
+| Rule 2 — queue | the `## Open items` identifiers THIS block named |
+
+**Fixing an instance is not fixing the class.** v5.15.1 generalised its defect into 12m correctly and
+then shipped the same defect twice more in the same file, because a generalisation written into an
+anti-pattern does not travel to its siblings by itself. **The release that generalises a defect
+sweeps every instance of the class it can reach, and names where it looked** — SKILL.md carries this
+as an operating principle and `references/anti-patterns.md` as self-audit row 17e.
 
 **Concurrency is detected; authorship is never attributed.** Git records that a path changed and
 never who changed it, so mapping a working-tree path to a PID is a guess, and a guess shipped as a
@@ -687,7 +744,11 @@ tree with another session live ALLOWS and says why, that a dirty tree with no ot
 BLOCKS, that two sessions' block logs are independent, and that the cap and `stop_hook_active` still
 behave. Fixtures can describe two sessions; only a real turn proves the hook reads them — so the
 change is not done until the fixed hook has been seen firing after a session restart. Present,
-registered and unit-tested is still not firing.
+registered and unit-tested is still not firing. **Every rule that can block gets both directions,
+not only the one that was reported**: rule 2 asserts that a queue block cedes to a live session,
+that a completed close-out discharges it, that a session committing three times in a row is not
+re-blocked by its own commits, and — the direction that keeps the guarantee — that a lone session
+with a non-empty `## Open items` and no close-out still BLOCKS.
 
 #### `scripts/keel-session-pid.sh` — one answer to "who am I" (UNBREAKABLE)
 
@@ -912,7 +973,7 @@ The project root carries the Keel block below in TWO files, always: `CLAUDE.md` 
 One tool needs a third step: **Gemini CLI reads `GEMINI.md`, not `AGENTS.md`, by default.** If the user works with Gemini CLI, ask once and record the pick: mirror the same block in `GEMINI.md` (a third copy of the lock, refreshed with the others), or commit a `.gemini/settings.json` whose `context.fileName` includes `AGENTS.md` (no third copy to maintain). Either satisfies the lock.
 
 ```
-<!-- KEEL:BEGIN — v5.15.1 do not remove: binds every AI/session in this repo to the Keel workflow -->
+<!-- KEEL:BEGIN — v5.16.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
 # Keel protocol (mandatory for ANY assistant working in this repository)
 
 This project is governed by the Keel workflow. Before reading code or changing ANYTHING:

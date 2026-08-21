@@ -34,7 +34,7 @@ Do not block on this question: if the user defers, record `Assistant config: non
 | Subagents (per capable tool) | Same sources + `docs/api/INDEX.md` discipline | Phase 2 close (adoption: after its step 4); `launch-verifier` only with website intent — or at Phase 8 start on first need; `guide-qa` only when the end-user guide decision is yes — at Phase 6 on first need | Same rule |
 | Permission allow-lists (per capable tool) | Technical plan §Tooling commands + playground commands | Phase 5 scaffold, ALWAYS confirmed with the user | Tooling/playground commands change |
 | `.githooks/pre-commit` (one per project) | SKILL.md "Confidential data never reaches Git" | Phase 5 scaffold (adoption: immediately, with approval) | The gate's patterns need tightening (recorded) |
-| CI workflow (one per project, e.g. `.github/workflows/ci.yml`) | Technical plan §Tooling commands — the same verified source as the allow-lists | Phase 5 scaffold, if the forge supports CI | The plan's verified commands change |
+| CI workflow (one per project, e.g. `.github/workflows/ci.yml`) | Technical plan §Tooling commands for WHAT it runs — the same verified source as the allow-lists; the project card's `CI runs on:` for WHEN | Phase 5 scaffold, if the forge supports CI | The plan's verified commands change, or `CI runs on:` changes |
 | MCP registration (per capable tool) | Technical plan — ONLY if it defines development MCP servers | Phase 5 scaffold, confirmed | The dev MCP set changes |
 | Model binding (reviewer + mechanical subagents, per capable tool) | The project's role→model map (card `Models:`), captured at the 0a offer | Phase 2 close, with the subagents | The user changes the map, or a configured model becomes unavailable |
 
@@ -337,9 +337,28 @@ False positives are kept rare by design — field-tested: (1) the gate itself ex
 
 ## The CI workflow — conditional, forge-side
 
-Generated at the Phase 5 scaffold when the package was accepted and the project's forge supports CI (GitHub Actions or the forge's equivalent). ONE workflow, running on push and on pull request: install → lint → build → the FULL test suite — the technical plan's EXACT verified commands, the same verified source as the permission allow-lists, never invented — plus a secret scan (gitleaks) and `scripts/keel-verify`. A command that is not in the plan and verified does not enter the workflow.
+Generated at the Phase 5 scaffold when the package was accepted and the project's forge supports CI (GitHub Actions or the forge's equivalent). ONE workflow: install → lint → build → the FULL test suite — the technical plan's EXACT verified commands, the same verified source as the permission allow-lists, never invented — plus a secret scan (gitleaks) and `scripts/keel-verify`. A command that is not in the plan and verified does not enter the workflow.
 
-Why it exists when the pre-commit gate already does: the gate is per-clone (`core.hooksPath` is configured checkout by checkout) — CI is the net that fires in every environment, on every push, including commits made where no hook and no Keel session was present. That is exactly the portability argument this file already makes for the gate, one level up.
+Why it exists when the pre-commit gate already does: the gate is per-clone (`core.hooksPath` is configured checkout by checkout) — CI is the net that fires in every environment, including commits made where no hook and no Keel session was present. That is exactly the portability argument this file already makes for the gate, one level up.
+
+### WHEN it runs is the user's decision, asked once and recorded (`CI runs on:`)
+
+**The default is the merge to `main` — not every commit.** In automatic mode Keel commits to `develop` many times per sprint and pushes each one, so a workflow keyed to every push spends the forge's minutes on the same suite dozens of times a day and produces a stream of green checks nobody reads; a check nobody reads is a check that stops being evidence (`references/anti-patterns.md`, 12l). It is also, at that moment, a DUPLICATE: Keel already drives the full suite locally at every test point and runs `scripts/keel-verify` before every commit, seconds earlier, on the same code. The merge to `main` is different in kind — it is the one act in the whole flow that is always the user's (SKILL.md, "Git flow"), and it is the moment the work reaches users. An independent net is worth paying for there.
+
+**And the cost of that default is stated rather than hidden:** a break only CI's environment would surface — another OS, a clean checkout, a dependency that exists on the developer's machine and nowhere else — is then found at the merge instead of at the commit that caused it. That is exactly what the wider values buy, and it is why this is a question and not a decision.
+
+Asked once at Phase 1 step 0a, in the same batch as the assistant-config package it belongs to, and recorded on the project card:
+
+| `CI runs on:` | The workflow's triggers | When to choose it |
+|---|---|---|
+| `main` (default) | push to `main`, version tags, and pull requests TARGETING `main` | The normal case: an assistant committing to `develop` all day, a person deciding the merge |
+| `main+develop` | the above, plus push to `develop` and PRs targeting it | The integration branch must stay green for someone other than the session that wrote it — several contributors, or an environment gap the local suite genuinely cannot cover |
+| `all-branches` | every push and every pull request | Short-lived branches reviewed by others, or a compliance requirement that every commit carry a CI result |
+| `n/a` | no workflow generated | No forge CI, or the config package was declined |
+
+**Version tags fire on every value**, including `main`: the tag is what builds and publishes the release, and it is never traded away for a trigger preference. The value changes only which ORDINARY commits are checked.
+
+The answer is never inferred from the repository, from how busy the forge looks, or from the `Autonomy:` line — a project can be fully automatic and still want `develop` green for a human collaborator. Changing it later is a normal maintenance change: one edit to the workflow's `on:` block and one to the card line, with a D-entry saying why.
 
 ## MCP registration — conditional, per capable tool
 
@@ -382,7 +401,7 @@ Unconditional entries (they apply even when the whole package was declined): `CL
 - Permission allow-lists, if accepted: built only from verified plan/playground commands and explicitly confirmed by the user before writing, one per capable accepted tool.
 - The pre-commit gate, if accepted: installed (`.githooks/pre-commit` + `core.hooksPath`), VERIFIED by blocking a synthetic secret, and its collaborator setup line documented.
 - MCP registration exists only if the plan defines dev MCP servers, carries no literal secret in any container, and was confirmed.
-- The CI workflow, if accepted and the forge supports CI: one workflow, on push and PR, running the plan's EXACT verified commands (install → lint → build → full test suite) plus the secret scan and `scripts/keel-verify` — nothing invented.
+- The CI workflow, if accepted and the forge supports CI: one workflow running the plan's EXACT verified commands (install → lint → build → full test suite) plus the secret scan and `scripts/keel-verify` — nothing invented. Its triggers come from the card's `CI runs on:`, default `main` (push to `main`, version tags, PRs targeting `main`), never every push by default.
 - `.gitignore` includes the unconditional entries (`CLAUDE.local.md`, `.claude/settings.local.json`, `.keel-update-check`, `docs/continuation-prompt.md`) plus the accepted tools' personal files.
 - Phase 7's export-ignore covers every generated config tree (`.claude/`, `.agents/`, `.codex/`, `.cursor/`, `.gemini/`, `.windsurf/`, `.github/instructions/`, `.github/agents/`, `.vscode/mcp.json`, `.githooks/`, `.mcp.json`, nested context files); nothing from this package ships.
 - Every generated piece is reflected in the project card and `docs/decisions.md`; no piece is ever regenerated silently.

@@ -543,6 +543,68 @@ that turns an unanswered question into a licence has traded a loud failure for a
 is never "keyed by directory" on its own — a lock that serialises a TREE is correctly keyed by the
 tree — it is state keyed by directory while the duty belongs to one session.
 
+**And fixing the reported instance is not fixing the class.** Measured on this same hook: the release
+that wrote this entry fixed the rule that had been reported and left its sibling — three lines away
+in the same file, same defect, same file — untouched, so the next project met it again with the
+anti-pattern already written down. A generalisation does not travel to its siblings by itself.
+**The release that generalises a defect sweeps every instance of the class it can reach and names
+where it looked**, because "we understand the shape now" is a belief and the sweep is a list.
+
+### 12n. The assertion that something is ABSENT, satisfied by everything being absent
+
+**The trap.** A test asserts that a bad input was rejected — `assert!(result.is_empty())`,
+`expect(rows).not.toContain(x)`, `expect(list.len()).toBe(1)` — and it passes against an
+implementation that returns nothing for ANY input. It cannot distinguish "correctly excluded" from
+"nothing works at all", and it will keep passing after the function it names is gutted.
+
+**Why it happens.** It is the natural shape of the thought. The requirement is "a relative path must
+not be walked", so the test says "the result does not contain the relative path", and an empty result
+satisfies that sentence perfectly. Nothing about writing it feels wrong, and if the red was skipped —
+or observed against a stub that returns empty — the gap never shows.
+
+**What it costs.** Measured three times in one day, in two languages, in one project: three tests of
+`resolved_roots` asserting `is_empty()`; a union test asserting `len() == 1` that passed with the
+second source ignored entirely; and a `keel-verify` row asking only that a key appear "somewhere",
+which the planted defect walked straight through. **All three were caught by the planted-defect
+control and by nothing else** — every one of them was green in the suite, counted in the total, and
+attached to a real requirement.
+
+**The rule.** **An absence is asserted beside a SURVIVOR.** Put a valid value next to the invalid one
+and assert the exact remainder: `resolve([good, bad]) == [good]`, not `resolve([bad]).is_empty()`.
+The valid value is what makes the assertion discriminating, because now the only way to pass is to
+keep one and drop the other. Where the shape is a count, choose inputs that separate every outcome —
+1 means the source was ignored, 3 means it was duplicated, 2 is the answer — and say so in the test.
+And when a control is planted (entry 12l), **check WHICH assertions reddened, not how many**: a
+control that reddens four of six has just told you the other two are asserting nothing.
+
+---
+
+### 12o. The turn that ends on an intention instead of an action
+
+**The trap.** The work is going well, a natural pause arrives — a commit lands, a suite goes green —
+and the session writes *"now I'll do X"*, *"sigo con X"*, *"next I will…"* and stops there. Nothing
+runs. From outside, a session that announced its next step and a session that finished are the same
+thing.
+
+**Why it happens.** The sentence feels like progress: it names the next step correctly, it reads as
+continuity, and it is written at exactly the moment the work is going well enough to be worth
+reporting. Reporting and continuing feel like one act, and they are two.
+
+**What it costs.** Measured twice in one day on one project: **ten hours overnight**, and a second
+stall the same afternoon that ended only because the person asked *"have you stopped?"*. The whole
+close-out apparatus existed and was verified — the hand-off writer, the chain launcher, the lane, the
+freshness checks — and none of it fired, because none of it is reached by a turn that simply ends.
+The machinery was not missing; it was not run.
+
+**The rule.** **A turn ends when the work is done, or when something is genuinely blocked AND the
+close-out has run** — never on a sentence about what happens next. The tell is grammatical and it is
+worth watching for in one's own output: **a future-tense clause about this session's own next action,
+at the end of a turn, IS the stall.** Do the thing and report it in the past tense, or run the
+close-out so stopping costs nothing. A summary of what was accomplished is not a reason to stop
+writing tool calls, and it reads to the person coming back in the morning exactly like a session that
+finished.
+
+
 ## WordPress and WooCommerce
 
 ### 13. The user-facing string that skipped i18n
@@ -786,6 +848,7 @@ recollection** — an answer given from memory is not an answer, it is the trap 
 17b. Does every append-only log (`docs/decisions.md`, `docs/lessons-learned.md`, `docs/05-test-points.md`) have zero duplicate identifiers, checked by grep rather than by recollection?
 17c. Does every check the project relies on state the question it answers — and for any check that has never failed, has it been run against a case that should fail it?
 17d. Does every piece of state a guard reads or writes declare its scope — repository or session — and is that the scope the duty it enforces actually has?
+17e. For each defect generalised into a rule this release, was every reachable instance of that class swept and the places looked at named — rather than only the instance that was reported?
 18. (WordPress) Does `wp i18n make-pot` report zero untranslated or wrongly-domained user-facing strings?
 19. (WordPress) Does uninstall remove every option, table, meta key and scheduled event the plugin creates?
 20. (WordPress) Does every entry point — admin, AJAX, REST, bulk, CLI — check its capability and its nonce?

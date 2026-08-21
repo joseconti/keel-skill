@@ -1,7 +1,10 @@
 # Keel release pipeline.
 #
-# - On every push and pull request: run the release linter (version sync,
-#   description limit, changelog order, reference parity, manifest parity).
+# - On a push to main and on a pull request TARGETING main: run the release
+#   linter (version sync, description limit, changelog order, reference parity,
+#   manifest parity). This repo's card is `CI runs on: main` — the assistant
+#   drives the linter locally before every commit, so firing it again on each
+#   develop push re-runs what just passed.
 # - On a version tag (v*): lint, verify the tag matches the frontmatter,
 #   extract that version's CHANGELOG section, and publish the GitHub release
 #   with those notes. The tag archive itself is GitHub's, shaped by
@@ -16,6 +19,7 @@ on:
     branches: [main]
     tags: ['v*']
   pull_request:
+    branches: [main]
 
 permissions:
   contents: write
