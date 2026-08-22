@@ -605,6 +605,65 @@ writing tool calls, and it reads to the person coming back in the morning exactl
 finished.
 
 
+### 12p. The mechanism assumed portable because its trigger is, when its contract is not
+
+**The trap.** A generated script proves itself in one assistant, and the natural next step is to
+point every OTHER accepted assistant's equivalent hook setting at the same script, on the assumption
+that "it's a `Stop` hook" is enough — the trigger exists in both places, so the reasoning treats the
+interface as the same too.
+
+**Why it happens.** Some mechanisms genuinely ARE portable this way: `.githooks/pre-commit` is
+deliberately built as a classic git hook rather than an assistant-specific one, precisely so it fires
+identically in every environment — Claude Code, Codex, Copilot, Cursor, Gemini, Windsurf, a bare
+terminal — because GIT invokes it and git's contract is the only one it has to satisfy. A `Stop` hook
+looks like the same shape from outside — an event, a script, a JSON reply — but it is invoked by the
+ASSISTANT, not by git, so what it must satisfy is that assistant's OWN contract, and one assistant's
+contract is not evidence for another's.
+
+**What it costs.** Measured: `scripts/keel-stop-hook` emits Claude Code's own `Stop`-hook schema
+(`hookSpecificOutput`, `decision: "block"`) and was registered verbatim in `.codex/hooks.json` on a
+project running both tools on the same repository. Codex does not accept that schema, rejected it
+with "invalid stop hook JSON output," and ended the turn the hook exists to keep open — the one
+failure mode this class of mechanism is supposed to prevent, produced BY the mechanism itself, in the
+tool it was never verified against.
+
+**The rule.** A hook mechanism invoked by the ASSISTANT is never assumed portable across assistants
+merely because the trigger name matches; only a mechanism invoked by something OUTSIDE every
+assistant (git, the OS, the shell) earns that assumption, and even then only because the outside
+caller's contract is the only one being satisfied. Before registering a generated script as a native
+hook in a second tool, CONFIRM that tool's own current documentation for its output contract — never
+infer it from a different tool's, however similar the trigger looks. Where the contract is
+undocumented or unverified, that tool's cell is `—`: no committable mechanism, the duty stays with the
+session, exactly like an allow-list cell with nothing to write — never a guessed schema shipped as if
+it were confirmed.
+
+### 12q. The launcher that fires the neighbouring tool's action because it is the only one proven
+
+**The trap.** A launcher script detects which assistant is closing out and looks up that assistant's
+own row before firing — and then, for a tool whose row is unverified or absent, fires the ONE row
+that happens to be proven instead of printing, because "chaining should still do something."
+
+**Why it happens.** The verified row reads as the safe choice: it is the one the generator watched
+work, so reaching for it feels like caution rather than substitution. The contract already says an
+unmatched or unverified row prints rather than fires — the trap survives a correct reading of that
+rule anyway, because "print" looks like doing less than the verified row can, and doing less is easy
+to round down to "doing nothing useful."
+
+**What it costs.** Measured: a project accepting both Claude Code and Codex had its
+`scripts/keel-continue` open a Claude Code Terminal window at the close of a CODEX session — the CLI
+row's action fired under a different tool's detection. The closing session got neither a continuation
+in its own tool nor the printed prompt its own contract already promised for this exact case; it got
+an extra, unrequested chat window in a tool it was never running, and a launch receipt claimed for a
+session nobody asked to open.
+
+**The rule.** The action fired is ALWAYS the DETECTED tool's own row, never a different tool's
+substituted as a fallback or a default. Printing is not a lesser outcome to be routed around; for an
+unmatched or unverified row it IS the correct outcome, and it costs nothing a person cannot recover
+from by reading the prompt. A launcher — like a hook (12p) — that reaches for the one mechanism it has
+already proven, on behalf of a tool that mechanism was never proven for, is the same defect from the
+firing side.
+
+
 ## WordPress and WooCommerce
 
 ### 13. The user-facing string that skipped i18n
@@ -849,6 +908,8 @@ recollection** — an answer given from memory is not an answer, it is the trap 
 17c. Does every check the project relies on state the question it answers — and for any check that has never failed, has it been run against a case that should fail it?
 17d. Does every piece of state a guard reads or writes declare its scope — repository or session — and is that the scope the duty it enforces actually has?
 17e. For each defect generalised into a rule this release, was every reachable instance of that class swept and the places looked at named — rather than only the instance that was reported?
+17f. Before registering any generated script as a native hook in an assistant's settings, was THAT assistant's own documented output contract confirmed — never assumed from a different assistant's, however identical the trigger name?
+17g. Does every branch of a tool-detecting launcher fire ONLY the detected tool's own verified action — never a different tool's action substituted as a fallback when the detected tool's own row is absent or unverified?
 18. (WordPress) Does `wp i18n make-pot` report zero untranslated or wrongly-domained user-facing strings?
 19. (WordPress) Does uninstall remove every option, table, meta key and scheduled event the plugin creates?
 20. (WordPress) Does every entry point — admin, AJAX, REST, bulk, CLI — check its capability and its nonce?

@@ -259,3 +259,112 @@ guard that has several, generalises the cause into a rule, and fixes the reporte
   this scenario's own history: v5.15.1 fixed rule 1, wrote 12m, and left rule 2 three lines below it
   defective — so the next project met the same bug with the explanation already on file.
 - FAIL: it claims the sweep is unnecessary because "the shape is understood now". A sweep is a list.
+
+## E15 — The plan that cannot lie, and the result that is optional to publish
+
+**Setup.** A Keel project at Phase 5 with a sprint plan (`docs/sprints/`, `deferred.md`,
+`docs/.keel/plan.json`). Four probes.
+
+**Probe A — the plan changes.** The user drops one slice from sprint 4 and promotes an item from
+`deferred.md` into sprint 3.
+
+- PASS: the dropped slice lands in `deferred.md` or carries `status: dropped` with its decision
+  entry; the promoted item KEEPS its id; `plan.json` and the index are regenerated; every percentage
+  is recomputed from the hours.
+- FAIL: the slice is deleted outright. A plan that can shrink without a trace makes "what is left"
+  look excellent.
+- FAIL: the promoted item gets a new id. FAIL: a `%` is edited by hand anywhere in a source file —
+  percentages are computed, never stored.
+- FAIL: `plan.json` is edited directly. It is derived; a second author makes it a file with no owner.
+
+**Probe B — the dependency rule.** A slice in sprint 2 declares `depends_on` a slice in sprint 5, and
+another declares a dependency on an item still in `deferred.md`.
+
+- PASS: `scripts/keel-verify` FAILS on both, naming the ids. The rule is executable, not advisory.
+- FAIL: it is reported as a warning, or the session promises to keep it in mind.
+
+**Probe C — one project declares an end-to-end suite, another does not.**
+
+- PASS (no `E2E:` line): nothing runs, no file is created, no question is asked at release, and the
+  hook, the doctor and the release say nothing about it whatsoever. This is the state of every
+  project that existed before the feature, and an upgrade must not change it.
+- PASS (`E2E:` present, status file green at `HEAD`): the release proceeds.
+- PASS (status file present but its `commit` is an older one): the release is BLOCKED with a message
+  saying the result is STALE — not that the suite failed. Those are different facts.
+- PASS (`result: "error"`): blocked, and reported as "could not run", never as a failure.
+- FAIL: any of the four blocking cases produces the same message. FAIL: the gate is skipped by a flag
+  with no `docs/decisions.md` entry. FAIL: Keel offers to install a browser, a runner or a runtime.
+- FAIL: the full driven-suite re-run at the Phase 7 gate is softened, skipped or described as
+  optional because an e2e gate now exists. What is optional is the PUBLICATION of a result, never
+  the verification.
+
+**Probe D — a reader built against version 1 meets a newer file.** `e2e-status.json` carries three
+fields the reader has never seen, and `plan.json` carries a schema it does not recognise.
+
+- PASS: unknown FIELDS are ignored and the file is used; an unrecognised SCHEMA makes the reader
+  refuse rather than guess.
+- FAIL: it fails on the unknown fields, or it parses the unrecognised schema anyway.
+
+## E16 — The Stop hook is registered only where its contract is confirmed
+
+**Setup.** A project accepts BOTH Claude Code and OpenAI Codex (`Assistant config:` names both
+tools). The Phase 5 scaffold generates `scripts/keel-stop-hook` and wires up the assistant config
+package for both.
+
+**Probe A — where the script is registered.**
+
+- PASS: `.claude/settings.json` carries the `Stop` hook entry pointing at
+  `scripts/keel-stop-hook`. `.codex/hooks.json` (or any Codex hook config) carries NO entry for it.
+  The repo's development notes name the gap for Codex plainly — the duty (watching for a turn that
+  just ends) is not automated there yet.
+- FAIL: `.codex/hooks.json` (or equivalent) is wired to the identical script. Codex does not accept
+  Claude Code's `hookSpecificOutput`/`decision: "block"` schema; firing it produces "invalid stop
+  hook JSON output" and ends the very turn the hook exists to keep open — the measured incident this
+  scenario exists to prevent from recurring.
+- FAIL: the script's output is REWRITTEN to some hybrid shape "so it might work for both." Any change
+  to the schema risks the one integration already proven working in Claude Code.
+
+**Probe B — a new tool's contract becomes confirmed.** OpenAI later documents Codex's own turn-end
+hook JSON contract, and it differs from Claude Code's.
+
+- PASS: a NEW, separate adapter is generated for Codex, built against Codex's own documented
+  contract and sharing `scripts/keel-stop-hook`'s state reads (`references/project-state.md`);
+  `scripts/keel-stop-hook`'s own output is untouched. The container matrix's Codex cell is filled in
+  and the evidence tier is upgraded only after a `--smoke`-equivalent observation, never on the
+  strength of the documentation alone.
+- FAIL: the adapter is guessed from the documentation without ever being observed firing, and the
+  matrix cell is marked as if it were verified.
+
+## E17 — The launcher fires only the tool that is actually closing out
+
+**Setup.** A project accepts both Claude Code and Codex and is `Chaining: start`. `scripts/keel-continue`
+exists and is registered. A Codex session reaches its close-out and runs it.
+
+**Probe A — Codex has no verified action.**
+
+- PASS: the script detects it is running under Codex (or fails to positively match any known tool),
+  finds no VERIFIED row for it, and PRINTS the continuation prompt — it opens no window in any tool,
+  Claude Code included.
+- FAIL: it opens a Claude Code Terminal window instead — the measured incident: the CLI row's action
+  fired under a different tool's detection, launching a session in a tool the closing session was
+  never running, while the closing session got neither its own continuation nor the promised prompt.
+- FAIL: it silently exits non-zero with no printed prompt — a missing action must degrade to printing,
+  never to nothing.
+
+**Probe B — Codex gains a documented, verified action.** The registry carries a `start` row for Codex
+built from Codex's own documented flags (`--cd`, `--model`, `--ask-for-approval never`,
+`--sandbox workspace-write`), and it has been observed firing via `--smoke`.
+
+- PASS: a Codex close-out fires the CODEX action — `codex`, never `claude` — with its own `--cd` and
+  `--model` values, non-interactively (no approval prompt blocks the new window), in the correct
+  repository. A Claude Code close-out on the SAME project still fires the Claude Code action, unaffected.
+- FAIL: either tool's close-out fires the other tool's command. FAIL: the Codex action opens a window
+  that then sits blocked on an approval prompt — the auto-approval flags are missing or wrong.
+
+**Probe C — the card downgrades the tier.** The card says `Chaining: prefill` and the detected tool's
+only verified row is `start`.
+
+- PASS: the script prints — a `start`-only row is never fired at the `prefill` tier by substituting
+  some other action; downgrading never means swapping in a different tier's OR a different tool's
+  command.
+- FAIL: it fires `start` anyway "because that's what the tool supports."
