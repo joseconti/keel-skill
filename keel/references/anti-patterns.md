@@ -663,6 +663,36 @@ from by reading the prompt. A launcher — like a hook (12p) — that reaches fo
 already proven, on behalf of a tool that mechanism was never proven for, is the same defect from the
 firing side.
 
+### 12r. The metered CI budget that fails by never running, not by failing
+
+**The trap.** A workflow triggered on every push looks harmless when the suite is fast and the account
+has never been near its limit — until the account's shared, metered minutes run out, and every
+subsequent run across every private repository in that account simply stops being scheduled.
+
+**Why it happens.** GitHub Actions' free-tier minutes are billed PER ACCOUNT (or per organisation),
+pooled across every private repository — never per repository — while a public repository runs
+unmetered on the same GitHub-hosted runners regardless of plan. A workflow tuned for one repository's
+convenience spends a budget every OTHER private repository in the account draws from too, and nothing
+about a single `git push` reveals that the pool is shared or how close to empty it is.
+
+**What it costs.** Measured on this skill's own repository: a completely ordinary, correctly-formed
+tag push — confirmed on the remote, confirmed pointing at the right commit — produced NO workflow run
+whatsoever. Not a failed run, not a queued one, nothing to inspect: the account's included minutes
+were exhausted, and GitHub did not schedule the run at all. The gap surfaced only because the expected
+GitHub Release never appeared, hours later, and took a genuine diagnostic pass (checking the tag on
+the remote, checking the workflow's enabled state, checking the raw Actions API) to distinguish from
+every OTHER thing that can make a tag push not produce a release.
+
+**The rule.** Where the forge is GitHub and the repository is private, the CI-triggers decision
+(`CI runs on:`) is argued with this as an explicit, named risk, not folded silently into "reduces
+noise" — the account-wide, shared, metered nature of the budget makes the conservative default
+(`main`) protection for every OTHER private repository sharing that account, not merely tidiness for
+this one. And when a CI-driven mechanism (a release workflow, a required check) appears to have
+silently done nothing, a metered-budget exhaustion belongs on the list of causes checked BEFORE
+assuming a configuration or a code defect — because from the outside, "no run happened," "the run
+failed instantly with no logs," and "the workflow file has a syntax error GitHub silently rejected"
+can look identical, and only checking the account's actual billing/usage tells them apart.
+
 
 ## WordPress and WooCommerce
 
@@ -910,6 +940,7 @@ recollection** — an answer given from memory is not an answer, it is the trap 
 17e. For each defect generalised into a rule this release, was every reachable instance of that class swept and the places looked at named — rather than only the instance that was reported?
 17f. Before registering any generated script as a native hook in an assistant's settings, was THAT assistant's own documented output contract confirmed — never assumed from a different assistant's, however identical the trigger name?
 17g. Does every branch of a tool-detecting launcher fire ONLY the detected tool's own verified action — never a different tool's action substituted as a fallback when the detected tool's own row is absent or unverified?
+17h. Where the forge is GitHub and the repository is private, was the account-wide, shared nature of the Actions minutes budget named as its own reason for `CI runs on: main` — not folded silently into "less noise"?
 18. (WordPress) Does `wp i18n make-pot` report zero untranslated or wrongly-domained user-facing strings?
 19. (WordPress) Does uninstall remove every option, table, meta key and scheduled event the plugin creates?
 20. (WordPress) Does every entry point — admin, AJAX, REST, bulk, CLI — check its capability and its nonce?
