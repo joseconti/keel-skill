@@ -625,7 +625,7 @@ So the launcher gets its own guard, and it is the simpler of the two because it 
 >
 > - `off` — every chat ends with the hand-off written and the prompt ready to copy. You decide when it continues.
 >
-> - `supervised` — something OUTSIDE this project already continues the work: an external supervisor, a scheduler, a CI runner, or a person. The hand-off is still written and still shown; Keel opens nothing, because a chat it opened would be a session your supervisor cannot see or stop. Tell me WHAT supervises it and it goes on the card in the same line.
+> - `supervised` — something OUTSIDE this project already continues the work: an external supervisor (SessionPort, for example), a scheduler, a CI runner, or a person. The hand-off is still written and still shown; Keel opens nothing, because a chat it opened would be a session your supervisor cannot see or stop. Tell me WHAT supervises it and it goes on the card in the same line.
 >
 > - `prefill` — the next chat opens with the instruction already typed; you press Enter.
 > - `start` — the next chat opens **and starts by itself**, without you touching anything.
@@ -1177,7 +1177,7 @@ The project root carries the Keel block below in TWO files, always: `CLAUDE.md` 
 One tool needs a third step: **Gemini CLI reads `GEMINI.md`, not `AGENTS.md`, by default.** If the user works with Gemini CLI, ask once and record the pick: mirror the same block in `GEMINI.md` (a third copy of the lock, refreshed with the others), or commit a `.gemini/settings.json` whose `context.fileName` includes `AGENTS.md` (no third copy to maintain). Either satisfies the lock.
 
 ```
-<!-- KEEL:BEGIN — v5.19.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
+<!-- KEEL:BEGIN — v5.19.1 do not remove: binds every AI/session in this repo to the Keel workflow -->
 # Keel protocol (mandatory for ANY assistant working in this repository)
 
 This project is governed by the Keel workflow. Before reading code or changing ANYTHING:

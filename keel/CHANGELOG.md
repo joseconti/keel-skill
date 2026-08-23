@@ -1220,3 +1220,14 @@ From the same two days: a test named "the prompt is LAST in the argv" passed for
 Recorded in `keel/references/anti-patterns.md` (12s, 12t, self-audit 17i–17j), `keel/references/project-state.md` (the `docs/decisions.md` template's `Not checked:` field and its rule; the `Chaining:`, `Chaining model:` and `Chain verified:` card lines; the chaining behaviour table; the `supervised` definition and its gate rule; `keel-chain-check`'s N/A verdict; the canonical lock stamp), `keel/references/phase-1-discovery.md` (the chaining question and its card mirrors), `keel/references/phase-5-development.md` (the new `keel-verify` check; the two scaffold generation gates), `keel/SKILL.md` (the close-out paragraph), `tests/evals/scenarios.md` (E18, E19, E20) and `keel/MANIFEST.md` (Tables 1, 2 and 3).
 
 **Reconciliation:** no new artifact and no migration; the lock block is unchanged in substance (a stamp-only refresh at the next freshness check). At the next maintenance touch: add the `Not checked:` rule to `scripts/keel-verify`, and — only where continuation genuinely comes from outside the project — change the card's `Chaining:` from `off` to `supervised` with the supervisor named, which is a record correction and not a behaviour change. Every existing `off`, `prefill` and `start` project is unaffected.
+
+## 5.19.1
+
+### Changed — the `supervised` option names a real supervisor instead of only a category
+
+v5.19.0 gave the card its fourth value and described what may supervise a project as "an external supervisor, a scheduler, a CI runner, or a person". Measured on the first project asked the question: the owner had built and was running exactly such a supervisor, it was managing that repository, and they still could not tell which of the four options was theirs — the list named categories and no instance, so the person who had the answer read three abstractions and picked none.
+
+- **The option shown to the user now names one**: *an external supervisor (SessionPort, for example), a scheduler, a CI runner, or a person* — in `references/phase-1-discovery.md` and `references/project-state.md`, the two places the question is actually put. An example is not an endorsement and not a dependency: Keel still never learns the supervisor's name, the card records whatever the user answers, and nothing about the value changes.
+- Nothing else moves: no new artifact, no card line, no migration. The lock block is unchanged in substance — a **stamp-only refresh** at the next lock-freshness check.
+
+**Reconciliation:** none. Refresh the lock stamp when the freshness check next runs.
