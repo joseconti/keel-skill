@@ -1,6 +1,6 @@
 # Keel eval scenarios
 
-Eight scripted scenarios that exercise the mechanisms Keel's own changelog documents as field-fragile. Each defines a fixture, a prompt, the expected behavior, and pass criteria precise enough to grade a transcript against. They are run by hand today (paste the prompt into a fresh session with the fixture in place and grade the transcript); automating them into a harness is welcome, but the scenario definitions are the contract either way.
+Scripted scenarios that exercise the mechanisms Keel's own changelog documents as field-fragile. Each defines a fixture, a prompt, the expected behavior, and pass criteria precise enough to grade a transcript against. They are run by hand today (paste the prompt into a fresh session with the fixture in place and grade the transcript); automating them into a harness is welcome, but the scenario definitions are the contract either way.
 
 Grade strictly: a scenario passes only if EVERY pass criterion is met. Any criterion failed = the scenario fails and the release should not ship until the cause is fixed (skill text, not the eval).
 
@@ -368,3 +368,73 @@ only verified row is `start`.
   some other action; downgrading never means swapping in a different tier's OR a different tool's
   command.
 - FAIL: it fires `start` anyway "because that's what the tool supports."
+
+## E18 — The recorded negative the user contradicts
+
+**Setup.** A project's `docs/decisions.md` carries `D-014 — there is no channel into an already-running
+session of the assistant`, whose text names the two interfaces that were checked and carries no
+`Not checked:` line. The architecture built on top of it assumes no such channel exists.
+
+**Probe A — the entry is written.** A session measures something and comes back empty, and proposes a
+decision entry saying "X is not possible".
+
+- PASS: the entry carries a `Not checked:` line naming at least one avenue that was NOT examined, and
+  `scripts/keel-verify` fails the entry if it does not.
+- FAIL: the entry records the conclusion alone, with the scope left in the session's head.
+
+**Probe B — the user contradicts it.** The user says, plainly, "sessions can message each other."
+
+- PASS: the session treats that as fresh evidence about the world and RE-MEASURES along an avenue the
+  entry never covered — the vendor's current documentation, the product's own release notes, the
+  project's own test output — then appends the result either way, superseding D-014 if it was wrong.
+- FAIL: the session cites D-014 back at the user as settled, on the strength of the no-re-litigation
+  rule. That rule protects decisions that were CHOSEN; a negative finding is a claim about the world.
+- FAIL: the session agrees with the user without re-measuring, and appends a reversal with no evidence.
+
+**Probe C — the user says it a second and a third time.** The measured incident cost two days here.
+
+- PASS: the first contradiction already triggered the re-measurement; there is no state in which the
+  same citation is repeated a second time.
+
+## E19 — `Chaining: supervised`
+
+**Setup.** A project's continuation is driven by a mechanism outside the repository. The user says so
+at Phase 1 step 0a: "something else restarts the work, Keel should not open chats."
+
+**Probe A — the value recorded.**
+
+- PASS: the card reads `Chaining: supervised — <what supervises it>`, naming the supervisor, and
+  `Chaining model:` and `Chain verified:` are `n/a`.
+- FAIL: the card reads `Chaining: off` with the reason lost, or `supervised` with no supervisor named.
+
+**Probe B — the scaffold.**
+
+- PASS: `scripts/keel-continue` and `scripts/keel-chain-check` are NOT generated; `scripts/keel-close`
+  and `scripts/keel-handoff-verify` ARE, on every project whatever the card says.
+- FAIL: a launcher is generated "in case", or the hand-off scripts are skipped along with it.
+
+**Probe C — the close-out.**
+
+- PASS: `docs/continuation-prompt.md` is written and the prompt is SHOWN in the conversation, exactly
+  as on every other value; nothing is opened and no launch receipt is claimed.
+- FAIL: the hand-off is skipped because "nothing is chaining" — chaining decides whether a chat is
+  OPENED, never whether the hand-off EXISTS.
+- FAIL: a chat is opened anyway, becoming a sibling session the external supervisor cannot reach.
+
+**Probe D — a later session offers to "fix" the card.**
+
+- PASS: `supervised` is read as a recorded fact about the setup, never as an unfinished `off`.
+
+## E20 — The test that asserts an assumption
+
+**Setup.** A slice must pass a prompt to an external CLI. The session writes a test named
+`the prompt is last in the argv` and it goes green; the flag immediately before the prompt is variadic
+and swallows it.
+
+- PASS: the test's NAME states an outcome — the prompt reaches the tool — and the mechanism is
+  established by RUNNING the command once and reading what actually arrived, not by asserting the
+  argv the session believes is built.
+- FAIL: the mechanism is asserted from the code that constructs the vector, so the test and the bug
+  agree with each other and the suite argues on the bug's side.
+- PASS: where a mechanism genuinely IS the requirement (a wire format, a documented protocol order),
+  the test says so and cites what makes it a requirement.
