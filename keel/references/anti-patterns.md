@@ -694,6 +694,84 @@ failed instantly with no logs," and "the workflow file has a syntax error GitHub
 can look identical, and only checking the account's actual billing/usage tells them apart.
 
 
+### 12s. The negative result recorded without its scope
+
+**The trap.** An enquiry is made, it comes back empty, and the empty result is written down as a
+decision: *"there is no way to do X"*, *"the platform does not support Y"*, *"this cannot be done from
+here."* What was actually measured is narrower — two interfaces, one command's help output, one
+afternoon — and the sentence that gets recorded says nothing about which two. From the next session's
+side the entry reads as a property of the world.
+
+**Why it happens.** A measurement that says "no" feels like the end of an enquiry rather than a step
+in one. It was made honestly, it was written down responsibly, and citing it afterwards feels like
+rigour — the opposite of guessing. Nothing about the moment suggests that the scope is the part
+carrying all the weight, because at the moment of writing the scope is still in the writer's head.
+
+**What it costs.** The scope evaporates and the conclusion hardens into a fact. Nobody re-opens it —
+least of all when the person who knows the domain says the opposite, because they are no longer
+arguing with a colleague's recollection, they are arguing with a recorded measurement, and this skill
+correctly says decisions are not re-litigated. **Measured: two days of the wrong architecture.** A
+project recorded "there is no channel into an already-running session" after checking exactly two
+interfaces — a subcommand group and one flag. The product had an official feature doing exactly that,
+on by default. The owner said sessions could message each other THREE times; each time the recorded
+decision was cited back at them. The evidence was inside the project's own test output the whole time.
+
+**The rule, and it has two halves.**
+
+1. **Every negative finding carries a `Not checked:` line naming at least one avenue that was not
+   examined** — the interfaces not opened, the documentation not read, the version not tried, the
+   person not asked. A "no" without its scope is not a measurement; it is an impression with a
+   citation. Two interfaces checked and written as "the product does not" is the whole failure in one
+   sentence, and the line that would have prevented it costs eight words.
+2. **When the user contradicts a recorded negative, that is the trigger to RE-MEASURE, not to restate
+   the conclusion.** This is the one place where "a session never re-opens a recorded decision" does
+   not apply, and the distinction is exact: the rule protects decisions — things that were CHOSEN —
+   from being re-litigated by a session that dislikes them. A negative finding is not a choice, it is
+   a claim about the world, and the user's contradiction is fresh evidence about that world while the
+   record is evidence about one past enquiry with a scope nobody wrote down. Re-run the enquiry along
+   the avenue the record never covered, and append the result either way — a confirmed "no" with a
+   wider scope is worth more than the one it replaces.
+
+**The mechanical check.** A `docs/decisions.md` entry whose text asserts an impossibility — `cannot`,
+`there is no`, `not possible`, `impossible`, `does not support` — and carries no `Not checked:` line
+is INCOMPLETE, and `scripts/keel-verify` says so. It is a grep over one file with a two-pattern
+condition, it needs nothing but the log itself, and it fires at exactly the moment the scope is still
+recoverable: while the session that made the measurement is still in the room.
+
+---
+
+### 12t. The test that asserts an assumption instead of a requirement
+
+**The trap.** A test is written against how the session BELIEVES a thing works rather than against
+what the thing must DO: *"the prompt is last in the argv"*, *"the flag comes before the path"*, *"the
+handler is registered second"*. It goes green, it joins the suite, and it is counted as coverage for
+the requirement it was written for.
+
+**Why it happens.** The mechanism is what is in the writer's head at the moment of writing — it was
+just reasoned out, it feels like the precise, specific, testable version of the vague requirement, and
+naming it in the test name reads as rigour. A test called "the prompt reaches the tool" sounds woolly
+next to one called "the prompt is last in the argv."
+
+**What it costs.** It is a bug with a green tick, and the suite argues on its side. **Measured:** a
+test asserting "the prompt is LAST in the argv" passed for as long as it existed, while the flag
+immediately before it was variadic and had been swallowing the prompt the whole time. The test was
+certifying the defect as correct behaviour — and it was found by RUNNING the command, never by reading
+the vector, because reading the vector only ever confirms the assumption the vector encodes.
+
+**The rule.** **When a test's NAME states a mechanism rather than an outcome, it is asserting an
+assumption.** "X is last", "Y comes first", "the array has three elements" — all describe how the
+session thinks the thing is wired. Name the OUTCOME instead: the prompt arrives at the tool, the
+session starts in the right directory, the file is written. Then get the mechanism from RUNNING the
+thing — one real invocation tells you what the argument parser actually does, which no amount of
+staring at a constructed vector can. Where a mechanism genuinely IS the requirement (a wire format, a
+documented protocol order), say so in the test and cite what makes it a requirement; a mechanism with
+no source behind it is an assumption wearing a requirement's clothes. This is the assertion-side
+sibling of entry 12d: 12d is a test that could never have failed, and this is one that fails on the
+right day for the wrong reason — and passes every other day while the bug ships.
+
+---
+
+
 ## WordPress and WooCommerce
 
 ### 13. The user-facing string that skipped i18n
@@ -941,6 +1019,8 @@ recollection** — an answer given from memory is not an answer, it is the trap 
 17f. Before registering any generated script as a native hook in an assistant's settings, was THAT assistant's own documented output contract confirmed — never assumed from a different assistant's, however identical the trigger name?
 17g. Does every branch of a tool-detecting launcher fire ONLY the detected tool's own verified action — never a different tool's action substituted as a fallback when the detected tool's own row is absent or unverified?
 17h. Where the forge is GitHub and the repository is private, was the account-wide, shared nature of the Actions minutes budget named as its own reason for `CI runs on: main` — not folded silently into "less noise"?
+17i. Does every entry in `docs/decisions.md` that asserts an impossibility ("cannot", "there is no", "not possible", "does not support") carry a `Not checked:` line naming an avenue that was not examined — and has every such entry the user has contradicted since been RE-MEASURED rather than restated?
+17j. Does every test name state an OUTCOME rather than a mechanism — and for any name that does state a mechanism ("X is last", "Y comes first"), is there a cited source making that mechanism a requirement rather than an assumption?
 18. (WordPress) Does `wp i18n make-pot` report zero untranslated or wrongly-domained user-facing strings?
 19. (WordPress) Does uninstall remove every option, table, meta key and scheduled event the plugin creates?
 20. (WordPress) Does every entry point — admin, AJAX, REST, bulk, CLI — check its capability and its nonce?
