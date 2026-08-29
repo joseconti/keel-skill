@@ -769,6 +769,42 @@ no source behind it is an assumption wearing a requirement's clothes. This is th
 sibling of entry 12d: 12d is a test that could never have failed, and this is one that fails on the
 right day for the wrong reason — and passes every other day while the bug ships.
 
+### 12u. The probe whose parser drops every input, so it answers with the default that disables the guard
+
+**The trap.** A guard asks a question of the world, parses the answer, and acts. The parser is written
+against the shape the output usually has. On the shapes it does not have, it produces something that
+matches nothing — a path that does not exist, a field that is empty, a record that is skipped — and
+the loop simply moves on. Every input is discarded, no error is raised, and the probe returns its
+EMPTY answer: nothing was found, nothing was recent, nobody else is here. **That empty answer is not
+neutral.** It is one of the two verdicts the guard acts on, and it is invariably the one that means
+"go ahead and enforce".
+
+**Why it happens.** The parser is written from one example, and the example is the common case. `git
+status --porcelain` prints `M  path` far more often than `R  old -> new`, so slicing the line from
+the fourth character looks like reading the path — and it is, until it is not. Nothing signals the
+failure: `stat` on a string that is not a file is not an error condition, it is a `continue`. And the
+guard is usually tested in the state it is MEANT to fire in, where the empty answer is also the
+correct one, so the bug is invisible to exactly the test written to prove the guard works.
+
+**What it costs.** Measured on this skill's own `scripts/keel-stop-hook`, at v5.19.1. Its cede — the
+whole of 12m's fix — required two facts: another session live, AND something in the dirty tree
+touched recently. The second was computed by slicing `git status --porcelain`. On a tree whose only
+dirty entry was a staged RENAME, the slice produced `old -> new`, no such file existed, the single
+entry was skipped, and "nothing was touched recently" came back as a measurement. A session was then
+blocked on a rename it had not made, and offered as its remedy a commit in a checkout that was not
+its own. **12m's fix was present, correct and complete, and reached through a parser that made it
+unreachable.**
+
+**The rule.** **A probe distinguishes THREE outcomes, never two: found, not found, and could not
+tell — and "could not tell" must not be reported in the words of "not found".** Where a parser
+discards an input it does not recognise, that input is unanswered, not negative, and the guard says
+so and falls back to whatever else can answer. Parse the format rather than slicing the common case,
+and prove it against the shapes that are not common — for `git status --porcelain` that is a rename
+and a quoted path, four commands in a fixture. The tell is a probe with a `continue` in it: ask what
+the loop returns when EVERY iteration takes that branch, and whether the caller can distinguish that
+answer from a real one. This is the enforcement-side sibling of 12l — there, a green result answered a
+different question; here, an empty result answers no question at all and is read as an answer.
+
 ---
 
 
@@ -1021,6 +1057,7 @@ recollection** — an answer given from memory is not an answer, it is the trap 
 17h. Where the forge is GitHub and the repository is private, was the account-wide, shared nature of the Actions minutes budget named as its own reason for `CI runs on: main` — not folded silently into "less noise"?
 17i. Does every entry in `docs/decisions.md` that asserts an impossibility ("cannot", "there is no", "not possible", "does not support") carry a `Not checked:` line naming an avenue that was not examined — and has every such entry the user has contradicted since been RE-MEASURED rather than restated?
 17j. Does every test name state an OUTCOME rather than a mechanism — and for any name that does state a mechanism ("X is last", "Y comes first"), is there a cited source making that mechanism a requirement rather than an assumption?
+17k. For every probe a guard acts on, can the caller tell "found nothing" from "could not tell" — and has the parser been run against the input shapes that are not the common case (for `git status --porcelain`: a rename and a quoted path)?
 18. (WordPress) Does `wp i18n make-pot` report zero untranslated or wrongly-domained user-facing strings?
 19. (WordPress) Does uninstall remove every option, table, meta key and scheduled event the plugin creates?
 20. (WordPress) Does every entry point — admin, AJAX, REST, bulk, CLI — check its capability and its nonce?

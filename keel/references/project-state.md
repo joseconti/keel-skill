@@ -832,6 +832,25 @@ sessions shared one anti-spin history and one session's block could satisfy the 
   this checkout**, by the same two commands the write rule already requires — `git status
   --porcelain` plus the modification times of what it lists, and `claude agents --json --cwd <path>`
   where the CLI is available — and its own identity from `scripts/keel-session-pid.sh`.
+- **A porcelain line is not a path, and the mtime half of that probe must PARSE it (UNBREAKABLE).**
+  `git status --porcelain` prints a two-character status, a space, and then something that is only
+  sometimes a bare path: a rename is `R  old -> new`, and any path with a space, a quote or a
+  non-ASCII byte arrives QUOTED and C-escaped, `"tests/e2e/mi fichero.js"`. Taking the line from the
+  fourth character onward and stat-ing the result — the obvious reading, and the one v5.19.1's
+  generated hook shipped — hands `stat` the string `old -> new`, which is not a file, so the path is
+  skipped. **Skip every entry and the probe reports "nothing was touched recently", which is the
+  answer that DEFEATS the cede**: another session can be live and named, and the hook blocks anyway,
+  on a tree whose only dirty entries are renames. Measured: a session blocked on a single staged
+  rename under `tests/e2e/`, remedy "commit to `develop`", in a checkout it had not authored — 12m
+  again, reached through a parser instead of through a key. So the rule is mechanical: **split on
+  ` -> ` and keep the DESTINATION, then unquote and unescape a quoted path.** Verify it against a
+  rename and against a path with a space, both of which a fixture can produce in four commands.
+- **A path the probe cannot stat means NOT ESTABLISHED, and not "not recent".** A deletion leaves
+  nothing to stat, and so does a rename's source. Neither is evidence that the tree has been quiet;
+  it is the absence of evidence either way, and the two must not collapse into one. Where every
+  entry is unstattable the mtime half has ANSWERED NOTHING, and the hook says so rather than letting
+  silence pass for a measurement (12l) — the cede then rests on `claude agents` alone, which is the
+  half that can actually tell another session from this one.
 - **Another live session, and the uncommitted paths are not this session's to commit → the hook
   CEDES: it ALLOWS the stop and says so**, naming the other session and why it ceded. A cede is
   printed as a cede and never as a pass: an allow that reads like a clean bill is a green result
@@ -1177,7 +1196,7 @@ The project root carries the Keel block below in TWO files, always: `CLAUDE.md` 
 One tool needs a third step: **Gemini CLI reads `GEMINI.md`, not `AGENTS.md`, by default.** If the user works with Gemini CLI, ask once and record the pick: mirror the same block in `GEMINI.md` (a third copy of the lock, refreshed with the others), or commit a `.gemini/settings.json` whose `context.fileName` includes `AGENTS.md` (no third copy to maintain). Either satisfies the lock.
 
 ```
-<!-- KEEL:BEGIN — v5.19.1 do not remove: binds every AI/session in this repo to the Keel workflow -->
+<!-- KEEL:BEGIN — v5.19.2 do not remove: binds every AI/session in this repo to the Keel workflow -->
 # Keel protocol (mandatory for ANY assistant working in this repository)
 
 This project is governed by the Keel workflow. Before reading code or changing ANYTHING:
