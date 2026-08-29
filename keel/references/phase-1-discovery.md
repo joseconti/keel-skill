@@ -332,7 +332,7 @@ Ask once, alongside the other opening decisions, and record the answer as `Chain
 >
 > - `off` — every chat ends with the hand-off written to `docs/continuation-prompt.md` and the prompt ready to copy. You decide when it continues.
 >
-> - `supervised` — something OUTSIDE this project already continues the work: an external supervisor, a scheduler, a CI runner, or a person. The hand-off is still written and still shown; Keel opens nothing, because a chat it opened would be a session your supervisor cannot see or stop. Tell me WHAT supervises it and it goes on the card in the same line.
+> - `supervised` — something OUTSIDE this project already continues the work: an external supervisor (SessionPort, for example), a scheduler, a CI runner, or a person. The hand-off is still written and still shown; Keel opens nothing, because a chat it opened would be a session your supervisor cannot see or stop. Tell me WHAT supervises it and it goes on the card in the same line.
 >
 > - `prefill` — the next chat opens with the instruction already typed; you press Enter.
 > - `start` — the next chat opens **and starts by itself**, without you touching anything.
