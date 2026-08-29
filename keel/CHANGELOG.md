@@ -1231,3 +1231,22 @@ v5.19.0 gave the card its fourth value and described what may supervise a projec
 - Nothing else moves: no new artifact, no card line, no migration. The lock block is unchanged in substance — a **stamp-only refresh** at the next lock-freshness check.
 
 **Reconciliation:** none. Refresh the lock stamp when the freshness check next runs.
+
+## 5.19.2
+
+### Fixed — the stop hook stops reading a rename as "nothing happened"
+
+Measured, two versions after the cede shipped: a session was blocked with `UNBREAKABLE-broken: uncommitted work` over a single STAGED RENAME it had not made, in a checkout that by then belonged to somebody else, and offered as its remedy a commit it is forbidden to make. v5.15.1's fix for that exact failure was present, correct and complete. It was also unreachable.
+
+The cede requires two facts — another session live in the checkout, AND something in the dirty tree touched recently — and the second was computed by slicing `git status --porcelain` from the fourth character. That reads the path on the common line, `M  path`. On a rename the line is `R  old -> new`, so the slice produced the whole string `old -> new`, which is not a file, so `stat` skipped it. One dirty entry, one skip, and the loop returned "nothing was touched recently" — not as a failure, as a measurement. The empty answer is not neutral: it is the verdict that means *enforce*.
+
+- **The mtime probe PARSES the porcelain line instead of slicing it.** Split on ` -> ` and keep the DESTINATION; unquote and unescape a path git delivered quoted (any path with a space, a quote or a non-ASCII byte). Verified against a rename and against a path with a space — four commands in a fixture produce both.
+- **A path that cannot be stat-ed means NOT ESTABLISHED, never "not recent".** A deletion leaves nothing to stat, and so does a rename's source; neither is evidence the tree has been quiet. Where no entry can be stat-ed, the mtime half has answered nothing and says so, and the cede rests on `claude agents --json --cwd <path>` — the half that can actually tell another session from this one.
+- **The same rule binds the UNBREAKABLE write rule**, which runs the identical probe by hand before the first write into a repository the session did not start work in. Same two commands, same parser, same trap.
+- **Nothing is loosened.** A lone session with a dirty tree still blocks, unpushed commits and a stale hand-off still block whether or not the hook cedes, and a probe that cannot answer still means "not established".
+
+### Added — anti-pattern 12u, and self-audit row 17k
+
+**The probe whose parser drops every input, so it answers with the default that disables the guard.** A parser written against the shape the output usually has produces nothing on the shapes it does not have; the loop `continue`s, no error is raised, and the probe returns its empty answer — which the caller cannot distinguish from a real negative. The rule: a probe distinguishes THREE outcomes, never two — found, not found, and could not tell — and "could not tell" is never reported in the words of "not found". The tell is a `continue` inside a probe: ask what the loop returns when every iteration takes that branch. Row 17k checks it.
+
+**Reconciliation:** regenerate `scripts/keel-stop-hook` on any project that carries one, and verify the cede against a rename. Refresh the lock stamp when the freshness check next runs.
