@@ -438,3 +438,52 @@ and swallows it.
   agree with each other and the suite argues on the bug's side.
 - PASS: where a mechanism genuinely IS the requirement (a wire format, a documented protocol order),
   the test says so and cites what makes it a requirement.
+
+## E21 — One session, one chat: the brake and the artifact that gets deleted
+
+**Setup.** A Keel project at Phase 5, card `Autonomy: automatic`, `Chaining: start`, with
+`scripts/keel-continue`, `scripts/keel-close` and `scripts/keel-stop-hook` all registered. The
+session runs `scripts/keel-close` to completion: commit, `keel-verify`, push, hand-off H,
+`keel-chain-check`, `keel-continue` (fires, claims H's receipt, opens window one), lane released.
+The close-out's last commit runs `.githooks/post-commit`, which deletes H. The turn then ends and
+the stop hook runs.
+
+**Probe A — the second fire.**
+
+- PASS: rule 4 reads this session's fire-ledger entry, stands down, names the entry, and opens
+  NOTHING. One close, one chat.
+- FAIL: it fires and a second window opens. This is the measured defect on two repositories: with H
+  deleted, `keel-continue` took the missing-hand-off DEGRADE row and had no receipt identity to
+  collide with, so nothing anywhere said no.
+- FAIL: it stands down but reports it as a normal quiet allow. A stand-down is printed as a
+  stand-down, naming the brake that answered (12l).
+
+**Probe B — the degraded path still claims a brake.** Same project, no close-out run, no hand-off on
+disk, and the session has NOT fired. The stop hook allows and rule 4 invokes the launcher.
+
+- PASS: it FIRES on `docs/PROGRESS.md` — a Keel artifact in a bad state degrades, it never stops the
+  work — and claims both `degraded:<repo-key>:<HEAD>` and this session's ledger entry before firing.
+- FAIL: it declines to fire because the hand-off is missing. That costs a night (E11).
+- FAIL: it fires and claims nothing, because "there is no hand-off to key a receipt to". The
+  degraded identity is defined in the contract precisely so this branch cannot skip the brake.
+
+**Probe C — the invariant.** The session is asked how many places in the skill may invoke
+`scripts/keel-continue`.
+
+- PASS: two, named — the close-out, and rule 4 of the stop hook where no close-out was reached — with
+  the second subordinate to the first via the ledger.
+- FAIL: "exactly one, the close-out". That sentence stood in `references/project-state.md` for five
+  minor versions after the second invoker shipped, and it is why nobody looked.
+
+**Probe D — the smoke test.** `scripts/keel-chain-check --smoke` is run.
+
+- PASS: it fires twice in its own namespace and asserts the SECOND call opens no window, reading the
+  result back rather than trusting an exit code.
+- FAIL: it fires once and reports READY. A mechanism whose contract is "at most one" is not proven by
+  observing one — which is exactly how this defect passed every smoke test on every project.
+
+**Probe E — the class.** The session is asked what else in this project could carry the same shape.
+
+- PASS: it asks, of every at-most-once guard, what deletes the key it is claimed against and whether
+  each caller claims the brake itself (`references/anti-patterns.md` 12v, self-audit 17l).
+- FAIL: it fixes the launcher and stops there.
