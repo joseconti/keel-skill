@@ -810,6 +810,49 @@ different question; here, an empty result answers no question at all and is read
 
 ## WordPress and WooCommerce
 
+### 12v. The guard keyed to the artifact the system deliberately deletes
+
+**The trap.** A mechanism gets an anti-duplicate guard, and the guard is keyed to the thing the
+action is *about*: one launch per hand-off, one email per order, one retry per job file. It is the
+obvious key, it is the meaningful key, and it works — for as long as the artifact outlives the
+window in which a duplicate can occur. Elsewhere in the same system, a second rule deletes that
+artifact on purpose, for its own good reasons. The two rules never meet in one file, and both are
+correct where they are written. The guard now has nothing to recognise, and its answer to "have we
+already done this?" is not "yes" and not "no" — it is a fresh, empty, unclaimed key.
+
+**Why it happens.** The deletion is usually a fix, and a good one. Keel's own case: a hand-off that
+outlives its commit is worse than no hand-off, so `.githooks/post-commit` deletes it — which makes
+the stale-courier bug structurally impossible and is exactly the right shape of fix (a rule made
+unnecessary rather than enforced). Nothing in that change is wrong. What is invisible from inside it
+is that the deleted artifact was also carrying an identity somebody else's brake depended on. Second
+contributor: the guard's owner reasons about ONE caller. When a later version adds a second caller —
+here, a `Stop` hook firing the same launcher at a different moment — the new caller is told the
+guard is already handled downstream, and the sentence is even true, in the state the writer
+pictured.
+
+**What it costs.** Measured on two of this skill's own projects, at every single close: two chats.
+`scripts/keel-close` fired the launcher and claimed the receipt for hand-off H; the close-out's last
+commit deleted H; the stop hook fired the same launcher minutes later, found no hand-off, correctly
+took the DEGRADE row (fire on `docs/PROGRESS.md` — a Keel artifact in a bad state must never stop
+the work), and opened a second window against no receipt at all. Every component behaved to
+specification. The user got two windows per close on two repositories and no error anywhere,
+because **on the degraded path there was no identity to claim, so the brake was not bypassed — it
+was never reachable.**
+
+**The rule.** **A brake is keyed to something that outlives every path the braked action can take,
+and the ACTOR always outlives the artifact.** Key the guard to the session, the process, the run —
+and keep the artifact-keyed one as well, because the two answer different questions ("has this
+continuation already fired" and "has this session already fired"). Two tells, both cheap: for any
+guard, ask what deletes its key and whether the deleter knows the guard exists; and for any action
+with more than one caller, ask which of them claims the brake — **if the answer is "the other one
+does", the brake is a coincidence, not a mechanism.** And the fallback path is where to look first:
+a degraded, best-effort or error branch that skips the identity is a branch that skips every guard
+built on it, which is the reverse of what a fallback is for. Make the degraded path claim a degraded
+identity, defined in the contract rather than invented by whoever generates the script (entry 3).
+
+---
+
+
 ### 13. The user-facing string that skipped i18n
 
 **The trap.** A string written directly into markup or a `printf`, without a translation function or
@@ -1058,6 +1101,7 @@ recollection** — an answer given from memory is not an answer, it is the trap 
 17i. Does every entry in `docs/decisions.md` that asserts an impossibility ("cannot", "there is no", "not possible", "does not support") carry a `Not checked:` line naming an avenue that was not examined — and has every such entry the user has contradicted since been RE-MEASURED rather than restated?
 17j. Does every test name state an OUTCOME rather than a mechanism — and for any name that does state a mechanism ("X is last", "Y comes first"), is there a cited source making that mechanism a requirement rather than an assumption?
 17k. For every probe a guard acts on, can the caller tell "found nothing" from "could not tell" — and has the parser been run against the input shapes that are not the common case (for `git status --porcelain`: a rename and a quoted path)?
+17l. For every at-most-once guard, what deletes the key it is claimed against, and does the deleter know the guard exists — and where the action has more than one caller, does EACH caller claim the brake itself rather than relying on another one having done it?
 18. (WordPress) Does `wp i18n make-pot` report zero untranslated or wrongly-domained user-facing strings?
 19. (WordPress) Does uninstall remove every option, table, meta key and scheduled event the plugin creates?
 20. (WordPress) Does every entry point — admin, AJAX, REST, bulk, CLI — check its capability and its nonce?
