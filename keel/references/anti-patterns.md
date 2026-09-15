@@ -853,6 +853,39 @@ identity, defined in the contract rather than invented by whoever generates the 
 ---
 
 
+### 12w. The plan that only exists for one entry point
+
+**The trap.** A project keeps a plan — sprints, slices, hours — and the plan is created and updated
+by ONE phase of the process: the development phase's kickoff and close. Every other way work enters
+the project (an audit, a forge issue, a hotfix, a maintenance touch, an adoption, a reconciliation)
+never passes through that phase, so it is done with no slice to mark, and the remaining time is
+recomputed only at a close that this work never reaches. The plan does not become wrong at any
+single moment. It simply stops describing the project, one unplanned task at a time.
+
+**Why it happens.** The plan was designed where planning is most visible — the start of a build —
+and every rule about it was written inside that phase's reference, where it reads as complete.
+Nobody decides that audits are exempt; audits are simply never told. And "what is left?" looks like
+a status question the plan obviously answers, so nobody writes down how it is answered — which lets
+a session read it as a nudge to carry on and answer it by starting the next task.
+
+**What it costs.** Measured on Keel projects: audits and fixes run with no sprint file, and the
+user's direct question "what is left and how long will it take?" was answered with "starting the
+audit". The one number the plan exists to provide — the remaining time — was unavailable exactly
+when it was asked for, and on a client project that number is a commercial commitment.
+
+**The rule.** **A plan is a ledger of ALL work or it is decoration.** Any unit of work, whatever
+entered it, becomes a slice with its hours before the first change; the commit that finishes it
+records `done` and its real hours and regenerates the derived view; the status question is answered
+from the derived file and never by acting; and only the user's explicit statement switches it off,
+on the record (SKILL.md, "Sprints are the ledger of all work"). The mechanical check is ancestry:
+the newest commit that touched anything other than the bookkeeping files must be contained in the
+newest commit that touched the plan — `scripts/keel-verify` fails otherwise, and the stop hook
+blocks the turn. The tell, for any tracking artifact: list every entry point by which work reaches
+the project, and ask which of them writes to it.
+
+---
+
+
 ### 13. The user-facing string that skipped i18n
 
 **The trap.** A string written directly into markup or a `printf`, without a translation function or
@@ -1102,6 +1135,7 @@ recollection** — an answer given from memory is not an answer, it is the trap 
 17j. Does every test name state an OUTCOME rather than a mechanism — and for any name that does state a mechanism ("X is last", "Y comes first"), is there a cited source making that mechanism a requirement rather than an assumption?
 17k. For every probe a guard acts on, can the caller tell "found nothing" from "could not tell" — and has the parser been run against the input shapes that are not the common case (for `git status --porcelain`: a rename and a quoted path)?
 17l. For every at-most-once guard, what deletes the key it is claimed against, and does the deleter know the guard exists — and where the action has more than one caller, does EACH caller claim the brake itself rather than relying on another one having done it?
+17m. Unless the card says `Sprints: off` with a real D-entry: is the newest commit touching anything other than the bookkeeping files contained in the newest commit touching `docs/sprints/` — does every `done` slice carry `actual_hours` — and for every way work entered this project since the last audit (issue, audit, hotfix, maintenance, reconciliation), is there a slice that records it?
 18. (WordPress) Does `wp i18n make-pot` report zero untranslated or wrongly-domained user-facing strings?
 19. (WordPress) Does uninstall remove every option, table, meta key and scheduled event the plugin creates?
 20. (WordPress) Does every entry point — admin, AJAX, REST, bulk, CLI — check its capability and its nonce?
