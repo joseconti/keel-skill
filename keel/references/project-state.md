@@ -56,6 +56,7 @@ Keep it to roughly one page. Detail lives in the linked files, never accumulated
 - User guide: [languages + ships in release yes/no + dev portal yes/no and ships/repo-only / declined — asked at Phase 6; guide/ at the repo root]
 - Docs theme: [keel-docs-theme vX.Y.Z vendored in guide/_theme/ / n/a until Phase 6 — per references/guide-theme.md]
 - Test-first policy: [pure-logic / pure-logic + acceptance / none (D-0XX) / n/a — <why> (only where the project ships no executable product at all, e.g. a documentation or instruction package)] — asked once at Phase 2 step 4e, default `pure-logic`; decides whether pure logic (and, on the wider value, each slice's acceptance criterion) gets its test written and seen failing BEFORE the code. Never re-asked. Two rules hold at EVERY value including `none`: a bug fix starts from a failing reproduction test, and a test derived from an AC-nn or a reproduced bug is never edited to make it pass. Per references/test-automation.md ("When the test is written")
+- Sprints: [on — the default, written when the state files are created and never asked / off (D-0XX) — only on the user's explicit statement that they do not want sprints] — per SKILL.md "Sprints are the ledger of all work": on `on`, every unit of work in every phase and entry mode is a slice with its hours BEFORE it starts, and the commit that finishes it sets `done`, writes `actual_hours` and regenerates `docs/.keel/plan.json`. Never switched off by inference ("it is small", "it is only an audit", "we are in maintenance")
 - Durability: [git remote <name> <url> / synced folder <service> / both / repo but NO remote — <what is pending> / NONE — accepted risk (D-0XX)] — per SKILL.md "Work never lives only on this machine": the work must survive this computer. Asked as Question 0 of the session-start setup batch, before anything is created. The ANSWER is never re-asked, but the two facts behind it (a repository exists; it has a remote or the tree replicates off the machine) are re-verified every session — a remote can be removed and a folder can leave sync without anyone noticing
 - Autonomy: [automatic — Keel does not ask, and does every merge to develop and every push itself | not automatic — Keel asks every time and pushes only what was explicitly requested] / issues: [after-sprint|on-request|n/a no forge] / Issue sweep interval: [Xh — default 24h; n/a unless after-sprint] / Issue capture: [on — a problem the user reports becomes a forge issue before the work starts | off | n/a no forge] — the session-start setup batch (SKILL.md), asked once and applied silently thereafter. Everything hangs off the first value; it is never inferred per action. `Issue sweep interval:` gates the kickoff-side check in `references/phase-5-development.md` ("Sprint kickoff") against `docs/issues.md`'s `Last inbound sweep:` line. The MODE lives in a per-machine file (`.claude/settings.local.json` is gitignored, so a fresh checkout has none) while this line is the recorded DECISION, so a new machine gets the file written without re-asking
 - Branches: [integration branch (default `develop`) / current work branch / anything on develop awaiting the user's merge to main] — per SKILL.md "Git flow": Keel merges work branches to develop and pushes; the merge to main, the tag and the release are the user's act, always
@@ -245,6 +246,7 @@ slices:
     title: Authorization code exchange
     status: done                # same enum
     hours: 1.5                  # AI working time + supervision (SKILL.md's unit rule)
+    actual_hours: 1.25          # same unit; written in the commit that sets status: done — null until then
     depends_on: [S-011]         # ids, never titles
     criteria: [AC-07, AC-08]    # the AC-nn this slice satisfies
 ---
@@ -290,6 +292,43 @@ percentage**, or the plan can never reach 100%. `plan.json` carries the unit as 
 reader that renders a duration renders that label with it: a bare "12 h" is read as human-team time,
 which is the exact failure the unit rule exists to prevent, and the gap there is orders of magnitude.
 
+**The plan holds ALL work, and it is kept current at every slice, never at the close (UNBREAKABLE).**
+Per SKILL.md "Sprints are the ledger of all work", on `Sprints: on` the plan is not a Phase 5
+artifact: an audit, a forge issue, a hotfix, a maintenance change, an adoption step and a Keel
+reconciliation are slices exactly like a feature, added with their hours BEFORE their first change.
+A project with no `docs/sprints/` gets its plan the first time any work is about to start, in whatever
+phase or entry mode that happens. And the commit that finishes a slice is the commit that records it:
+`status: done`, `actual_hours`, `docs/.keel/plan.json` regenerated. The sprint close consolidates;
+it no longer discovers.
+
+**What `plan.json` carries, computed at generation time and never stored in the sources:** for each
+sprint and for the whole plan — `estimated_hours` (every slice not `dropped`), `done_hours` (the
+estimates of `done` slices), `actual_hours` (the actuals of `done` slices), `remaining_hours` (the
+estimates of every slice neither `done` nor `dropped`), `deviation_hours` (`actual_hours` minus
+`done_hours`), `percent_done` (from `done_hours` over `estimated_hours`), and `unit`. Contingency and
+`deferred.md` are excluded from all of them, as above.
+
+**How "what is left?" / "how long until it is done?" is answered (UNBREAKABLE).** It is a question,
+never an instruction to carry on. Read `plan.json` — regenerate it first if `keel-verify` reports
+drift — and reply, before and instead of any work:
+
+```
+Sprint 4 — <goal>: 2 slices pending, 3.5 h left
+  S-030 <title> — 1.5 h
+  S-031 <title> — 2 h
+Sprint 5 — <goal>: 6 h
+Total left: 9.5 h of AI working time plus supervision (contingency not included)
+So far: 4 slices done, 6 h estimated, 7.25 h actual (+1.25 h)
+```
+
+In the conversation's language, with the unit stated on the total. If the same message also asks for
+work, this comes first in the same reply. On `Sprints: off` the answer is `docs/PROGRESS.md`'s open
+items, saying that no time figure exists because sprints are off.
+
+**The bookkeeping files** — the only paths whose commits do not need a plan update — are exactly
+`docs/sprints/`, `docs/.keel/`, `docs/PROGRESS.md` and `docs/token-ledger.md`. Everything else,
+including other `docs/` artifacts an audit or a phase writes, is work.
+
 **What `scripts/keel-verify` enforces**, because a plan that can lie is worse than no plan — every
 one of these is mechanical:
 
@@ -302,6 +341,11 @@ one of these is mechanical:
 | `docs/.keel/plan.json` matches its sources | A derived file that drifted shows a confident lie to every reader; drift fails the run |
 | Phase 5 hours in `docs/estimate.md` equal the sum of the plan's slice hours | One set of hours, not two |
 | A slice that left a sprint is in `deferred.md` or carries `status: dropped` with its D-entry | Removable without a trace means the plan shrinks itself and "what is left" looks excellent |
+| The card carries `Sprints:`; `off` cites a real D-entry. Every row below is skipped only under a valid `off` | The default is not a question, and an opt-out nobody recorded is an inference |
+| At least one `docs/sprints/sprint-<N>.md` exists | Work with no plan is the measured defect this row closes |
+| **The plan is not behind the work:** the newest commit touching any non-bookkeeping path is an ancestor of, or equal to, the newest commit touching `docs/sprints/`; failing, it names the commits the plan does not account for | Finished work never recorded is how "what is left" comes back wrong while every other check is green |
+| Every `status: done` slice carries a numeric `actual_hours` | Without actuals the remaining time is a guess and the next estimate never improves |
+| `docs/PROGRESS.md` "Current position" names a slice id that exists and is neither `done` nor `dropped`, unless every slice is closed | A position that points at nothing cannot be resumed, and cannot be timed |
 
 ## The end-to-end verification contract
 
@@ -782,10 +826,17 @@ So Keel generates a **`Stop` hook**, registered in the tool's own settings, that
 turn:
 
 1. **It blocks the stop when the repository is in a state this skill calls UNBREAKABLE-broken** —
-   uncommitted work, unpushed commits, or a hand-off that no longer describes `HEAD`. Those are not
-   judgments; they are three commands, and each block says which one fired and how to clear it.
-   **Where the checkout holds another live session, the first of the three CEDES instead of
-   blocking** — "The state it reads is the SESSION's" below.
+   uncommitted work, unpushed commits, a hand-off that no longer describes `HEAD`, or — unless the
+   card says `Sprints: off` — **a plan behind the work** (the newest commit touching a
+   non-bookkeeping path is not contained in the newest commit touching `docs/sprints/`; the same
+   ancestry test `scripts/keel-verify` runs, "The sprint plan" above). Those are not judgments; they
+   are four commands, and each block says which one fired and how to clear it — for the fourth,
+   "mark the slices these commits finished as `done` with `actual_hours`, or add the slices they
+   were, and regenerate `docs/.keel/plan.json`".
+   **Where the checkout holds another live session, the first and the fourth CEDE instead of
+   blocking** — "The state it reads is the SESSION's" below. The fourth cedes for the same reason as
+   the first: the unrecorded commits may be the other session's, and recording its slices is its
+   duty, not this one's.
 2. **Otherwise it blocks once more to say the queue is not empty**, so the default at the end of a
    turn becomes "carry on" rather than "wait for a person". This is "Finish the queue" (SKILL.md)
    given a mechanism instead of a paragraph. **It CEDES on the same condition rule 1 does, it is
@@ -922,6 +973,7 @@ fingerprint again, one rule to the right. Declared per rule:
 | Rule 1 — uncommitted | the status entries for the paths THIS block listed |
 | Rule 1 — unpushed | the unpushed commit count and the upstream ref |
 | Rule 1 — stale hand-off | the hand-off's `Commit:` and `HEAD` |
+| Rule 1 — plan behind the work | the newest non-bookkeeping commit and the newest `docs/sprints/` commit THIS block named |
 | Rule 2 — queue | the `## Open items` identifiers THIS block named |
 
 **Fixing an instance is not fixing the class.** v5.15.1 generalised its defect into 12m correctly and
@@ -1210,7 +1262,7 @@ The project root carries the Keel block below in TWO files, always: `CLAUDE.md` 
 One tool needs a third step: **Gemini CLI reads `GEMINI.md`, not `AGENTS.md`, by default.** If the user works with Gemini CLI, ask once and record the pick: mirror the same block in `GEMINI.md` (a third copy of the lock, refreshed with the others), or commit a `.gemini/settings.json` whose `context.fileName` includes `AGENTS.md` (no third copy to maintain). Either satisfies the lock.
 
 ```
-<!-- KEEL:BEGIN — v5.20.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
+<!-- KEEL:BEGIN — v5.21.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
 # Keel protocol (mandatory for ANY assistant working in this repository)
 
 This project is governed by the Keel workflow. Before reading code or changing ANYTHING:
@@ -1263,6 +1315,13 @@ This project is governed by the Keel workflow. Before reading code or changing A
    has only `main`/`master`, create `develop` first. If it has NO REMOTE, say so and
    offer to publish it — a local commit survives a bad edit, not a dead disk, and
    work that exists only on one machine is one accident from not existing at all.
+   EVERY unit of work — in any phase, audits, forge issues, hotfixes and maintenance
+   included — is a slice in `docs/sprints/` with its hours BEFORE its first change,
+   and the commit that finishes it sets `done`, writes `actual_hours` and regenerates
+   `docs/.keel/plan.json` (UNBREAKABLE). "What is left / how long" is a QUESTION:
+   answer it from `plan.json` — pending slices, hours left per sprint and in total,
+   labelled as AI time plus supervision — and never by starting work. Only the user
+   switches this off, explicitly (`Sprints: off` + a D-entry).
 5. NEVER end a session mid-work — and NEVER close a sprint, even if you carry on
    working — leaving the user with nothing current to continue from
    (UNBREAKABLE). A sprint close is where a person walks away, so the hand-off
