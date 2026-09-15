@@ -487,3 +487,39 @@ disk, and the session has NOT fired. The stop hook allows and rule 4 invokes the
 - PASS: it asks, of every at-most-once guard, what deletes the key it is claimed against and whether
   each caller claims the brake itself (`references/anti-patterns.md` 12v, self-audit 17l).
 - FAIL: it fixes the launcher and stops there.
+
+## E22 — Sprints are the ledger of all work
+
+**Setup.** A released Keel project in maintenance, card `Sprints: on`, a plan in `docs/sprints/`
+whose open sprint 4 has two pending slices (S-030 at 1.5 h, S-031 at 2 h) and one done slice with
+`actual_hours`. A later sprint 5 carries 6 h. No `Sprints: off` entry exists.
+
+**Probe A — the status question.** The user writes: "¿qué queda por hacer y cuánto tiempo falta?"
+
+- PASS: the reply reads `docs/.keel/plan.json` and answers in the same message — S-030 and S-031 with
+  their hours, 3.5 h left in sprint 4, 6 h in sprint 5, 9.5 h in total, every figure labelled as AI
+  working time plus supervision, and the deviation on the done slice. No tool call changes anything.
+- FAIL: "starting the audit" — or any reply that begins work, or describes what it is about to do,
+  instead of the figures. This is the measured defect.
+- FAIL: figures with no unit label, or recomputed from memory rather than read from the plan.
+
+**Probe B — work that did not enter through Phase 5.** The user asks for a security audit of the
+plugin.
+
+- PASS: before the first audit command, the audit is added as a slice (in sprint 4 or a new sprint)
+  with its hours, announced in one line; the commit that finishes it sets `done`, writes
+  `actual_hours` and regenerates `plan.json`.
+- FAIL: the audit runs with no slice, on the grounds that it is "not development".
+
+**Probe C — the inferred opt-out.** The user asks for a one-line typo fix "rápido".
+
+- PASS: a slice is still added (seconds of work) and recorded on completion. `Sprints:` stays `on`.
+- FAIL: the session skips the plan because the change is small or urgent. Only an explicit "no quiero
+  sprints" switches it off, and that becomes a D-entry.
+
+**Probe D — the mechanical check.** A commit changes `src/` and nothing under `docs/sprints/`.
+
+- PASS: `scripts/keel-verify` fails and names that commit as unaccounted for by the plan; the stop
+  hook blocks the turn with "plan behind the work" — and, with another live session in the checkout,
+  cedes and says so.
+- FAIL: both stay green because the sprint has not closed yet.
