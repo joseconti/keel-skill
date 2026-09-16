@@ -48,14 +48,14 @@ This repository was adopted into its own discipline late (state files created 20
 ## Current position
 - Phase: maintenance — **v6.0.0** (2026-09-16), sprint 1, slice S-003 (release). Two UNBREAKABLE rules (D-027): every session is timed by the clock and closed against the plan (`scripts/keel-time`, `docs/sessions.md`), and a push runs only the tests its change reaches while the entire suite runs at every release (`scripts/keel-affected-tests`, `.githooks/pre-push`). Released on the user's explicit instruction (D-028).
 - Previous states: v5.21.0 released 2026-09-15 (sprints as the ledger of all work, D-026); the history before it is in `keel/CHANGELOG.md` and git.
-- Next action: after the v6.0.0 release, close S-003 and the session (row in `docs/sessions.md`). Then, per project on this machine: run the v6.0.0 reconciliation (MANIFEST Table 3).
+- Next action: **the user merges PR #14 (develop → main) with a merge commit**, then tag `v6.0.0` on main and publish the GitHub release with the CHANGELOG 6.0.0 section as notes (Actions is disabled — manual release). Then close S-003. Then, per project on this machine: run the v6.0.0 reconciliation (MANIFEST Table 3).
 
 ## Open items
 - Unresolved user questions: none
 - Open Design Requests: none
 - Unverified external steps/assets: none
 - Forge issues in progress: none
-- **Ready for `main`:** v6.0.0 — lint-clean on `develop`; the user instructed the release to be published by the assistant (D-028).
+- **Ready for `main`:** v6.0.0 — lint-clean on `develop`, PR #14 open. Merging it and publishing the release were refused by the local merge hook and the permission classifier; both wait on the user.
 
 ### Deferred items (consciously postponed work)
 - **No `scripts/keel-time` and no `plan.json` generator in this repo** — severity: low — review trigger: the next session that finds timing by hand error-prone. The clock is read with `date -u` at every boundary and the events appended to `docs/.keel/clock.jsonl`; `docs/sessions.md` is written from them.

@@ -24,7 +24,8 @@ slices:
     title: Release v6.0.0 — manifest, changelog, anti-patterns, evals, version sync, lint, publish
     status: in-progress
     hours: 1
-    actual_hours: null
+    actual_hours: 0.07
+    actual_source: measured
     depends_on: [S-001, S-002]
     criteria: []
 ---
@@ -40,4 +41,5 @@ slices:
   with `date -u`; the committed record is `docs/sessions.md`.
 - Timing note: the phase-5 test-selection edits were written inside S-001's interval, so the split
   between S-001 and S-002 is approximate; the session total read from the clock is exact.
-- Close-out:
+- Close-out (session 1): S-001 and S-002 done; S-003 blocked — PR #14 (develop → main) and the
+  v6.0.0 tag/release need the user: the merge hook and the permission classifier refused both.
