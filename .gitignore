@@ -154,3 +154,9 @@ CLAUDE.local.md
 # Local quarantine (bridge cannot unlink; emptied from a real terminal)
 # ---------------------------------------------------------------------------
 _to_delete/
+
+# ---------------------------------------------------------------------------
+# Keel machine-local state (never committed)
+# ---------------------------------------------------------------------------
+docs/.keel/clock.jsonl
+docs/continuation-prompt.md
