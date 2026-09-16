@@ -35,7 +35,7 @@ Baseline table — adjust per project and say why (state the scope basis next to
 | Phase 2 — functional spec, flows, technical plan | 1–3 h (scales with features/flows) |
 | Phase 3 — design brief + Design producing the handoff | 1–4 h (scales with screens; template reuse lowers it) |
 | Phase 4 — handoff audit, BUILD-SPEC, guided external setup | 1–3 h (scales with setup items / Design Requests) |
-| Phase 5 — development | the bulk: **0.5–2 h per slice** (code + tests + docs + test point) |
+| Phase 5 — development | the bulk: **0.5–2 h per slice** (code + tests + docs + test point) — and once a project has measured slices, start from THEIR measured hours for the same kind of slice (`docs/sessions.md`), not from this range |
 
 **On a project that carries a sprint plan, the Phase 5 line is DERIVED, not estimated twice.** Each slice's `hours` in `docs/sprints/sprint-<N>.md` is its partida, and this line is their sum — which is what "totals come *from* the lines" already requires, applied one level down. `scripts/keel-verify` fails when the two disagree, because a plan and a budget that each carry their own Phase 5 hours are two different projects the moment either is edited. Deferred items carry hours too (`docs/sprints/deferred.md`), and they are NOT in this total: they are what the next version would cost, which is exactly what makes "what goes in this release" a decision with a number attached (`references/project-state.md`, "The sprint plan"). **Actuals live beside the estimate, per slice:** the commit that marks a slice `done` writes its `actual_hours`, so `docs/.keel/plan.json` always carries the remaining hours (estimate of what is not done) and the deviation so far (actual against estimate on what is done). That is the figure a "how long is left?" question is answered with, and at release it is what the Phase 7 reconciliation compares against the estimate alongside the token ledger.
 | Phase 6 — documentation consolidation | 1–2 h |
@@ -203,7 +203,7 @@ How to get the numbers, in order of preference:
 1. **Measured** — whatever the environment exposes: a session cost/usage counter (e.g. Claude Code's `/cost`, Codex's `/status`, Gemini CLI's `/stats`), API usage logs, or the provider's console/dashboard (ask the user to read it out when exact figures matter).
 2. **Estimated** — when nothing is exposed (typical in subscription apps): estimate from the volume actually produced and read (≈ 4 characters per token in English), state the method, round up. Never leave the row blank because measurement was unavailable — and never present an estimated row as measured.
 
-At release, Phase 7 runs the **final reconciliation** as part of its artifacts: total the ledger by model, price it at verified current prices, compute the deviation vs the estimate (tokens and cost; hours too if the user tracked them), report it to the user plainly, and record the calibration lesson — every finished project makes the next project's estimate better.
+At release, Phase 7 runs the **final reconciliation** as part of its artifacts: total the ledger by model, price it at verified current prices, compute the deviation vs the estimate (tokens and cost, and hours — always, from `docs/sessions.md`'s clock-measured totals against the plan's estimated hours), report it to the user plainly, and record the calibration lesson — every finished project makes the next project's estimate better.
 
 ## Scope changes (after a budget exists)
 

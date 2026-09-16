@@ -16,6 +16,8 @@ Created the moment Phase 1 starts producing artifacts — NOT in Phase 5. Before
 | `docs/design/design-requests/DR-NNN.md` | One file per Design Request, numbered, with status | Phase 4, when the first gap appears | When a DR is sent / resolved |
 | `docs/api/INDEX.md` | One line per public surface — the cheap lookup layer for the reuse rule | Phase 5, first slice | Same slice that adds, changes, or removes a surface |
 | `docs/issues.md` | Living log of forge issues: inventory + one entry per issue worked (diagnosis, resolution, commits, what remains) | First time forge issues are triaged or worked (any phase) | The moment an issue is triaged, worked, or closed |
+| `docs/sessions.md` | One row per working session: clock-read start and end, what was planned, every slice finished with estimated vs measured hours, the deviation, what is left — written by `scripts/keel-time end` | Phase 1, first action (with the state files) | At the end of every session (the close-out runs it) |
+| `docs/.keel/clock.jsonl` | Machine-local raw clock events (`keel.clock/1`) — gitignored, never committed | The first `scripts/keel-time start` | At every session and slice boundary |
 | `docs/token-ledger.md` | Actual token usage: one row per working session; final reconciliation (cost + deviation vs estimate) at release | With Estimate v1 (Phase 1 close), per `references/estimation-budget.md` | At the end of every working session; verified at phase/sprint closes |
 | `CLAUDE.md` + `AGENTS.md` (repo root) | The portability lock, the same Keel block mirrored in both: binds ANY assistant/environment opening the repo to the Keel workflow | Phase 1, first action (or adoption) | When Keel's protocol block changes (between its delimiters only) — verified every session by the lock-freshness check (version stamp on the BEGIN delimiter) |
 | `.claude/skills/keel/` + `.agents/skills/keel/` | Embedded copy of the skill (optional, recommended), one tree per discovery convention — makes the repo self-sufficient | Phase 1, first action (with user approval) | Version-synced from the installed skill, one direction, both trees |
@@ -56,6 +58,7 @@ Keep it to roughly one page. Detail lives in the linked files, never accumulated
 - User guide: [languages + ships in release yes/no + dev portal yes/no and ships/repo-only / declined — asked at Phase 6; guide/ at the repo root]
 - Docs theme: [keel-docs-theme vX.Y.Z vendored in guide/_theme/ / n/a until Phase 6 — per references/guide-theme.md]
 - Test-first policy: [pure-logic / pure-logic + acceptance / none (D-0XX) / n/a — <why> (only where the project ships no executable product at all, e.g. a documentation or instruction package)] — asked once at Phase 2 step 4e, default `pure-logic`; decides whether pure logic (and, on the wider value, each slice's acceptance criterion) gets its test written and seen failing BEFORE the code. Never re-asked. Two rules hold at EVERY value including `none`: a bug fix starts from a failing reproduction test, and a test derived from an AC-nn or a reproduced bug is never edited to make it pass. Per references/test-automation.md ("When the test is written")
+- Push test scope: [affected — the default, written with the card and never asked / full (D-0XX) — only on the user's explicit request to run the whole suite on every push] — per `references/test-automation.md` ("Which tests run when"): on `affected`, every test point and every push run the selection `scripts/keel-affected-tests` derives from the diff, and the ENTIRE suite runs at the Phase 7 gate on the release candidate. `n/a — <why>` only where the project ships no executable product. Never switched to `full` by inference ("it is a small project", "the suite is fast today")
 - Sprints: [on — the default, written when the state files are created and never asked / off (D-0XX) — only on the user's explicit statement that they do not want sprints] — per SKILL.md "Sprints are the ledger of all work": on `on`, every unit of work in every phase and entry mode is a slice with its hours BEFORE it starts, and the commit that finishes it sets `done`, writes `actual_hours` and regenerates `docs/.keel/plan.json`. Never switched off by inference ("it is small", "it is only an audit", "we are in maintenance")
 - Durability: [git remote <name> <url> / synced folder <service> / both / repo but NO remote — <what is pending> / NONE — accepted risk (D-0XX)] — per SKILL.md "Work never lives only on this machine": the work must survive this computer. Asked as Question 0 of the session-start setup batch, before anything is created. The ANSWER is never re-asked, but the two facts behind it (a repository exists; it has a remote or the tree replicates off the machine) are re-verified every session — a remote can be removed and a folder can leave sync without anyone noticing
 - Autonomy: [automatic — Keel does not ask, and does every merge to develop and every push itself | not automatic — Keel asks every time and pushes only what was explicitly requested] / issues: [after-sprint|on-request|n/a no forge] / Issue sweep interval: [Xh — default 24h; n/a unless after-sprint] / Issue capture: [on — a problem the user reports becomes a forge issue before the work starts | off | n/a no forge] — the session-start setup batch (SKILL.md), asked once and applied silently thereafter. Everything hangs off the first value; it is never inferred per action. `Issue sweep interval:` gates the kickoff-side check in `references/phase-5-development.md` ("Sprint kickoff") against `docs/issues.md`'s `Last inbound sweep:` line. The MODE lives in a per-machine file (`.claude/settings.local.json` is gitignored, so a fresh checkout has none) while this line is the recorded DECISION, so a new machine gets the file written without re-asking
@@ -246,7 +249,11 @@ slices:
     title: Authorization code exchange
     status: done                # same enum
     hours: 1.5                  # AI working time + supervision (SKILL.md's unit rule)
-    actual_hours: 1.25          # same unit; written in the commit that sets status: done — null until then
+    actual_hours: 1.25          # same unit, MEASURED: the slice's intervals in the clock log minus pauses, written by
+                                # scripts/keel-time — cumulative and partial while in-progress, final in the done commit;
+                                # null until the slice is first worked
+    actual_source: measured     # measured | estimated — estimated only where no clock could be read (NO-EXECUTION)
+                                # or for an actual backfilled from before the clock existed, and always said so
     depends_on: [S-011]         # ids, never titles
     criteria: [AC-07, AC-08]    # the AC-nn this slice satisfies
 ---
@@ -326,7 +333,8 @@ work, this comes first in the same reply. On `Sprints: off` the answer is `docs/
 items, saying that no time figure exists because sprints are off.
 
 **The bookkeeping files** — the only paths whose commits do not need a plan update — are exactly
-`docs/sprints/`, `docs/.keel/`, `docs/PROGRESS.md` and `docs/token-ledger.md`. Everything else,
+`docs/sprints/`, `docs/.keel/`, `docs/PROGRESS.md`, `docs/sessions.md` and `docs/token-ledger.md`.
+Everything else,
 including other `docs/` artifacts an audit or a phase writes, is work.
 
 **What `scripts/keel-verify` enforces**, because a plan that can lie is worse than no plan — every
@@ -346,6 +354,106 @@ one of these is mechanical:
 | **The plan is not behind the work:** the newest commit touching any non-bookkeeping path is an ancestor of, or equal to, the newest commit touching `docs/sprints/`; failing, it names the commits the plan does not account for | Finished work never recorded is how "what is left" comes back wrong while every other check is green |
 | Every `status: done` slice carries a numeric `actual_hours` | Without actuals the remaining time is a guess and the next estimate never improves |
 | `docs/PROGRESS.md` "Current position" names a slice id that exists and is neither `done` nor `dropped`, unless every slice is closed | A position that points at nothing cannot be resumed, and cannot be timed |
+| Every `actual_source` is `measured` or `estimated`; every `done` slice marked `measured` is listed in the `Done` column of at least one `docs/sessions.md` row | A "measured" figure no session ever recorded was typed, and a typed figure labelled as measured is the exact lie the clock exists to end |
+| Every `docs/sessions.md` row: `End` is not before `Start`, and `Deviation h` equals `Actual h` minus `Est. h` (±0.05) | A deviation that is not the difference of its own columns was written, not computed |
+| `.gitignore` carries `docs/.keel/clock.jsonl` | The raw clock changes at every boundary; committed, it dirties the tree between commits and trips every clean-tree check |
+
+## Session time — `scripts/keel-time` and `docs/sessions.md` (UNBREAKABLE)
+
+SKILL.md "Session time — measured, never remembered" is the rule; this is its mechanism. The plan
+says how long work should take; the clock says how long it did; the session report puts the two
+side by side every time a session ends. **Nothing in it is typed from memory:** every timestamp
+comes from the system clock through one script, because a model does not know the time and cannot
+feel how long a slice took.
+
+### `scripts/keel-time` — the only thing that reads the clock
+
+Generated with the state files (Phase 1 step 0a, adoption step 2, or the reconciliation that brings
+a project to this version) — a small executable in plain shell or the project's runtime, no
+dependencies. Every subcommand reads `date -u +%Y-%m-%dT%H:%M:%SZ` itself and appends ONE line to
+`docs/.keel/clock.jsonl`:
+
+```
+{"schema":"keel.clock/1","event":"session-start","at":"2026-09-16T14:24:15Z","session":"2026-09-16T14:24:15Z","planned":["S-030","S-031"],"planned_hours":3.5}
+{"schema":"keel.clock/1","event":"slice-start","at":"2026-09-16T14:27:20Z","session":"2026-09-16T14:24:15Z","slice":"S-030"}
+{"schema":"keel.clock/1","event":"pause","at":"2026-09-16T15:02:00Z","session":"2026-09-16T14:24:15Z","reason":"question to the user"}
+{"schema":"keel.clock/1","event":"resume","at":"2026-09-16T15:20:41Z","session":"2026-09-16T14:24:15Z"}
+{"schema":"keel.clock/1","event":"slice-end","at":"2026-09-16T15:48:09Z","session":"2026-09-16T14:24:15Z","slice":"S-030","status":"done"}
+{"schema":"keel.clock/1","event":"session-end","at":"2026-09-16T16:40:00Z","session":"2026-09-16T14:24:15Z"}
+```
+
+`event` is a closed enum: `session-start`, `slice-start`, `slice-end`, `pause`, `resume`,
+`session-end`. `status` on `slice-end` is `done`, `in-progress` or `blocked`. Timestamps are UTC in
+the file and local time in everything printed.
+
+| Subcommand | What it does |
+|---|---|
+| `start [--plan S-030,S-031]` | Closes any session this log left open, at its LAST recorded event, and writes that session's row marked `unterminated`. Opens the new session. `--plan` defaults to the open slices in queue order from `docs/.keel/plan.json`, up to the one in `docs/PROGRESS.md`'s position and those after it that the session names. Prints the start block. |
+| `slice-start <id>` | Opens an interval for the slice. A slice already open in this session is closed first, as `in-progress`. |
+| `slice-end <id> --status <s>` | Closes the interval and writes the slice's cumulative `actual_hours` and `actual_source: measured` into its sprint file's frontmatter, so the value lands in the commit that records the slice. Prints estimated vs measured. |
+| `pause <reason>` / `resume` | Brackets every wait on the person. Paused time is subtracted from any interval it falls inside. |
+| `end` | Closes open intervals as `in-progress`, writes their partial `actual_hours`, appends the session's row to `docs/sessions.md`, and prints the session report. |
+| `report` | Prints the report for the session so far, writing nothing. |
+
+**Cumulative across sessions.** A slice worked in three sessions carries the sum of its intervals from
+all three: `slice-end` adds this session's intervals to the `actual_hours` already in the sprint file,
+so the committed value is the running total and the local log only ever has to hold the current
+session. A session that ended without `end` is closed by the next `start` at its last recorded event —
+never at the moment the next session happens to open, which would charge the whole gap to the work.
+
+**Where `scripts/keel-time` does not exist yet** (a project not yet reconciled to this version), the
+session reads `date -u` itself at the same boundaries and appends the same lines; generating the
+script is the first action of the reconciliation, not a later one.
+
+### The start block — printed before any work
+
+```
+Session start — Wed 16 Sep 2026, 16:24 CEST (system clock)
+Left: sprint 4 — 2 slices, 3.5 h · sprint 5 — 6 h · total 9.5 h
+This session plans:
+  S-030 <title> — 1.5 h
+  S-031 <title> — 2 h
+  Planned: 3.5 h of AI working time plus supervision
+```
+
+In the conversation's language. If the user's first message asks for something not in the plan, its
+slice is added first and appears in this block.
+
+### The session report — printed at the end of every session, unprompted
+
+```
+Session — 16:24 → 18:40 CEST (2 h 16 min wall-clock, 18 min paused)
+Planned at start: S-030, S-031 — 3.5 h
+Done:
+  S-030 <title> — estimated 1.5 h, measured 1.2 h (−0.3 h)
+Not finished:
+  S-031 <title> — estimated 2 h, 0.6 h spent so far
+Unplanned, added this session:
+  S-034 <title> — estimated 0.5 h, measured 0.4 h (−0.1 h)
+Deviation on finished work: estimated 2 h → measured 1.6 h (−0.4 h, −20 %)
+Left: sprint 4 — 1 slice, 2 h (1.4 h after what is already spent) · total 8 h
+```
+
+Every figure is AI working time plus supervision, and the report says so once. A negative deviation
+is reported as plainly as a positive one: the point is calibration, not blame. Where the deviation on
+finished work exceeds ±25 % across a sprint, the sprint close records one `docs/lessons-learned.md`
+line on why, so the next estimate of that kind of slice starts from the measured figure.
+
+### `docs/sessions.md` — the committed record
+
+```
+# Sessions — [Project name]
+
+> One row per working session, appended by `scripts/keel-time end`. Times come from the system clock,
+> never from the model. Hours are AI working time plus supervision.
+
+| Start | End | Wall-clock h | Paused h | Planned (slices, est. h) | Done | Est. h | Actual h | Deviation h | Not finished (h spent) | Left after h | Notes |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+```
+
+`Done` lists slice ids; `Est. h` and `Actual h` are the sums over those slices; `Notes` carries
+`unterminated` or `estimated — no clock` where either applies. Append-only. Phase 7's token
+reconciliation reads its totals for the hours half of the deviation against the estimate.
 
 ## The end-to-end verification contract
 
@@ -455,7 +563,7 @@ Load the `keel` skill and resume [PROJECT NAME] at Phase [N] ([phase name]), [st
 1. Before anything else, apply the recorded session setup — from the hand-off's own `Mode:` field, then confirmed against the project card's `Autonomy:` and `Notify:` lines (the card is the authority; where they disagree, say so in one line and follow the card). Do not re-ask what is already recorded. If the card says automatic and this session is in `manual`, resolve it (write or merge .claude/settings.local.json with permissions.defaultMode "auto", or restart with --permission-mode auto): in `manual` every composite command opens a dialog and the work cannot run unattended. Re-probe the notification channel for THIS session and say so if nothing delivers.
 2. Read the `Branches:` card line: which branch the work is on, what still has to be merged into the integration branch, and whether anything is waiting on the user's merge to main. Merge your work to develop and push it as you go (automatic mode); never merge to main, never tag, never release — say it is ready and stop there. Re-verify the `Durability:` line mechanically (a repository exists; it has a remote, or the tree replicates off the machine) — do not re-ask the question, but say so in one line if what was recorded is no longer true. Nothing this session produces is left uncommitted: commits go to develop or to a work branch bound for develop, and a repo with only main/master gets develop created first.
 3. Keep going while the queue holds work that does not depend on what is unfinished. Do not stop to ask whether to continue, and do not hand back a menu of remaining items: stop only when the next step depends on something not yet done, or when a decision is genuinely the user's. If context runs out, that is a hand-off, not a decision — write docs/continuation-prompt.md and continue there under this same rule.
-4. Read docs/PROGRESS.md — the project card, phase status, current position, open items.
+4. Read docs/PROGRESS.md — the project card, phase status, current position, open items. Then run scripts/keel-time start and show its block (the clock, what is left, what this session plans, with hours) before any work; end the session with scripts/keel-time end and show its report.
 5. Read docs/decisions.md and docs/lessons-learned.md — do not re-litigate decisions; do not repeat recorded mistakes.
 6. Read the current phase's reference (references/phase-[N]-*.md) and the inputs PROGRESS.md names for the current position.
 7. Continue EXACTLY from "Next action". Do not restart the phase, do not reinterpret or "improve" earlier decisions, do not redesign. Gaps go to the user or to a Design Request, per the skill.
@@ -792,6 +900,7 @@ The answer is not a longer rule, and it is not a checklist for the session to ti
 
 The order is the contract, and it is the order for a reason — **every commit happens before the hand-off is written, never after**:
 
+0. **`scripts/keel-time end`** — reads the clock, writes the partial `actual_hours` of every open slice and the session's row in `docs/sessions.md`, and prints the session report, so both land in step 1's commit and the report is part of what the close prints. A session that carries on past this close opens a new session with `scripts/keel-time start`.
 1. **Confidential-data scan, then commit everything outstanding.** Nothing is left uncommitted, ever (SKILL.md, "Work never lives only on this machine").
 2. **`scripts/keel-verify`**, output captured. Non-zero → stop here and report; a sprint does not close broken.
 3. **Merge to the integration branch and push** — in automatic mode without asking, per the card's `Autonomy:`. Outside it, list what stays unpushed.
@@ -1262,7 +1371,7 @@ The project root carries the Keel block below in TWO files, always: `CLAUDE.md` 
 One tool needs a third step: **Gemini CLI reads `GEMINI.md`, not `AGENTS.md`, by default.** If the user works with Gemini CLI, ask once and record the pick: mirror the same block in `GEMINI.md` (a third copy of the lock, refreshed with the others), or commit a `.gemini/settings.json` whose `context.fileName` includes `AGENTS.md` (no third copy to maintain). Either satisfies the lock.
 
 ```
-<!-- KEEL:BEGIN — v5.21.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
+<!-- KEEL:BEGIN — v6.0.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
 # Keel protocol (mandatory for ANY assistant working in this repository)
 
 This project is governed by the Keel workflow. Before reading code or changing ANYTHING:
@@ -1321,7 +1430,14 @@ This project is governed by the Keel workflow. Before reading code or changing A
    `docs/.keel/plan.json` (UNBREAKABLE). "What is left / how long" is a QUESTION:
    answer it from `plan.json` — pending slices, hours left per sprint and in total,
    labelled as AI time plus supervision — and never by starting work. Only the user
-   switches this off, explicitly (`Sprints: off` + a D-entry).
+   switches this off, explicitly (`Sprints: off` + a D-entry). EVERY session starts
+   with `scripts/keel-time start` — the system clock, what is left, and what this
+   session plans, with hours — BEFORE any work, and ends with `scripts/keel-time
+   end`, whose report (done vs estimated hours, the deviation, what is left) is
+   shown to the user. Never state a time you did not read from the clock.
+   Before EVERY push run only the tests the change reaches
+   (`scripts/keel-affected-tests --run`, enforced by `.githooks/pre-push`); the
+   ENTIRE suite runs only at a release, on the candidate (UNBREAKABLE).
 5. NEVER end a session mid-work — and NEVER close a sprint, even if you carry on
    working — leaving the user with nothing current to continue from
    (UNBREAKABLE). A sprint close is where a person walks away, so the hand-off
@@ -1451,6 +1567,7 @@ These NEVER move while the project is alive: `PROGRESS.md`, `decisions.md`, `les
 - Every Design Request exists as a numbered file with current status.
 - If forge issues were ever accessed: `docs/issues.md` exists, its inventory reflects the forge, every worked issue has its entry (diagnosis, resolution, changes, verification, pending), and — on the after-sprint duty — its `Last inbound sweep:` line is never older than the card's `Issue sweep interval:` while the project has an open sprint.
 - From Phase 5: `docs/api/INDEX.md` exists and matches the docs; sprint files follow the template.
+- Every session opened with `scripts/keel-time start` and its block before any work, and ended with `scripts/keel-time end` and its report shown; `docs/sessions.md` has its row, every `actual_hours` came from the clock or carries `actual_source: estimated`, and `docs/.keel/clock.jsonl` is gitignored.
 - Any session ending mid-work produced a continuation prompt — and so did every sprint close, whether or not the session stopped there, with `docs/continuation-prompt.md` left CURRENT rather than describing a commit the work has since moved past.
 - Where work was fanned out over worktrees: only the main tree's session wrote `docs/PROGRESS.md`, every worker left its `docs/.keel/slices/<n>.json` report committed on its own branch, every done-signal was written after its commit, and no `blocked` report was merged.
 - The project card carries `Keel baseline:`; a completed reconciliation updated it and left its D-entry; a deferred one is listed in PROGRESS.md open items.

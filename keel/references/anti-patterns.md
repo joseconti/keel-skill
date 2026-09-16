@@ -883,6 +883,52 @@ newest commit that touched the plan — `scripts/keel-verify` fails otherwise, a
 blocks the turn. The tell, for any tracking artifact: list every entry point by which work reaches
 the project, and ask which of them writes to it.
 
+### 12x. The hours nobody measured
+
+**The trap.** The plan carries estimated hours per slice, and the actual hours are written by the
+session that did the work, from its own impression of how long it took. A model has no sense of
+elapsed time — it does not know what time it is, and it cannot tell a ten-minute slice from a
+two-hour one — so the "actual" is a second estimate wearing the label of a measurement, and the
+deviation between two estimates is noise.
+
+**Why it happens.** Writing a number is one step and reading a clock at both ends of the work is
+three, the second of which happens at a moment nobody is thinking about time. And the number looks
+plausible: it is close to the estimate, because the estimate is the only figure in context.
+
+**What it costs.** The user asked for absolute control of time and got a plan whose actuals always
+land near its estimates, so no estimate ever looked wrong and none was ever corrected. On a client
+project the deviation is the figure that decides whether the next quote is honest.
+
+**The rule.** Time is READ, by a script, at every boundary — session start and end, slice start
+and end, every pause for the person — and `actual_hours` is computed from those intervals, never
+typed (SKILL.md, "Session time — measured, never remembered"). The session opens by stating what
+is left and what it plans, with hours, and closes with done against estimated and the deviation.
+Where no clock can be read, the figure says `estimated`. The mechanical check: a `measured` slice
+that no `docs/sessions.md` row lists, or a row whose deviation is not the difference of its own
+columns, fails `scripts/keel-verify`.
+
+### 12y. The whole suite as the price of every push
+
+**The trap.** Every push runs every test. It is correct on day one, when the suite takes seconds,
+and it is never revisited: the suite grows with every slice, and by the time a push costs many
+minutes the flow commits and pushes dozens of times a sprint, so testing becomes the bottleneck of
+all the work — or, worse, the pressure it creates makes someone skip it.
+
+**Why it happens.** "Run everything" is the only rule that needs no thought, and a rule that cannot
+be wrong in a small project is never examined in a large one.
+
+**What it costs.** Hours per sprint spent re-running tests that exercise code the change never
+reached, which can therefore not have been broken by it — and a push loop so slow that it starts
+being batched, which is the one outcome that genuinely lets defects through.
+
+**The rule.** Every test is written; not every test runs every time. Test points and pushes run the
+selection derived from the diff — the changed files' tests, their reverse dependencies, the changed
+tests, and a closed widening list for global changes — enforced by `.githooks/pre-push`; the entire
+suite runs at every release, on the candidate (`references/test-automation.md`, "Which tests run
+when"). The mechanical checks: an empty selection for a diff that touches source fails the script
+instead of passing, every test-point row carries its `scope:` line, and the Phase 7 record must show
+`scope: full` with the suite's total count.
+
 ---
 
 
@@ -1136,6 +1182,8 @@ recollection** — an answer given from memory is not an answer, it is the trap 
 17k. For every probe a guard acts on, can the caller tell "found nothing" from "could not tell" — and has the parser been run against the input shapes that are not the common case (for `git status --porcelain`: a rename and a quoted path)?
 17l. For every at-most-once guard, what deletes the key it is claimed against, and does the deleter know the guard exists — and where the action has more than one caller, does EACH caller claim the brake itself rather than relying on another one having done it?
 17m. Unless the card says `Sprints: off` with a real D-entry: is the newest commit touching anything other than the bookkeeping files contained in the newest commit touching `docs/sprints/` — does every `done` slice carry `actual_hours` — and for every way work entered this project since the last audit (issue, audit, hotfix, maintenance, reconciliation), is there a slice that records it?
+17n. Unless the card says `Sprints: off`: did every session since the last audit open with `scripts/keel-time start` and close with `scripts/keel-time end` — does every `done` slice marked `measured` appear in a `docs/sessions.md` row, does every row's deviation equal its actual minus its estimate, and is `docs/.keel/clock.jsonl` gitignored?
+17o. Do `scripts/keel-affected-tests` and `.githooks/pre-push` exist with `core.hooksPath` set — does a diff touching an uncovered source file make the script widen or fail rather than select nothing and pass — does every test-point row carry its `scope:` line — and does the last release record show `scope: full` with the suite's total count?
 18. (WordPress) Does `wp i18n make-pot` report zero untranslated or wrongly-domained user-facing strings?
 19. (WordPress) Does uninstall remove every option, table, meta key and scheduled event the plugin creates?
 20. (WordPress) Does every entry point — admin, AJAX, REST, bulk, CLI — check its capability and its nonce?

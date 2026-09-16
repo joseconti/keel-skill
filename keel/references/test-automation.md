@@ -157,6 +157,98 @@ Under time pressure — a production hotfix, an incident — this is the rule mo
 - **The red** — `docs/05-test-points.md` gains a `Red first` column, holding exactly one of five values: `observed` (the failure line is in the evidence cell), `n/a — policy` (the card's `Test-first policy:` does not cover this row — `none`, or a Level A row on a `pure-logic` project), `n/a — out of scope` (the row is in the not-applied table above), `n/a — predates` (the row existed before the project adopted the policy — it is not retroactive), `n/a — delegated` (the row's `Coverage` is one of the eight tags, so nobody here ran it; on `NO-EXECUTION` the test is still WRITTEN first and handed over, and that goes in the delegation steps).
 - **`scripts/keel-verify`** checks three things, and the asymmetry between them is deliberate. It **FAILS** a row whose `Red first` cell is empty or holds anything outside the five values — the same enum check `Coverage` already gets, and the reason both enums are closed is that a script can only count what it can recognise. It **FAILS** a row claiming `observed` with no failure output in its evidence cell — a claim without its evidence, which is the one thing this skill never tolerates. And it **REPORTS**, never fails, every row whose value is not `observed` and not `n/a — delegated` — the delegated ones are already accounted for by their tag and their steps, and everything else is an escape valve. The rule is deliberately blunt for one reason: the script cannot decide whether a given piece of code is pure logic, so ANY judgment-bearing value has to be visible, or the assistant simply picks the mildest one that nobody looks at. The list goes in the sprint-close report for a person to judge. On a project whose card says `none` the report is one line naming the policy and its decision entry instead of a row list — there the escape was taken deliberately, once, on the record.
 
+## Which tests run when — the change at every push, everything at the release (UNBREAKABLE)
+
+Writing a test for everything is right, and nothing below relaxes it. Running every test on every
+push is a different decision, and on a large project it is the wrong one: the suite grows with every
+slice, a push that used to cost seconds starts costing many minutes, and a flow that commits and
+pushes dozens of times a sprint turns testing into the bottleneck of all the work — while buying
+nothing a correct selection does not, because **a change can only break what it reaches.** The
+question a push asks is "did THIS change break what it touches?". The question a release asks is
+"is anything anywhere broken?". They get different answers because they are different questions.
+
+### The moments, and what each runs
+
+| Moment | What runs | Base of the diff |
+|---|---|---|
+| Test point (every slice) | The slice's own tests plus the affected selection of the slice's diff | the commit the slice started from |
+| Every push (`.githooks/pre-push`) | The affected selection of everything being pushed | the remote ref being updated; for a new branch, its merge-base with the integration branch |
+| Sprint close | The affected selection of the whole sprint's diff | the commit the sprint started from |
+| **Release — the Phase 7 gate, a hotfix and a maintenance release included** | **The ENTIRE suite, on the release candidate** | — |
+
+On `Push test scope: full` (the user's explicit choice, with its D-entry) every row runs the entire
+suite. Static analysers and sniffers follow the same split: the changed files at a test point and a
+push, the whole tree at the release. `scripts/keel-verify` is cheap and runs whole, always.
+
+### `scripts/keel-affected-tests` — the selection is a script, never a judgment
+
+Generated at the Phase 5 scaffold from the technical plan's `Test selection` line. `--base <ref>`
+sets the base (default: the upstream of the current branch, else the merge-base with the integration
+branch); `--run` executes what it selected; without it, it only prints. It builds the selection from
+exactly four inclusions:
+
+1. **The tests of every changed source file** — by the stack's own impact tool where one exists,
+   otherwise by the plan's path convention (`src/Foo/Bar.php` → `tests/**/BarTest.php`).
+2. **The tests of everything that depends on a changed file** — its reverse dependencies, from the
+   import/`use`/`require` graph or the stack's dependency tool, followed transitively. This is what
+   keeps a sprint-3 change that breaks sprint-1 code inside the selection.
+3. **Every test file added or modified in the diff**, and every regression test tied to a bug the
+   diff fixes.
+4. **The always-run set the plan names**, if it names one — a handful of smoke checks, never a
+   growing second suite.
+
+And it WIDENS, from a closed list, where a file mapping cannot bound the reach of the change:
+
+| The diff touches | The selection becomes |
+|---|---|
+| A dependency manifest or lockfile, the test runner's configuration or bootstrap, shared fixtures or helpers, build configuration, the playground or environment configuration, CI configuration, or `scripts/keel-affected-tests` itself | the entire suite |
+| A database schema or migration | the affected selection plus every integration and upgrade test |
+| A source file that maps to no test and has no dependent that does | the tests of its enclosing module or package — and the uncovered file is reported as a coverage gap, not passed over |
+| Only documentation (`docs/`, `*.md`, `guide/` text) | no tests — `scope: none — docs only`, and `scripts/keel-verify` still runs |
+
+**An empty selection for a diff that touches source code is a failure of the selector, never a
+green** — the script exits non-zero and says so. A selection tool that errors falls back to the entire
+suite and says why. Both exist because the silent failure of this mechanism looks exactly like success.
+
+Every run prints ONE scope line, and that line goes in the evidence cell of `docs/05-test-points.md`:
+`scope: affected — 37 of 412 tests — base 1a2b3c4` (with `widened: <reason>` where it widened),
+`scope: full — 412 of 412 tests`, or `scope: none — docs only`.
+
+**Impact tools by stack** — the plan names the one the project uses; where a stack has none, the path
+convention plus the reverse-dependency grep IS the tool, written into the script:
+
+| Stack | Selection |
+|---|---|
+| Jest | `jest --findRelatedTests <files>` (follows the import graph) or `--changedSince=<base>` |
+| Vitest | `vitest related <files> --run`, or `vitest --changed <base>` |
+| Playwright | `--only-changed=<base>` for spec files changed; flows mapped to source through tags (`--grep @flow-name`) |
+| pytest | `pytest-testmon` (coverage-based), or the path convention plus the import graph |
+| PHPUnit (WordPress, PrestaShop, Laravel) | no native impact analysis: path convention, `#[CoversClass]`/`@covers` grep, and a grep for the changed classes, functions and hook names across `tests/` — then `phpunit <files>` or `--filter` |
+| Go | changed packages plus their reverse dependencies from `go list -deps -test ./...` → `go test <packages>` |
+| Rust | changed crates plus their dependents from `cargo metadata` → `cargo test -p <crate>…` |
+| Monorepos | `nx affected -t test --base=<base>`, `turbo run test --filter=...[<base>]`, Bazel `rdeps` |
+| Xcode | changed modules mapped to test targets → `xcodebuild test -only-testing:<target>` |
+
+### `.githooks/pre-push` — so the rule holds when nobody remembers it
+
+Generated with the script, under the same `core.hooksPath` as the other hooks. It reads the refs git
+passes it, runs `scripts/keel-affected-tests --run --base <remote sha>` for each branch being pushed
+(a new branch: the merge-base with the integration branch), and refuses the push when the selection is
+red or the selector failed. A tag push is skipped: a tag is a release, and the release's evidence is
+the full-suite run the Phase 7 gate recorded on the candidate. Bypassing it with `--no-verify` is a
+user's act, never the assistant's.
+
+### What does not move
+
+- **The full suite at every release is not optional**, and a hotfix is a release. The one reduction
+  that already existed — the hotfix path may narrow the END-TO-END run to the flows the fix touches,
+  on the record (`references/maintenance.md`) — is unchanged and is the only one.
+- **Every behaviour still gets its test**, the reproduction test still comes before every bug fix,
+  and a test derived from an `AC-nn` or a reproduced bug is still never edited to make it pass.
+- **Where the card carries `E2E:`**, the end-to-end run at a push follows the selection (the flows the
+  change reaches) and the release gate on `docs/.keel/e2e-status.json` still requires the full run on
+  the candidate's commit.
+
 ## Make the product drivable (this is a build requirement, not a test requirement)
 
 A UI that cannot be addressed reliably forces a human back into the loop, so addressability is built in from the first slice, exactly like accessibility:
@@ -369,6 +461,7 @@ Recorded here so it is never rediscovered as a surprise mid-project:
 - Console errors, failed requests, 5xx responses and platform logs are read back and fail the test.
 - The automated accessibility pass runs per screen and per state, inside the same driven tests.
 - Static analysis and sniffers run at every test point with recorded output and a tracked suppression count.
+- Every test point and every push ran the affected selection from `scripts/keel-affected-tests` (or the full suite on `Push test scope: full`), enforced by `.githooks/pre-push`, with its `scope:` line in the evidence; no empty selection passed for a diff that touched source; the entire suite ran on the release candidate at every release.
 - Every acceptance criterion carries its `AC-nn` ID, and every ID appears in `docs/05-test-points.md` with a `Coverage` value that is either `driven` or one of the eight tags — never free text, never blank.
 - Every delegation to the user carries its tag and its exact steps; a delegation without a tag is a defect, and `JUDGMENT` or `PRODUCTION-RISK` on a criterion with no driven test beside it is the same defect wearing a label.
 - Anything that could not be driven is `⚠ unverified` with its reason — never silently absent and never reported as passing.
