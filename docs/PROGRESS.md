@@ -16,12 +16,14 @@
 - Keel portability: lock only — this repo is the SOURCE of the skill; it does not embed a copy of itself.
 - Assistant config: none (tools: claude) — no `.claude/` package generated for this repo.
 - Models: n/a no agents
-- Keel baseline: v5.11.0 — this repository authors the version it is on, so the baseline always equals the version being written.
+- Keel baseline: v6.0.0 — this repository authors the version it is on, so the baseline always equals the version being written.
 - Website intent: no
 - Client budget: no — the skill is the user's own product, not client work.
 - User guide: n/a — `README.md` and `INSTALL.md` serve that role for a skill.
 - Docs theme: n/a
 - Test-first policy: n/a — this repository ships no executable product; its only code is `tests/lint-release.py`, whose checks are added the moment the promise they verify is written. The two universal rules still apply: a linter bug is fixed from a failing check first, and a check derived from a release rule is never relaxed to make a release pass.
+- Sprints: on — plan in `docs/sprints/` since 2026-09-16 (sprint 1 = v6.0.0). Sessions timed by hand with `date -u` into `docs/.keel/clock.jsonl` (no `scripts/keel-time` in this repo — see deferred items).
+- Push test scope: n/a — this repository ships no executable product; its only check, `python3 tests/lint-release.py`, is run whole at every release.
 - Durability: **git remote `origin` — https://github.com/joseconti/keel-skill.git** (verified 2026-07-31 with `git remote -v`). The tree is not inside a synced folder; the remote covers the requirement on its own.
 - Autonomy: **automatic** — Keel does not ask, and does every merge to `develop` and every push itself (`.claude/settings.local.json` written by Keel, gitignored; see D-003, D-004) / issues: on-request — this repo's forge issues are worked when the user raises them / Issue sweep interval: n/a (the after-sprint duty was not accepted here)
 - Branches: integration branch `develop` (created from `main` 2026-07-30 and published) / no open work branch / nothing awaiting `main` — v5.10.2 merged and tagged on the user's explicit instruction
@@ -44,22 +46,21 @@ This repository was adopted into its own discipline late (state files created 20
 | 8 Website | n/a — website intent: no | — |
 
 ## Current position
-- Phase: maintenance — **v5.21.0 BUILT on `feature/sprints-always`, merged to `develop`, NOT YET TAGGED** (2026-09-15): sprints stop being a Phase 5 step and become the ledger of all work (D-026). Reported by the user: sessions created no sprints and answered "what is left and how long" by starting an audit. Change set: `SKILL.md` (new UNBREAKABLE section + principle), `references/project-state.md` (card line `Sprints:`, `actual_hours`, `plan.json` remaining/deviation fields, the fixed answer shape, keel-verify rows, stop-hook rule 1 fourth state, lock block), `references/phase-5-development.md` (§1a check, §2 slice commit, stop-hook generation, DoD), `references/maintenance.md`, `references/adoption.md`, `references/estimation-budget.md`, `references/anti-patterns.md` (12w + 17m), `MANIFEST.md`, `CHANGELOG.md`, `README.md`, `tests/evals/scenarios.md` (E22). **Open item carried from this change: this repository has no `docs/sprints/` of its own, so it does not yet satisfy the rule it now ships — create its plan, or record `Sprints: off` only if the user says so.**
-- Previous release state: v5.20.0 (2026-08-29 entry below kept as history) — **v5.19.2 BUILT, ON `develop`, NOT YET TAGGED** (2026-08-29): the stop hook stops reading a rename as "nothing happened". Measured on a real project — a session blocked with `UNBREAKABLE-broken: uncommitted work` over a single STAGED RENAME it had not made, in a checkout that belonged to somebody else. v5.15.1's cede was present, correct and complete, and unreachable: its mtime half sliced `git status --porcelain` from the fourth character, which on `R  old -> new` yields a string that is not a file, so `stat` skipped the only dirty entry and "nothing was touched recently" came back as if it were a measurement. Reproduced in a throwaway repo before anything was written.
-- Step/sprint: v5.19.2 change set complete — `references/project-state.md` (the hook's mtime probe now parses the porcelain line and reports an unstattable path as NOT ESTABLISHED), `references/phase-5-development.md` (same rule at the generation site), `SKILL.md` (the UNBREAKABLE write rule runs the identical probe by hand), `references/anti-patterns.md` (new entry 12u + self-audit row 17k), `MANIFEST.md` (Table 2 rows, Table 3 card), `CHANGELOG.md`, `README.md`, and the canonical lock stamp. `python3 tests/lint-release.py` passed: **All checks passed. Releasable.** Committed on `develop`; `main` and the tag are the user's.
-- Next action: the user merges `develop` to `main` and tags `v5.19.2` (CI publishes the release from the changelog section). Then, per project: **regenerate `scripts/keel-stop-hook`** wherever one exists — 13 checkouts on this machine carry the defective parser — and verify the cede against a rename. Items carried and still open, none touched by this release: (a) the chaining question has never been put to this repository (its card still says `Autonomy: automatic` / `Chaining: off`); (b) **this file skipped v5.11.0 and v5.12.0–v5.19.1** — it read "v5.12.0 BUILT" while `CHANGELOG.md` carried seven shipped versions after it. Recorded rather than silently overwritten; reconstruct the intermediate release states from the changelog and git history when convenient.
+- Phase: maintenance — **v6.0.0** (2026-09-16), sprint 1, slice S-003 (release). Two UNBREAKABLE rules (D-027): every session is timed by the clock and closed against the plan (`scripts/keel-time`, `docs/sessions.md`), and a push runs only the tests its change reaches while the entire suite runs at every release (`scripts/keel-affected-tests`, `.githooks/pre-push`). Released on the user's explicit instruction (D-028).
+- Previous states: v5.21.0 released 2026-09-15 (sprints as the ledger of all work, D-026); the history before it is in `keel/CHANGELOG.md` and git.
+- Next action: after the v6.0.0 release, close S-003 and the session (row in `docs/sessions.md`). Then, per project on this machine: run the v6.0.0 reconciliation (MANIFEST Table 3).
 
 ## Open items
 - Unresolved user questions: none
 - Open Design Requests: none
 - Unverified external steps/assets: none
 - Forge issues in progress: none
-- **Ready for `main`:** v5.21.0 — lint-clean on `develop`, awaiting the user's merge and tag (v5.19.2 and v5.20.0 ride along if not yet tagged).
-- **This repository has no `docs/sprints/`** — it does not yet follow the rule v5.21.0 ships (D-026). Create its plan, or record `Sprints: off` only on the user's explicit word.
+- **Ready for `main`:** v6.0.0 — lint-clean on `develop`; the user instructed the release to be published by the assistant (D-028).
 
 ### Deferred items (consciously postponed work)
+- **No `scripts/keel-time` and no `plan.json` generator in this repo** — severity: low — review trigger: the next session that finds timing by hand error-prone. The clock is read with `date -u` at every boundary and the events appended to `docs/.keel/clock.jsonl`; `docs/sessions.md` is written from them.
 - **The user's `~/.claude/settings.json` carries an unexpanded `env.PATH`** (`$HOME/...:${PATH}` literal), which removes `/usr/bin` and `/bin` and breaks `git`, `ls`, `cut` and `grep` in every session on this machine — worked around all release day with absolute paths and `/usr/bin/env`. Severity: high (machine-wide, every project) — review trigger: the user's go-ahead; it is their personal global config, so Keel proposed the one-line fix and did not apply it. v5.5.0 fixed the RECIPE that would have propagated it.
 - **Notification reach is desktop-only unless Remote Control is connected** — severity: low — review trigger: the first time a real absence goes unnoticed, or if the user wants alerts while away from the building. The native channel covers "walked away from the desk"; an SMTP sender or messaging MCP would be the escalation, and is not built.
 - **This repo has no `scripts/keel-verify`, `keel-doctor` or `keel-handoff-verify`** — severity: low — review trigger: if the repo ever ships executable content. `tests/lint-release.py` is this project's equivalent gate and is genuinely mechanical; generating the other three would be ceremony over a Markdown package.
 
-Last updated: 2026-09-15 — maintenance, v5.21.0 built (sprints as the ledger of all work), awaiting the user's merge and tag
+Last updated: 2026-09-16 — maintenance, v6.0.0 (session time + scoped tests), release in progress

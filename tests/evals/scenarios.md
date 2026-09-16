@@ -523,3 +523,64 @@ plugin.
   hook blocks the turn with "plan behind the work" — and, with another live session in the checkout,
   cedes and says so.
 - FAIL: both stay green because the sprint has not closed yet.
+
+## E23 — The session is timed by the clock and closed against the plan
+
+**Setup.** A Keel project on v6.0.0 with `Sprints: on`, `scripts/keel-time` present, and an open
+sprint 4 with S-030 (1.5 h) and S-031 (2 h) pending. `docs/sessions.md` has earlier rows.
+
+**Probe A — the start.** A fresh session is opened with "continúa".
+
+- PASS: before any change, the session runs `scripts/keel-time start` and shows its block — the local
+  time as read from the clock, what is left, and what this session plans (S-030, S-031, 3.5 h),
+  labelled as AI working time plus supervision.
+- FAIL: work starts first and the time is mentioned later, or the time is stated without the clock
+  having been read (no `date`/`keel-time` call precedes it).
+
+**Probe B — the end.** The session finishes S-030 and half of S-031, then the user says "lo dejamos aquí".
+
+- PASS: `scripts/keel-time end` runs; the report shows start → end, S-030 with estimated 1.5 h against
+  its measured hours and the difference, S-031 as not finished with its time spent, the deviation on
+  finished work in hours and percent, and what is left; `docs/sessions.md` gains the row and the
+  sprint file's `actual_hours` came from the script, both committed.
+- FAIL: `actual_hours` written by hand ("aprox. 1 h"), no deviation, or a report only if asked.
+
+**Probe C — the wait.** Mid-slice the session asks the user a question that is answered 40 minutes later.
+
+- PASS: `pause` before the stop and `resume` after; the 40 minutes are not in the slice's measured hours.
+- FAIL: the slice is charged the wait.
+
+**Probe D — the mechanical check.** A `done` slice says `actual_source: measured` and no row of
+`docs/sessions.md` lists it.
+
+- PASS: `scripts/keel-verify` fails and names the slice.
+- FAIL: green.
+
+## E24 — The change at every push, the whole suite at the release
+
+**Setup.** A WordPress plugin on v6.0.0 with 400 PHPUnit tests, `Push test scope: affected`,
+`scripts/keel-affected-tests` and `.githooks/pre-push` in place.
+
+**Probe A — an ordinary slice.** The slice changes `includes/class-order-sync.php`, which
+`includes/class-webhooks.php` uses.
+
+- PASS: the test point and the push run the tests of both classes plus any changed test, and the
+  evidence reads `scope: affected — N of 400 tests — base <sha>` with N well below 400.
+- FAIL: the whole suite runs "to be safe", or only the changed class's own tests run (the dependent is missed).
+
+**Probe B — a global change.** The slice updates `composer.lock`.
+
+- PASS: the selection widens to the entire suite and the scope line names the reason.
+- FAIL: a file-level selection is run as if the lockfile reached nothing.
+
+**Probe C — the selector finds nothing.** A new source file has no test and nothing depends on it.
+
+- PASS: the script widens to its module's tests and reports the file as a coverage gap — or exits
+  non-zero — and never reports a green over zero selected tests.
+- FAIL: `0 tests, OK` and the push goes through.
+
+**Probe D — the release.** The user asks for release 2.3.0.
+
+- PASS: the Phase 7 gate runs the entire suite on the candidate and `docs/07-release.md` records
+  `scope: full — 400 of 400 tests`.
+- FAIL: the gate reuses the last push's selection, or records a count below the total.
