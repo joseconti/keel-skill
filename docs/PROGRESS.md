@@ -16,17 +16,17 @@
 - Keel portability: lock only — this repo is the SOURCE of the skill; it does not embed a copy of itself.
 - Assistant config: none (tools: claude) — no `.claude/` package generated for this repo.
 - Models: n/a no agents
-- Keel baseline: v6.0.0 — this repository authors the version it is on, so the baseline always equals the version being written.
+- Keel baseline: v6.1.0 — this repository authors the version it is on, so the baseline always equals the version being written.
 - Website intent: no
 - Client budget: no — the skill is the user's own product, not client work.
 - User guide: n/a — `README.md` and `INSTALL.md` serve that role for a skill.
 - Docs theme: n/a
 - Test-first policy: n/a — this repository ships no executable product; its only code is `tests/lint-release.py`, whose checks are added the moment the promise they verify is written. The two universal rules still apply: a linter bug is fixed from a failing check first, and a check derived from a release rule is never relaxed to make a release pass.
-- Sprints: on — plan in `docs/sprints/` since 2026-09-16 (sprint 1 = v6.0.0). Sessions timed by hand with `date -u` into `docs/.keel/clock.jsonl` (no `scripts/keel-time` in this repo — see deferred items).
+- Sprints: on — plan in `docs/sprints/` since 2026-09-16 (sprint 1 = v6.0.0, sprint 2 = v6.1.0). Sessions timed by hand with `date -u` into `docs/.keel/clock.jsonl` (no `scripts/keel-time` in this repo — see deferred items).
 - Push test scope: n/a — this repository ships no executable product; its only check, `python3 tests/lint-release.py`, is run whole at every release.
 - Durability: **git remote `origin` — https://github.com/joseconti/keel-skill.git** (verified 2026-07-31 with `git remote -v`). The tree is not inside a synced folder; the remote covers the requirement on its own.
 - Autonomy: **automatic** — Keel does not ask, and does every merge to `develop` and every push itself (`.claude/settings.local.json` written by Keel, gitignored; see D-003, D-004) / issues: on-request — this repo's forge issues are worked when the user raises them / Issue sweep interval: n/a (the after-sprint duty was not accepted here)
-- Branches: integration branch `develop` (created from `main` 2026-07-30 and published) / no open work branch / nothing awaiting `main` — v5.10.2 merged and tagged on the user's explicit instruction
+- Branches: integration branch `develop` (created from `main` 2026-07-30 and published) / work branch `feature/v6.1-tool-registry` / v6.1.0 awaiting `main` — merged to `main` by PR on the user's explicit instruction, as every release here is
 - Notify: **native Claude Code notification** — desktop always; phone only while Remote Control is connected. No address needed. The Gmail connector is compose-only (draft, no send) and is not a channel. Re-probe each session per `references/notifications.md`.
 - Chaining: off — pending re-ask under the v5.10.0 recommendation (this card is `Autonomy: automatic`)
 
@@ -46,16 +46,16 @@ This repository was adopted into its own discipline late (state files created 20
 | 8 Website | n/a — website intent: no | — |
 
 ## Current position
-- Phase: maintenance — **v6.0.0** (2026-09-16), sprint 1, slice S-003 (release). Two UNBREAKABLE rules (D-027): every session is timed by the clock and closed against the plan (`scripts/keel-time`, `docs/sessions.md`), and a push runs only the tests its change reaches while the entire suite runs at every release (`scripts/keel-affected-tests`, `.githooks/pre-push`). Released on the user's explicit instruction (D-028).
-- Previous states: v5.21.0 released 2026-09-15 (sprints as the ledger of all work, D-026); the history before it is in `keel/CHANGELOG.md` and git.
-- Next action: **the user merges PR #14 (develop → main) with a merge commit**, then tag `v6.0.0` on main and publish the GitHub release with the CHANGELOG 6.0.0 section as notes (Actions is disabled — manual release). Then close S-003. Then, per project on this machine: run the v6.0.0 reconciliation (MANIFEST Table 3).
+- Phase: maintenance — **v6.1.0** (2026-09-18), sprint 2, slice S-005 (release). The tool registry stops being prose and becomes DATA: one row file per assistant, `scripts/keel-tools/<tool>.sh`, holding every per-tool fact as a field, with the shared scripts carrying no tool name on an executable line and a session permitted to edit only the row of the tool it is running in (D-029). Released on the user's explicit instruction (D-030).
+- Previous states: v6.0.0 released 2026-09-16 (session time measured by the clock, tests scoped to the change at push, D-027/D-028); v5.21.0 released 2026-09-15 (sprints as the ledger of all work, D-026); the history before it is in `keel/CHANGELOG.md` and git.
+- Next action: **the user merges the v6.1.0 PR (`develop` → `main`) with a merge commit**; the tag `v6.1.0` and the GitHub release follow from it (Actions is disabled in this repo — the release is published by hand with `gh release create`, notes extracted from the CHANGELOG 6.1.0 section). Then close S-005 and sprint 2. Then, per project on this machine running two or more assistants: run the v6.1.0 reconciliation (MANIFEST Table 3) — `new-gymai` first, since that is where the defect was measured.
 
 ## Open items
 - Unresolved user questions: none
 - Open Design Requests: none
 - Unverified external steps/assets: none
 - Forge issues in progress: none
-- **Ready for `main`:** v6.0.0 — lint-clean on `develop`, PR #14 open. Merging it and publishing the release were refused by the local merge hook and the permission classifier; both wait on the user.
+- **Ready for `main`:** v6.1.0 — lint-clean, PR open from `feature/v6.1-tool-registry` → `develop` → `main`. The merge to `main` is the user's act by policy, and the local merge hook enforces it.
 
 ### Deferred items (consciously postponed work)
 - **No `scripts/keel-time` and no `plan.json` generator in this repo** — severity: low — review trigger: the next session that finds timing by hand error-prone. The clock is read with `date -u` at every boundary and the events appended to `docs/.keel/clock.jsonl`; `docs/sessions.md` is written from them.
@@ -63,4 +63,4 @@ This repository was adopted into its own discipline late (state files created 20
 - **Notification reach is desktop-only unless Remote Control is connected** — severity: low — review trigger: the first time a real absence goes unnoticed, or if the user wants alerts while away from the building. The native channel covers "walked away from the desk"; an SMTP sender or messaging MCP would be the escalation, and is not built.
 - **This repo has no `scripts/keel-verify`, `keel-doctor` or `keel-handoff-verify`** — severity: low — review trigger: if the repo ever ships executable content. `tests/lint-release.py` is this project's equivalent gate and is genuinely mechanical; generating the other three would be ceremony over a Markdown package.
 
-Last updated: 2026-09-16 — maintenance, v6.0.0 (session time + scoped tests), release in progress
+Last updated: 2026-09-18 — maintenance, v6.1.0 (the tool registry as data), release in progress

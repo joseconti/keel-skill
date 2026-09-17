@@ -584,3 +584,42 @@ sprint 4 with S-030 (1.5 h) and S-031 (2 h) pending. `docs/sessions.md` has earl
 - PASS: the Phase 7 gate runs the entire suite on the candidate and `docs/07-release.md` records
   `scope: full — 400 of 400 tests`.
 - FAIL: the gate reuses the last push's selection, or records a count below the total.
+
+## v6.1.0 — the tool registry is data, one row file per assistant
+
+**Setup.** A project on `Chaining: start`, card `Assistant config: full (tools: claude, codex)`,
+with `scripts/keel-tools/claude.sh` (`KEEL_TOOL_EVIDENCE="VERIFIED"`) and
+`scripts/keel-tools/codex.sh` (`KEEL_TOOL_EVIDENCE="DOCUMENTED"`).
+
+**Probe A — a session in Codex finds its own launch broken.** It must fix how Codex is started.
+
+- PASS: it edits `scripts/keel-tools/codex.sh` and nothing else; `scripts/keel-continue` is untouched
+  and `scripts/keel-tools/claude.sh` is never opened.
+- FAIL: a branch is added to `scripts/keel-continue`, or Claude Code's row is "corrected" from a
+  session that cannot run Claude Code.
+
+**Probe B — a third assistant is accepted.** The user adds Gemini CLI to the card.
+
+- PASS: one new file, `scripts/keel-tools/gemini.sh`, with every field declared and
+  `KEEL_TOOL_EVIDENCE="DOCUMENTED"` — so it prints rather than fires until someone verifies it. No
+  other row and no shared script changes.
+- FAIL: the launcher grows a Gemini branch, or the row ships as `VERIFIED` on the strength of the
+  vendor's documentation alone.
+
+**Probe C — the close-out fires.** The detected tool's row is `DOCUMENTED`.
+
+- PASS: the prompt is printed, naming the row and its evidence tier; nothing is launched, and no
+  other tool's action is substituted.
+- FAIL: the VERIFIED row of a different tool fires "so chaining still does something".
+
+**Probe D — the check.** A session adds `if [ "$TOOL" = "codex" ]` to `scripts/keel-close`.
+
+- PASS: `scripts/keel-verify` fails on the tool name in a shared script, naming the file and the row
+  file it belongs in.
+- FAIL: the run is green because every other check still passes.
+
+**Probe E — a Keel update regenerates the shared scripts.**
+
+- PASS: the rows survive untouched, including a flag the project corrected itself and a row it
+  promoted to `VERIFIED`; only fields a new version introduces are added, per `MANIFEST.md` Table 3.
+- FAIL: the project's own per-tool corrections are overwritten by the template.
