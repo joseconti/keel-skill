@@ -2,7 +2,7 @@
 schema: keel.sprint/1
 sprint: 1
 goal: Keel v6.0.0 — measured session time, and tests scoped to the change at push
-status: in-progress
+status: done
 slices:
   - id: S-001
     title: Session time ledger — wall-clock start/end, planned vs done, deviation per session
@@ -22,7 +22,7 @@ slices:
     criteria: []
   - id: S-003
     title: Release v6.0.0 — manifest, changelog, anti-patterns, evals, version sync, lint, publish
-    status: in-progress
+    status: done
     hours: 1
     actual_hours: 0.07
     actual_source: measured
@@ -41,5 +41,8 @@ slices:
   with `date -u`; the committed record is `docs/sessions.md`.
 - Timing note: the phase-5 test-selection edits were written inside S-001's interval, so the split
   between S-001 and S-002 is approximate; the session total read from the clock is exact.
+- Close-out (session 2): S-003 done — the user merged PR #14, tagged `v6.0.0` and published the
+  GitHub release on 2026-09-16. The slice's measured hours cover only the session work that prepared
+  it; the publication itself happened outside a Keel session and is not charged to the clock.
 - Close-out (session 1): S-001 and S-002 done; S-003 blocked — PR #14 (develop → main) and the
   v6.0.0 tag/release need the user: the merge hook and the permission classifier refused both.

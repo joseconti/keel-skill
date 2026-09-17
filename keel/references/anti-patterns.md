@@ -808,8 +808,6 @@ different question; here, an empty result answers no question at all and is read
 ---
 
 
-## WordPress and WooCommerce
-
 ### 12v. The guard keyed to the artifact the system deliberately deletes
 
 **The trap.** A mechanism gets an anti-duplicate guard, and the guard is keyed to the thing the
@@ -931,6 +929,51 @@ instead of passing, every test-point row carries its `scope:` line, and the Phas
 
 ---
 
+
+### 12z. The shared script adapted to the tool the session happens to be running in
+
+**The trap.** One script serves every assistant on the project, and the facts that differ between
+assistants — the marker each is recognised by, the CLI name, the launch invocation and its flags,
+whether a model may be passed, whether a hook's schema is that tool's — are written into it as
+branches: `if [ "$TOOL" = "codex" ]`. A session working in one assistant finds its own close-out or
+its own launch broken, and fixes it in the file every other assistant also reads.
+
+**Why it happens.** The registry of what each tool may do was prose, and prose cannot be sourced, so
+the only way to act on it was to compile it into code by hand. And the edit looks local: the session
+is fixing its own tool, touching only its own branch, in a file it has every right to edit.
+
+**What it costs.** Measured, on a project running Claude Code and OpenAI Codex against one checkout:
+each assistant's repairs landed in the other's file, so changing assistant meant repairing the new
+one and breaking the last one — and the next Keel update regenerated the shared script from the
+template and took both sets of repairs with it. The failure is silent in the direction that matters:
+the tool the session is running in works, so nothing in that session ever reports the damage.
+
+**The sibling, and it is the one that bites hardest.** The same shape appears one step away: a
+generated script is REGISTERED as a native hook in an assistant whose output contract nobody
+confirmed — `.codex/hooks.json` pointed at `scripts/keel-stop-hook`, whose JSON is deliberately
+Claude Code's `Stop` schema. Codex rejects it (`invalid stop hook JSON output`) and ends the very
+turn the hook exists to keep open. The session then meets the error in ITS tool and reaches for the
+payload, which is the wrong half: **the repair is to remove the registration from the tool that
+rejects it, never to change the output and break the assistant where it already works** — an
+assistant that is not running, so nothing in this session will report the damage, and the session's
+own tool stops complaining, which reads exactly like success.
+
+**The rule.** The registry is DATA, one row file per assistant — `scripts/keel-tools/<tool>.sh` —
+and a session may create or edit only the row of the tool it is itself running in
+(`references/project-state.md`, "The registry is DATA"). Shared scripts resolve the detected tool's
+row, source it, and use the fields; adding an assistant is adding a file, and it cannot touch the
+assistants already there. The mechanical check is the one that catches the regression rather than
+the symptom: `scripts/keel-verify` fails when a shared `scripts/keel-*` matches a registry tool name
+outside a comment — because the prose rule forbidding per-tool branches already existed, was marked
+in the same file as the contract it governs, and was compiled into branches anyway. For the sibling
+the check is `KEEL_TOOL_HOOK_FILE` against `KEEL_TOOL_STOP_HOOK`: the hook is registered where the
+row says `yes` and nowhere else, and the check reads the container from the row rather than knowing
+any tool's path, since a check that hardcodes one is the same trap inside the detector.
+
+---
+
+
+## WordPress and WooCommerce
 
 ### 13. The user-facing string that skipped i18n
 
@@ -1184,6 +1227,7 @@ recollection** — an answer given from memory is not an answer, it is the trap 
 17m. Unless the card says `Sprints: off` with a real D-entry: is the newest commit touching anything other than the bookkeeping files contained in the newest commit touching `docs/sprints/` — does every `done` slice carry `actual_hours` — and for every way work entered this project since the last audit (issue, audit, hotfix, maintenance, reconciliation), is there a slice that records it?
 17n. Unless the card says `Sprints: off`: did every session since the last audit open with `scripts/keel-time start` and close with `scripts/keel-time end` — does every `done` slice marked `measured` appear in a `docs/sessions.md` row, does every row's deviation equal its actual minus its estimate, and is `docs/.keel/clock.jsonl` gitignored?
 17o. Do `scripts/keel-affected-tests` and `.githooks/pre-push` exist with `core.hooksPath` set — does a diff touching an uncovered source file make the script widen or fail rather than select nothing and pass — does every test-point row carry its `scope:` line — and does the last release record show `scope: full` with the suite's total count?
+17p. Where the project generates `scripts/keel-tools/`: does every accepted tool have a row file with every field declared — does a grep of the shared `scripts/keel-*` for the registry's tool names return nothing outside comments — and does each tool's `KEEL_TOOL_HOOK_FILE` mention `scripts/keel-stop-hook` exactly when its `KEEL_TOOL_STOP_HOOK` is `yes`?
 18. (WordPress) Does `wp i18n make-pot` report zero untranslated or wrongly-domained user-facing strings?
 19. (WordPress) Does uninstall remove every option, table, meta key and scheduled event the plugin creates?
 20. (WordPress) Does every entry point — admin, AJAX, REST, bulk, CLI — check its capability and its nonce?

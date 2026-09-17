@@ -1,4 +1,4 @@
-# Keel Manifest — v6.0.0
+# Keel Manifest — v6.1.0
 
 One file, three tables, one purpose: looking ONLY at this file, a session can tell (1) whether a project contains everything Keel requires at its current phase, (2) which skill files changed in which Keel version — so after an update it knows exactly what to re-read, without interpreting the changelog — and (3) what concrete actions each version asks of an existing project (the reconciliation delta).
 
@@ -54,6 +54,7 @@ Verification is phase-aware and condition-aware: read the project card and phase
 | `scripts/` build/minify script (name per the technical plan) | Regenerates every `*.min.*` from its committed unminified source (`references/phase-5-development.md`); run locally by the working assistant, never CI — the source-first assets contract | Phase 5 scaffold | Only if the project ships front-end JS/CSS (source + minified pair) |
 | `scripts/keel-handoff-verify` | Runs the five mechanical courier checks over `docs/continuation-prompt.md` (containment, `Repo`, `Commit`, `Generated` as epoch, `Tree`) and prints one line each plus `VERDICT: CONTINUE\|STOP` — the session NEVER composes these checks itself (`references/project-state.md`). Needs one allow-list entry: `Bash(./scripts/keel-handoff-verify:*)` On a card that says `Chaining: start`, the same script also TAKES the single lane before the session acts — as a BATON when the live holder is the PID recorded in this hand-off's launch receipt — and gives it back under `--release`, which the close-out runs as its last act on every path (`references/phase-5-development.md` §1 and §5 step 11). | Phase 5 scaffold | Always (it is what makes the courier checks runnable) |
 | Single-lane lock — taken by `scripts/keel-handoff-verify` when the card is `Chaining: start` | One file OUTSIDE the repository (the user's state dir), keyed by the real path of `git rev-parse --show-toplevel` — never the root-commit hash, which is wrong in a shallow clone and changes on `--unshallow`. Holds the owning PID + start time, so a lock left by a crashed session is detectable. Taken by the ARRIVING session, never the launcher, which cannot know who else is in flight. Released at the holder's CLOSE-OUT — never "on exit", a moment a session never reaches (`references/project-state.md`) | Phase 5 scaffold — before `start` is offered | Only if the card is `Chaining: start` |
+| `scripts/keel-tools/<tool>.sh` — one row file per accepted assistant | The tool registry as DATA: `KEEL_TOOL_EVIDENCE` / `VERIFIED_ON` / `TIER` / `CLI` / `PASS_MODEL` / `STOP_HOOK` / `HOOK_FILE` / `LIVE_QUERY` plus `keel_tool_detect` and `keel_tool_launch`. The ONLY place in the project that knows anything about a given assistant: the shared scripts source the detected tool's row and carry no tool name on an executable line. A session may create or edit ONLY the row of the tool it is itself running in (`references/project-state.md`, "The registry is DATA") | Phase 5 scaffold | Only if the card is not `Chaining: off` and not `Chaining: supervised` |
 | `scripts/keel-continue` | Detects the tool, looks up its row in the registry, and fires the VERIFIED action recorded for it — passing this repository's ABSOLUTE hand-off path — or prints the prompt when no action is recorded. **Never fires a different tool's action as a fallback or a default: the detected tool's own row, or the printed prompt — nothing else** (measured incident, `references/anti-patterns.md`, 12q). Records its own PID in the launch receipt and releases the lane immediately BEFORE firing (`references/project-state.md`, which carries its template) | Phase 5 scaffold | Only if the card is not `Chaining: off` and not `Chaining: supervised` |
 | `scripts/keel-close` | The close-out as an executable instead of a sequence a session walks by hand: commit, `keel-verify`, merge and push, write `docs/continuation-prompt.md` with `Commit:`/`Tree:` read from git AT THE INSTANT OF WRITING, `keel-chain-check`, `keel-continue`, `keel-handoff-verify --release` — then print every step with its evidence. Decides nothing; stops only on a failing `keel-verify` (`references/project-state.md`). Needs one allow-list entry: `Bash(./scripts/keel-close:*)` | Phase 5 scaffold | Always |
 | `.githooks/post-commit` + `core.hooksPath` set | Deletes `docs/continuation-prompt.md` if it exists, and nothing else — so a hand-off that exists is newer than the last commit BY CONSTRUCTION and cannot point at a commit the work moved past. Unconditional, unlike the `pre-commit` confidential-data gate: `core.hooksPath` is therefore set on every project, package or no package (`references/project-state.md`) | Phase 5 scaffold, verified firing on a real commit | Always |
@@ -94,19 +95,20 @@ After an update, re-read `SKILL.md`, the current phase's reference, and THIS fil
 
 | Skill file | Last changed in |
 |---|---|
-| `SKILL.md` | v6.0.0 |
-| `MANIFEST.md` | v6.0.0 |
-| `CHANGELOG.md` | v6.0.0 |
+| `SKILL.md` | v6.1.0 |
+| `MANIFEST.md` | v6.1.0 |
+| `CHANGELOG.md` | v6.1.0 |
 | `references/keel-maintenance.md` | v5.10.3 |
 | `references/notifications.md` | v5.14.0 |
 | `references/playground-recipes.md` | v5.1.0 |
 | `references/test-automation.md` | v6.0.0 |
+| v6.1.0 | MINOR, and structural only on a chaining project: **the tool registry becomes DATA**. On a project whose card is not `Chaining: off`/`supervised`, generate `scripts/keel-tools/<tool>.sh` — one row file per tool on the card's `Assistant config:` tools list — from `references/project-state.md` ("The registry is DATA"), carrying every field that contract lists; a tool whose action is `NONE` still gets a row, because a recorded "this one prints" is an answer and a missing row is not. Then **move every per-tool fact OUT of the shared scripts and into its row**: `scripts/keel-continue`, `scripts/keel-close`, `scripts/keel-stop-hook` and `scripts/keel-chain-check` source the detected tool's row and must carry no tool name on an executable line (comments may keep the history). Regenerate `scripts/keel-verify` with the four new rows (row per accepted tool, every field declared, no tool name in a shared script outside a comment, and each tool's `KEEL_TOOL_HOOK_FILE` mentioning `scripts/keel-stop-hook` exactly when its `KEEL_TOOL_STOP_HOOK` is `yes`). **Run that fourth check on the existing tree before anything else and repair what it finds by REMOVING the registration from the tool whose row says `no` — never by changing the hook's output**, which breaks the one integration already proven, in a tool that is not even running and re-run `scripts/keel-chain-check --smoke`, since the card's `Chain verified:` line now carries the fired row's checksum beside the launcher's — an unproven row prints instead of firing. Restamp the lock block's version in `CLAUDE.md` + `AGENTS.md` (the block TEXT is unchanged this version). Projects on `Chaining: off` or `supervised`: none structural. |
 | `references/maintenance.md` | v6.0.0 |
 | `references/guide-theme.md` | v3.2.1 |
-| `references/assistant-config.md` | v6.0.0 |
-| `references/phase-5-development.md` | v6.0.0 |
+| `references/assistant-config.md` | v6.1.0 |
+| `references/phase-5-development.md` | v6.1.0 |
 | `references/phase-7-release.md` | v6.0.0 |
-| `references/project-state.md` | v6.0.0 |
+| `references/project-state.md` | v6.1.0 |
 | `references/phase-1-discovery.md` | v6.0.0 |
 | `references/phase-2-functional-spec.md` | v6.0.0 |
 | `references/adoption.md` | v6.0.0 |
@@ -127,7 +129,7 @@ After an update, re-read `SKILL.md`, the current phase's reference, and THIS fil
 | `references/phase-8-launch-checklist.md` | v5.12.0 |
 | `references/phase-8-technical-seo.md` | v2.0.0 |
 | `references/accessibility.md` | v5.2.0 |
-| `references/anti-patterns.md` | v6.0.0 |
+| `references/anti-patterns.md` | v6.1.0 |
 | `references/security/wordpress.md` | v4.0.0 |
 | `references/security/web-app.md` | v4.0.0 |
 | `references/security/mcp-server.md` | v4.0.0 |
