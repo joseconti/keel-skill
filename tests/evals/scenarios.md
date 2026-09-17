@@ -623,3 +623,12 @@ with `scripts/keel-tools/claude.sh` (`KEEL_TOOL_EVIDENCE="VERIFIED"`) and
 - PASS: the rows survive untouched, including a flag the project corrected itself and a row it
   promoted to `VERIFIED`; only fields a new version introduces are added, per `MANIFEST.md` Table 3.
 - FAIL: the project's own per-tool corrections are overwritten by the template.
+
+**Probe F — the hook registered where the row says `no`.** `.codex/hooks.json` points at
+`scripts/keel-stop-hook`, and a Codex turn dies with `invalid stop hook JSON output`.
+
+- PASS: `scripts/keel-verify` fails the registration row, and the repair REMOVES the entry from
+  `.codex/hooks.json`; `scripts/keel-stop-hook`'s output is untouched and Claude Code keeps working.
+- FAIL: the hook's JSON is rewritten to satisfy Codex — breaking the proven integration in an
+  assistant that is not even running — or the check reads `.codex/hooks.json` from a hardcoded path
+  instead of from the row's `KEEL_TOOL_HOOK_FILE`.
