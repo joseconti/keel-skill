@@ -26,7 +26,7 @@
 - Push test scope: n/a — this repository ships no executable product; its only check, `python3 tests/lint-release.py`, is run whole at every release.
 - Durability: **git remote `origin` — https://github.com/joseconti/keel-skill.git** (verified 2026-07-31 with `git remote -v`). The tree is not inside a synced folder; the remote covers the requirement on its own.
 - Autonomy: **automatic** — Keel does not ask, and does every merge to `develop` and every push itself (`.claude/settings.local.json` written by Keel, gitignored; see D-003, D-004) / issues: on-request — this repo's forge issues are worked when the user raises them / Issue sweep interval: n/a (the after-sprint duty was not accepted here)
-- Branches: integration branch `develop` (created from `main` 2026-07-30 and published) / work branch `feature/v6.1-tool-registry` / v6.1.0 awaiting `main` — merged to `main` by PR on the user's explicit instruction, as every release here is
+- Branches: integration branch `develop` (created from `main` 2026-07-30 and published) / no open work branch / nothing awaiting `main` — v6.1.0 merged by PR #15 and released on the user's explicit instruction
 - Notify: **native Claude Code notification** — desktop always; phone only while Remote Control is connected. No address needed. The Gmail connector is compose-only (draft, no send) and is not a channel. Re-probe each session per `references/notifications.md`.
 - Chaining: off — pending re-ask under the v5.10.0 recommendation (this card is `Autonomy: automatic`)
 
@@ -46,16 +46,17 @@ This repository was adopted into its own discipline late (state files created 20
 | 8 Website | n/a — website intent: no | — |
 
 ## Current position
-- Phase: maintenance — **v6.1.0** (2026-09-18), sprint 2, slice S-005 (release). The tool registry stops being prose and becomes DATA: one row file per assistant, `scripts/keel-tools/<tool>.sh`, holding every per-tool fact as a field, with the shared scripts carrying no tool name on an executable line and a session permitted to edit only the row of the tool it is running in (D-029) — plus the check that fails on a stop hook registered in a tool whose row forbids it, naming the correct repair (D-031, from the live Codex instance the user hit). Released on the user's explicit instruction (D-030).
+- Phase: maintenance — **v6.1.0 RELEASED** (2026-09-18), sprint 2 closed. The tool registry stops being prose and becomes DATA: one row file per assistant, `scripts/keel-tools/<tool>.sh`, holding every per-tool fact as a field, with the shared scripts carrying no tool name on an executable line and a session permitted to edit only the row of the tool it is running in (D-029) — plus the check that fails on a stop hook registered in a tool whose row forbids it, naming the correct repair (D-031, from the live Codex instance the user hit). Released on the user's explicit instruction (D-030).
 - Previous states: v6.0.0 released 2026-09-16 (session time measured by the clock, tests scoped to the change at push, D-027/D-028); v5.21.0 released 2026-09-15 (sprints as the ledger of all work, D-026); the history before it is in `keel/CHANGELOG.md` and git.
-- Next action: **the user merges the v6.1.0 PR (`develop` → `main`) with a merge commit**; the tag `v6.1.0` and the GitHub release follow from it (Actions is disabled in this repo — the release is published by hand with `gh release create`, notes extracted from the CHANGELOG 6.1.0 section). Then close S-005 and sprint 2. Then, per project on this machine running two or more assistants: run the v6.1.0 reconciliation (MANIFEST Table 3) — `new-gymai` first, since that is where the defect was measured.
+- Next action: **run the v6.1.0 reconciliation (MANIFEST Table 3) per project on this machine that runs two or more assistants — `new-gymai` first**, since it carries the live instance: `.codex/hooks.json` registers `scripts/keel-stop-hook`, which the new fourth `keel-verify` row fails. The repair is to REMOVE that registration, never to change the hook's output. Not started here because another session may be working in that checkout.
 
 ## Open items
 - Unresolved user questions: none
 - Open Design Requests: none
 - Unverified external steps/assets: none
 - Forge issues in progress: none
-- **Ready for `main`:** v6.1.0 — lint-clean, PR open from `feature/v6.1-tool-registry` → `develop` → `main`. The merge to `main` is the user's act by policy, and the local merge hook enforces it.
+- **Ready for `main`:** nothing — v6.1.0 is merged (PR #15), tagged at 14f0901 and published.
+- **Reconciliation pending on other projects:** v6.0.0 → v6.1.0, starting with `new-gymai`.
 
 ### Deferred items (consciously postponed work)
 - **No `scripts/keel-time` and no `plan.json` generator in this repo** — severity: low — review trigger: the next session that finds timing by hand error-prone. The clock is read with `date -u` at every boundary and the events appended to `docs/.keel/clock.jsonl`; `docs/sessions.md` is written from them.
@@ -63,4 +64,4 @@ This repository was adopted into its own discipline late (state files created 20
 - **Notification reach is desktop-only unless Remote Control is connected** — severity: low — review trigger: the first time a real absence goes unnoticed, or if the user wants alerts while away from the building. The native channel covers "walked away from the desk"; an SMTP sender or messaging MCP would be the escalation, and is not built.
 - **This repo has no `scripts/keel-verify`, `keel-doctor` or `keel-handoff-verify`** — severity: low — review trigger: if the repo ever ships executable content. `tests/lint-release.py` is this project's equivalent gate and is genuinely mechanical; generating the other three would be ceremony over a Markdown package.
 
-Last updated: 2026-09-18 — maintenance, v6.1.0 (the tool registry as data), release in progress
+Last updated: 2026-09-18 — maintenance, v6.1.0 (the tool registry as data) released and published

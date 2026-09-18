@@ -6,3 +6,4 @@
 | Start | End | Wall-clock h | Paused h | Planned (slices, est. h) | Done | Est. h | Actual h | Deviation h | Not finished (h spent) | Left after h | Notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | 2026-09-16 16:24 CEST | 2026-09-16 16:36 CEST | 0.21 | 0 | S-001, S-002, S-003 — 4 | S-001, S-002 | 3 | 0.09 | -2.91 | S-003 (0.07) — blocked: the merge to `main` and the release publication were refused by the permission guards | 1 | 0.05 h of reading before S-001 is in wall-clock, not in any slice |
+| 2026-09-18 01:34 CEST | 2026-09-18 01:57 CEST | 0.38 | 0 | S-004, S-005 — 3 | S-004, S-006, S-005 | 3.5 | 0.38 | -3.12 | — | 0 | S-006 added mid-session from the live Codex stop-hook instance the user reported; v6.1.0 tagged and published |

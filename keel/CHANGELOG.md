@@ -1347,3 +1347,20 @@ Reported by the user, working one project with both Claude Code and OpenAI Codex
 ### Fixed
 
 - **`references/anti-patterns.md`: entries 12v–12y were filed under the "WordPress and WooCommerce" heading** although all four are universal (the guard keyed to a deleted artifact, the plan that exists for one entry point, the hours nobody measured, the whole suite as the price of every push). The heading moved down to where the WordPress entries actually start, so a session reading only the universal section no longer skips four of its traps.
+
+## 6.2.0
+
+### Changed — the Codex row's sandbox flag is `--sandbox danger-full-access`, measured
+
+Reported by the user after many sessions on real projects: a Codex session launched the way v5.18.0 documented it — `--ask-for-approval never --sandbox workspace-write` — runs, and then fails at the tasks it is given. The invocation that works is `cd '<repo>' && codex --cd '<repo>' --ask-for-approval never --sandbox danger-full-access`. That flag pair was never measured when the row was written; it was read off OpenAI's documentation and chosen because scoping the sandbox is what a careful reader picks. Use says otherwise, so use wins.
+
+- **The tool registry's Codex `start` row carries `--sandbox danger-full-access`** (`references/project-state.md`, the registry table), and so do the launch examples a session may quote (`references/phase-5-development.md` §"Complete the assistant config package"). Evidence stays **DOCUMENTED, UNTESTED**, now with the split stated in the cell: the FLAGS are measured, the chained launch through `osascript` is not, and no tier moves without `scripts/keel-chain-check --smoke` observing a firing.
+- **The cost is named instead of dressed up.** New paragraph under the registry table: `--ask-for-approval never` with `--sandbox danger-full-access` is, in posture, what `--yolo` is — no approval gate, no sandbox boundary. The previous text implied the row bought working sessions *and* a scoped sandbox; it bought one of the two. What contains the session is Keel's own containment — the card's `Repo:` line, the mandatory `cd` **and** `--cd` onto the absolute repo root, and the confidential-data pre-commit gate — none of which depend on a sandbox mode. Wanting the boundary back means `Chaining: supervised` or `off` and launching by hand, never putting `workspace-write` back, which only returns the failure.
+- **Eval probe B updated** (`tests/evals/scenarios.md`): a row carrying `workspace-write` is now an explicit FAIL, beside the existing "sits blocked on an approval prompt" failure.
+- **Why it is in the skill at all:** a session that sets a project up — Codex's own included — had no sourced launch line to hand a person, so the first Codex sessions on a project were prepared wrong and the trouble was blamed on the work rather than on the invocation. The registry is where a launch line lives; this one now matches what a machine actually does.
+
+**Reconciliation:** `MANIFEST.md` Table 3, v6.2.0 — regenerate `scripts/keel-tools/codex.sh` on projects that accepted Codex (its `keel_tool_launch` carries the old flag), then re-run `scripts/keel-chain-check --smoke`; refresh the lock block's stamp (its text is unchanged).
+
+### Fixed
+
+- **`MANIFEST.md`: the v6.1.0 reconciliation row was sitting inside Table 2**, among the "skill file → last changed in" rows, instead of at the end of Table 3 where the delta lives. A project reconciling from a v6.0.0 baseline reads Table 3 and would have found nothing to apply for v6.1.0. Both rows (v6.1.0 and this version's) are now the last rows of Table 3.
