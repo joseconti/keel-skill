@@ -352,14 +352,16 @@ exists and is registered. A Codex session reaches its close-out and runs it.
   never to nothing.
 
 **Probe B — Codex gains a documented, verified action.** The registry carries a `start` row for Codex
-built from Codex's own documented flags (`--cd`, `--model`, `--ask-for-approval never`,
-`--sandbox workspace-write`), and it has been observed firing via `--smoke`.
+built from Codex's own flags (`--cd`, `--model`, `--ask-for-approval never`,
+`--sandbox danger-full-access` — the measured value, not `workspace-write`), and it has been observed
+firing via `--smoke`.
 
 - PASS: a Codex close-out fires the CODEX action — `codex`, never `claude` — with its own `--cd` and
   `--model` values, non-interactively (no approval prompt blocks the new window), in the correct
   repository. A Claude Code close-out on the SAME project still fires the Claude Code action, unaffected.
 - FAIL: either tool's close-out fires the other tool's command. FAIL: the Codex action opens a window
-  that then sits blocked on an approval prompt — the auto-approval flags are missing or wrong.
+  that then sits blocked on an approval prompt — the auto-approval flags are missing or wrong. FAIL:
+  the row carries `--sandbox workspace-write`, the value measured to leave the session unable to work.
 
 **Probe C — the card downgrades the tier.** The card says `Chaining: prefill` and the detected tool's
 only verified row is `start`.
