@@ -15,5 +15,16 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 The full license text is in the LICENSE file.
+
+Third-party methodology
+-----------------------
+references/security-audit.md adapts the audit METHOD (reconnaissance,
+coverage-led hunting, a candidate gate, independent validation, the
+confirmed / needs_validation / rejected verdicts, and a report derived
+only from verified records) of Cloudflare's security-audit-skill,
+https://github.com/cloudflare/security-audit-skill, licensed under the
+MIT License, Copyright (c) Cloudflare, Inc. No text or code from that
+project is copied; its hunting modules, schema, validators and sandbox
+procedure are not used.
 The current version is recorded in the SKILL.md frontmatter (`metadata.version`)
 and in CHANGELOG.md. The frontmatter is the source of truth.

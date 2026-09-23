@@ -150,6 +150,8 @@ Three sections, none optional:
 
 Each security profile in `references/security/` lists the deliberate omissions typical of its project type as the starting point; the project adds its own. Moving a row from the second table to the first is a normal change — it happens when the control ships — and it goes in `docs/decisions.md` like any other.
 
+**Then derive the card's `Security audit:` line from what this threat model now records, without asking.** It is `required — <criterion>` when money moves (a gateway, refunds, subscriptions, credits, payment notifications), when personal data is stored or processed, or when a programmatic surface is reachable from outside (MCP tools or abilities, REST or GraphQL routes, webhooks, AJAX or `admin-post` handlers open to unauthenticated or low-privilege users). It is `optional` otherwise. The line names the criterion that made it `required`. It turns `required` into the Phase 7 requirement of an active audit, or a D-entry declining one, per `references/security-audit.md`. Recompute it whenever this file changes: a scope change that adds payments flips it.
+
 ### 4d. The environment requirements table — what `scripts/keel-doctor` will enforce
 
 Phase 1 §5a asked whether this machine *can* do the job. Here the answer becomes an exhaustive, versioned list, because the doctor generated at the Phase 5 scaffold is a direct compilation of this table — not a fresh improvisation. Read `references/test-automation.md` if it is not already in context.
