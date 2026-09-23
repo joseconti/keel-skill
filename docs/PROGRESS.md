@@ -26,7 +26,7 @@
 - Push test scope: n/a — this repository ships no executable product; its only check, `python3 tests/lint-release.py`, is run whole at every release.
 - Durability: **git remote `origin` — https://github.com/joseconti/keel-skill.git** (verified 2026-07-31 with `git remote -v`). The tree is not inside a synced folder; the remote covers the requirement on its own.
 - Autonomy: **automatic** — Keel does not ask, and does every merge to `develop` and every push itself (`.claude/settings.local.json` written by Keel, gitignored; see D-003, D-004) / issues: on-request — this repo's forge issues are worked when the user raises them / Issue sweep interval: n/a (the after-sprint duty was not accepted here)
-- Branches: integration branch `develop` (created from `main` 2026-07-30 and published) / no open work branch / **v6.2.0 and v6.3.0 await `main`** — both committed and tagged on `develop`; v6.3.0 NOT pushed, on the user's instruction (2026-09-23)
+- Branches: integration branch `develop` (created from `main` 2026-07-30 and published) / no open work branch / nothing awaiting `main` — v6.3.0 merged by PR #17 (the user), tagged at b9cc396 and published 2026-09-23
 - Notify: **native Claude Code notification** — desktop always; phone only while Remote Control is connected. No address needed. The Gmail connector is compose-only (draft, no send) and is not a channel. Re-probe each session per `references/notifications.md`.
 - Chaining: off — pending re-ask under the v5.10.0 recommendation (this card is `Autonomy: automatic`)
 
@@ -46,16 +46,16 @@ This repository was adopted into its own discipline late (state files created 20
 | 8 Website | n/a — website intent: no | — |
 
 ## Current position
-- Phase: maintenance — **v6.3.0 committed and tagged on `develop`, NOT pushed** (2026-09-23), sprint 3 closed. New optional active security audit (`keel/references/security-audit.md`): the `references/security/*.md` profiles become hunting modules, an independent verifier refutes each candidate, `findings.json` + `SECURITY-AUDIT.md`, output gitignored while findings are open, card line `Security audit:` derived at Phase 2 §4c and gating Phase 7 when `required` (D-032, D-033, D-034).
+- Phase: maintenance — **v6.3.0 RELEASED** (2026-09-23; PR #17 merged by the user, tag re-anchored on the merge commit b9cc396 like v6.1.0/v6.2.0, GitHub release published by hand), sprint 3 closed. New optional active security audit (`keel/references/security-audit.md`): the `references/security/*.md` profiles become hunting modules, an independent verifier refutes each candidate, `findings.json` + `SECURITY-AUDIT.md`, output gitignored while findings are open, card line `Security audit:` derived at Phase 2 §4c and gating Phase 7 when `required` (D-032, D-033, D-034).
 - Previous states: v6.2.0 committed and tagged on `develop` 2026-09-19 (Codex launch flags; it carries no D-entry of its own in this log, recorded here rather than back-filled); v6.1.0 released 2026-09-18 (the tool registry as data, D-029–D-031); the history before it is in `keel/CHANGELOG.md` and git.
-- Next action: **the user pushes `develop` and the `v6.3.0` tag**, then decides the merge to `main` (PR) and the GitHub releases for v6.2.0 and v6.3.0 (Actions is disabled; `gh release create` by hand). After that, the pending v6.1.0 reconciliation on `new-gymai` still stands.
+- Next action: run the pending reconciliation (now v6.0.0 → v6.3.0) per project on this machine, `new-gymai` first.
 
 ## Open items
 - Unresolved user questions: none
 - Open Design Requests: none
 - Unverified external steps/assets: none
 - Forge issues in progress: none
-- **Ready for `main`:** v6.2.0 and v6.3.0 on `develop`. **Unpushed (user's instruction):** the v6.3.0 commit and tag.
+- **Ready for `main`:** nothing — v6.3.0 is merged (PR #17), tagged at b9cc396 and published.
 - **Reconciliation pending on other projects:** v6.0.0 → v6.3.0, starting with `new-gymai`.
 
 ### Deferred items (consciously postponed work)
@@ -64,4 +64,4 @@ This repository was adopted into its own discipline late (state files created 20
 - **Notification reach is desktop-only unless Remote Control is connected** — severity: low — review trigger: the first time a real absence goes unnoticed, or if the user wants alerts while away from the building. The native channel covers "walked away from the desk"; an SMTP sender or messaging MCP would be the escalation, and is not built.
 - **This repo has no `scripts/keel-verify`, `keel-doctor` or `keel-handoff-verify`** — severity: low — review trigger: if the repo ever ships executable content. `tests/lint-release.py` is this project's equivalent gate and is genuinely mechanical; generating the other three would be ceremony over a Markdown package.
 
-Last updated: 2026-09-23 — maintenance, v6.3.0 (active security audit) committed and tagged on develop, not pushed
+Last updated: 2026-09-23 — maintenance, v6.3.0 (active security audit) released and published
