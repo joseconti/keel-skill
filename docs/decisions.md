@@ -248,3 +248,37 @@
 - Decision: Add `KEEL_TOOL_HOOK_FILE` to the row and a fourth `scripts/keel-verify` row: a tool's hook container mentions `scripts/keel-stop-hook` if and only if its `KEEL_TOOL_STOP_HOOK` is `yes`. The check reads the container FROM the row, never from a hardcoded `.codex/hooks.json` — a check that knows one tool's path is anti-pattern 12z inside the detector. Its message names the remedy: remove the registration from the tool that rejects the payload; never change the hook's output.
 - Alternatives considered: (a) **relying on the field alone** — rejected: that is what this version already shipped, and the user's own session found the defect by reading a comment in the script, which is not a mechanism. (b) **making the hook's output tool-agnostic** — rejected, and it is the trap rather than an option: no single payload satisfies two private contracts, and the attempt breaks the one integration that is proven, in an assistant that is not running, while the session's own tool stops complaining and the change reads as a success.
 - Consequence: A project registering the hook where its row forbids it now fails its own gate with the correct repair named. `new-gymai` carries the live instance and will fail the check at its v6.1.0 reconciliation, which is the intended outcome.
+
+## D-032 — The security audit adapts Cloudflare's method, not its skill, and hunts with Keel's own profiles
+
+- Date: 2026-09-23
+- Context: the user asked for an active, optional security-audit phase inspired by Cloudflare's open-source `security-audit-skill` (MIT), fitted to Keel's stack (WordPress/WooCommerce, MCP servers, web apps) and without its heavy infrastructure. Until now Keel's security was the per-type profile, a checklist walked by the session that wrote the code: it shows the rules were considered, not that the result holds against someone trying to break it.
+- Decision: a new `keel/references/security-audit.md` with six steps: reconnaissance reusing the project's recorded state; a coverage plan whose hunting modules are the sections of the existing `references/security/*.md` profiles plus a "Declared controls" module over the threat model's `IN PLACE` rows; active hunters with a candidate gate; a fresh verifier per candidate that never sees the hunter's reasoning; a small `findings.json`; and `SECURITY-AUDIT.md` derived only from `confirmed` records. Optional, triggered on request. Hooked into Phase 7, and into Phase 8 through its reuse of Phase 7. Never at Phase 5. The profiles are not edited.
+- Alternatives considered:
+  - (a) **Vendor Cloudflare's skill as is.** Rejected. Its execution rules require an OS-enforced sandbox (no network, empty environment, read-only mounts, CPU/memory/process limits) and a descriptor-level artifact-promotion procedure that no environment Keel runs in provides. Its own rules then forbid executing anything, so every run degrades to source-only while carrying the whole procedure's weight. Its full schema, validators (Node) and multi-wave critic budget are sized for large heterogeneous codebases, not for a plugin or an MCP server.
+  - (b) **Reuse its hunting modules.** Rejected. Memory safety, kernel, desktop/mobile IPC and cloud control planes do not describe the attack surface of a WordPress plugin or an MCP server, while Keel's profiles already do, and they are what the project was built against. A hunter reading a module the project never met produces noise; a hunter reading the project's own profile tests the promises the project made.
+  - (c) **Make the Phase 5 checklist "more active".** Rejected. It would run on every slice at audit cost, and it stays a self-review; the value of the method is the independent verifier.
+- Consequence: Cloudflare's sandbox is replaced by the project's playground plus explicit boundaries (seed data only, smallest observable effect, never production, and `needs_validation` with an owner-observed check for deployment facts). What is knowingly lost is OS-level isolation of target code, which is stated in the reference. The method is credited in `keel/NOTICE`; no text or code is copied.
+
+## D-033 — Audit output stays out of Git while findings are open; a derived card line gates critical projects; inline verification is disclosed
+
+- Date: 2026-09-23
+- Context: three design questions put to the user before any file was written. All three recommended options were chosen: the report under `docs/` and gitignored until the findings are fixed; an inline verifier fallback, marked; and a gate on critical projects, where the audit is run or declined on record.
+- Decision:
+  - (1) Runs are written to `docs/security-audit/<date>-<sha>/`, which is gitignored. Only the counts-only log `docs/security-audit.md` is committed, and a finding gains its title only once its fix ships. A private repository may commit the runs with a D-entry.
+  - (2) Where no subagents exist, verification runs inline from the candidate cards and a fresh disk read. Each record carries `verified_by: inline` and the report's first line discloses it. Where subagents exist, an inline `confirmed` is not acceptable.
+  - (3) New card line `Security audit: required — <criterion> | optional | declined (D-0XX)`, derived at Phase 2 §4c. It is `required` when money moves, personal data is held, or a programmatic surface is reachable from outside. On `required` the Phase 7 gate needs an audit covering the candidate with no confirmed finding open, or a D-entry declining it.
+- Alternatives considered:
+  - Committing reports always. Rejected: in a public repository that publishes open vulnerabilities.
+  - Report as an artifact only. Rejected: it loses the project-local trace.
+  - Capping inline runs at `needs_validation`. Rejected: the reports would be useless in single-agent environments.
+  - Requiring subagents. Rejected: Keel never depends on an environment capability.
+  - A plain recommendation at Phase 7. Rejected: for payments and personal data that is the gap that matters.
+- Consequence: a recorded exception to "the work never lives only on this machine", accepted because the raw run is reproducible at its commit and the log survives. The trigger in SKILL.md now reads "a security review/audit of a Keel project" and routes a whole-project audit to the new flow, while a single change stays with the profile and `security-auditor`.
+
+## D-034 — This change ships as v6.3.0
+
+- Date: 2026-09-23
+- Context: the user asked for a version bump, changelog, commit and tag without push, and answered "v6.3.0" to the explicit version question.
+- Decision: **v6.3.0**, MINOR. It adds an optional reference, one derived card line and one conditional Phase 7 gate; it removes nothing a project depends on and needs no change on an `optional` project beyond the card line and the lock restamp. Committed and tagged on `develop`, like v6.2.0. Not pushed, on the user's instruction; publishing and the merge to `main` are the user's.
+- Consequence: `MANIFEST.md` Tables 1, 2 and 3 carry the release; `python3 tests/lint-release.py` passed.

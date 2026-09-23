@@ -1364,3 +1364,26 @@ Reported by the user after many sessions on real projects: a Codex session launc
 ### Fixed
 
 - **`MANIFEST.md`: the v6.1.0 reconciliation row was sitting inside Table 2**, among the "skill file → last changed in" rows, instead of at the end of Table 3 where the delta lives. A project reconciling from a v6.0.0 baseline reads Table 3 and would have found nothing to apply for v6.1.0. Both rows (v6.1.0 and this version's) are now the last rows of Table 3.
+
+## 6.3.0
+
+### Added — an active security audit: the profiles hunt, a second agent refutes, only survivors are reported
+
+Asked for by the user, and adapted from the METHOD of Cloudflare's open-source `security-audit-skill` (MIT, credited in `NOTICE`), not its infrastructure. Until now Keel's security was a checklist walked by the session that wrote the code: it proves the rules were considered, not that nobody can break them.
+
+- **New `references/security-audit.md`: a six-step run.**
+  1. Reconnaissance that REUSES the project's recorded map (discovery, spec, technical plan, threat model, `docs/api/INDEX.md`) and checks it against the registration calls on disk.
+  2. A coverage plan in which **every section of each applicable `references/security/*.md` profile becomes a hunting module**, plus a "Declared controls" module that checks every `IN PLACE` row of the threat model.
+  3. Hunters that look for violations rather than tick boxes, with a candidate gate.
+  4. **A fresh verifier per candidate that never sees the hunter's reasoning and tries to refute it.**
+  5. A small `findings.json` (`confirmed` / `needs_validation` / `rejected`; file, line, severity, category, description, status) whose invariants are checked mechanically.
+  6. A `SECURITY-AUDIT.md` derived only from those records: confirmed findings grouped by severity, `needs_validation` listed apart for the user to decide.
+- **The profiles themselves are untouched.** Phase 1 and every Phase 5 test point keep using them exactly as before. The audit never runs on a slice.
+- **New card line `Security audit:`**, derived at Phase 2 §4c and never asked. It is `required` when money moves, personal data is held, or a programmatic surface (MCP, REST, webhooks, public AJAX) is reachable from outside. **On `required` the Phase 7 gate needs an audit covering the candidate with no confirmed finding open, or a D-entry declining it.** On `optional` the audit is offered in one line.
+- **Trigger:** "security audit" / "auditoría de seguridad" of a Keel project now routes to this flow (SKILL.md "Security routing" and the description). A review of a single change stays with the profile and the `security-auditor` agent.
+- **Disclosure is designed in.** The run directory `docs/security-audit/` is gitignored while confirmed findings are open. Only the counts-only log `docs/security-audit.md` is committed, and a finding is named there only once its fix ships. Fix slices carry neutral titles, and a confirmed vulnerability is never filed as a public forge issue. This is recorded as a deliberate exception to "the work never lives only on this machine": the run is reproducible at its commit.
+- **No sandbox, stated honestly.** Execution happens only in the project's playground with seed data, stops at the smallest observable effect, and never touches production. A fact only production can show is `needs_validation` with an owner-observed check.
+- **No subagents, disclosed.** The verifier follows the existing fan-out fallback chain. Inline verification is marked `verified_by: inline`, the report's first line says independence was reduced, and where subagents exist an inline `confirmed` is not acceptable.
+- **After the report:** every confirmed finding becomes a slice whose fix starts from a failing reproduction test; critical and high on a released product take the hotfix path. A threat-model control the audit found missing goes back to `TO BUILD`. New section in `references/maintenance.md` for audits of released projects.
+
+**Reconciliation:** `MANIFEST.md` Table 3, v6.3.0. Derive the `Security audit:` card line; nothing is created until an audit runs; restamp the lock block (its text is unchanged).

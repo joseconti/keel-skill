@@ -2,13 +2,13 @@
 name: keel
 license: GPL-3.0-or-later
 metadata:
-  version: 6.2.0
-description: Use this skill for ANY new software project from idea to release — websites, WordPress/WooCommerce plugins, MCP servers, web apps, components, or libraries — and for maintaining what it built (hotfixes, dependency updates, new features). Trigger when the user starts a new project or feature, says "I have an idea for a plugin/site/app", "let's plan this project", brings only a vague one-line idea with no technical background (Keel shapes it and proposes the v1 unprompted), mentions a design handoff, asks for docs or a security review of a Keel project, asks what a project will cost (quote/budget), works forge issues (GitHub/GitLab/...), prepares a release or a hotfix, resumes an in-progress Keel project (any repo with docs/PROGRESS.md), or adopts Keel in an EXISTING project. Do NOT trigger for one-off scripts, quick code questions, or repos not managed by Keel unless the user wants to adopt them. Phases load references on demand; living state makes projects resumable across chats.
+  version: 6.3.0
+description: Use this skill for ANY new software project from idea to release — websites, WordPress/WooCommerce plugins, MCP servers, web apps, components, or libraries — and for maintaining what it built (hotfixes, dependency updates, new features). Trigger when the user starts a new project or feature, says "I have an idea for a plugin/site/app", "let's plan this project", brings only a vague one-line idea with no technical background (Keel shapes it and proposes the v1 unprompted), mentions a design handoff, asks for docs or a security review/audit of a Keel project, asks what a project will cost (quote/budget), works forge issues (GitHub/GitLab/...), prepares a release or a hotfix, resumes an in-progress Keel project (any repo with docs/PROGRESS.md), or adopts Keel in an EXISTING project. Do NOT trigger for one-off scripts, quick code questions, or repos not managed by Keel unless the user wants to adopt them. Phases load references on demand; living state makes projects resumable across chats.
 ---
 
 # Keel — project lifecycle (idea → release)
 
-**Keel v6.2.0** — Licensed under GPL-3.0-or-later. *Keel* is the structural backbone laid down first, on which the whole project is built.
+**Keel v6.3.0** — Licensed under GPL-3.0-or-later. *Keel* is the structural backbone laid down first, on which the whole project is built.
 
 ## Skill maintenance — update check & version policy (RUN FIRST, NON-BLOCKING)
 
@@ -183,6 +183,15 @@ After Phase 1 sets the project type, load the matching profile (don't load all o
 If a project spans types (e.g. a WordPress plugin that ships an MCP server), load both relevant profiles and apply the stricter rule on any conflict. Phase 8 always loads `references/security/website.md` for the site itself, on top of whatever profile the product uses; a site with a real app backend adds `references/security/web-app.md`.
 
 Each profile ends with the deliberate omissions typical of its project type — the starting point for the "Not defended" table of `docs/threat-model.md`, produced at Phase 2 §4c.
+
+### Security audit — active and optional; a gate on critical projects
+
+The profiles above are a checklist the building session walks, and they stay exactly that at Phase 1 and every Phase 5 test point. **A security audit is the other instrument:** each applicable profile section becomes the playbook of a hunter that looks for where the built project VIOLATES it, every candidate goes to a verifier that did not find it and tries to refute it, and only what survives is reported. Load `references/security-audit.md` when:
+
+- **the user asks for a security audit** ("security audit", "auditoría de seguridad", "audit the security of…", a full or end-to-end security review) of a Keel project. A review of a single CHANGE stays with the profile and the `security-auditor` agent. If the request could mean either, ask one question;
+- **the Phase 7 gate runs on a project whose card says `Security audit: required`**, derived at Phase 2 §4c when money moves, personal data is held, or a programmatic surface (MCP, REST, webhooks, public AJAX) is reachable from outside. That gate needs an audit covering the candidate, or a D-entry declining it. With `optional`, the audit is offered in one line.
+
+The run's findings stay out of Git while any confirmed vulnerability is open (`docs/security-audit/` is gitignored), and only a counts-only log, `docs/security-audit.md`, is committed. A confirmed finding becomes a slice whose fix starts from a failing reproduction test; the audit itself never edits product code.
 
 ## Known traps (cross-cutting, loaded with the security profile)
 
@@ -414,3 +423,4 @@ Ending a session mid-work (any phase) — **and closing a sprint, whether or not
 - `references/security/mcp-server.md`
 - `references/security/library-component.md`
 - `references/security/website.md` (Phase 8 — the site's own profile)
+- `references/security-audit.md` (optional active audit — profile-driven hunters, an independent verifier per candidate, `findings.json` and `SECURITY-AUDIT.md`; on request, and at the Phase 7 gate when the card says `Security audit: required`)

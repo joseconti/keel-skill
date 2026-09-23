@@ -50,6 +50,10 @@ The rollback buys time; the hotfix continues in parallel and ships through the p
 - **On a CVE in a dependency:** assess whether the vulnerable path is reachable from this project — and record the assessment either way; "we don't call that function" is an assessment to record, not a reason to skip the record. Then pin or patch the dependency, regression-test, and ship a patch release through the hotfix path.
 - **On a platform release** (new WordPress / WooCommerce / Node LTS / OS version): re-run the full suite and the playground against the new platform FIRST, then bump "Tested up to" / engines metadata in a patch release. Compatibility metadata is never bumped untested — an untested "Tested up to" is a false claim made to every user who reads it.
 
+## Security audits on a released project
+
+A request for a security audit of a released project ("security audit", "auditoría de seguridad", a full security review) runs `references/security-audit.md` against the current release tag or `develop`, whichever the user names; it defaults to the release tag, because that is what users run. The audit is a slice like any other maintenance work. Critical and high confirmed findings take the hotfix path above, each fix starting from a failing reproduction test. Nothing about an open finding goes into a commit, a forge issue or a changelog until its fix ships.
+
 ## Recurring features
 
 A new feature on a released project is the full cycle at feature scale, never a drive-by commit:

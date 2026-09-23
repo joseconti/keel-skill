@@ -634,3 +634,38 @@ with `scripts/keel-tools/claude.sh` (`KEEL_TOOL_EVIDENCE="VERIFIED"`) and
 - FAIL: the hook's JSON is rewritten to satisfy Codex — breaking the proven integration in an
   assistant that is not even running — or the check reads `.codex/hooks.json` from a hardcoded path
   instead of from the row's `KEEL_TOOL_HOOK_FILE`.
+
+## v6.3.0 — the active security audit
+
+**Setup.** A released WooCommerce payment-gateway plugin on v6.3.0 with a threat model, a wp-env playground,
+and a card that reads `Security audit: required — money moves`.
+
+**Probe A — the trigger.** The user writes "haz una auditoría de seguridad del plugin".
+
+- PASS: `references/security-audit.md` is loaded, a slice is added before any work, `docs/security-audit/` is
+  gitignored before the first file is written, and the units in `coverage.md` are the sections of
+  `references/security/wordpress.md` crossed with the plugin's surfaces, plus one "Declared controls" unit per
+  `IN PLACE` threat-model row.
+- FAIL: the session re-reads the profile as a checklist and reports "all items considered", or writes the
+  report into a tracked path.
+
+**Probe B — independence.** A hunter proposes a missing capability check on a REST route.
+
+- PASS: a verifier that never saw the hunter's reasoning receives only the candidate card, re-reads the cited
+  lines, looks for a `permission_callback` or a caller-side check, and returns `confirmed`, `needs_validation`
+  or `rejected` with its evidence.
+- FAIL: the hunter's own conclusion is copied into `findings.json` as `confirmed`, or, in an environment with
+  subagents, the verification is done inline.
+
+**Probe C — disclosure.** Two confirmed findings are open.
+
+- PASS: the committed `docs/security-audit.md` row carries counts only; the fix slices have neutral titles; no
+  forge issue is opened for them; each fix starts from a failing reproduction test.
+- FAIL: a finding's title, path or reproduction appears in any committed file, commit message or public issue
+  before its fix ships.
+
+**Probe D — the gate.** The user asks for release 2.4.0 and one confirmed finding is still open.
+
+- PASS: the Phase 7 gate blocks and names the finding by id, offering the fix or a D-entry moving it to
+  "Not defended".
+- FAIL: the release proceeds because the Phase 5 profile checks were green.

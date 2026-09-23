@@ -1,4 +1,4 @@
-# Keel Manifest — v6.2.0
+# Keel Manifest — v6.3.0
 
 One file, three tables, one purpose: looking ONLY at this file, a session can tell (1) whether a project contains everything Keel requires at its current phase, (2) which skill files changed in which Keel version — so after an update it knows exactly what to re-read, without interpreting the changelog — and (3) what concrete actions each version asks of an existing project (the reconciliation delta).
 
@@ -75,6 +75,8 @@ Verification is phase-aware and condition-aware: read the project card and phase
 | `guide/` (repo root) | End-user HTML guide built on the canonical docs theme (`references/guide-theme.md`): navigable index + one page per topic, one dir per locale, full capability coverage; optionally the developer portal (`guide/{locale}/dev/`) | Phase 6 | Unless declined (card: `User guide:`) |
 | `guide/_theme/` + `guide/brand/` + per-page `<meta name="keel-docs-theme">` | The vendored theme unit (checksum-intact vs the theme release), the project's brand layer (contrast contract verified), and the mechanical version marker — per `references/guide-theme.md` | Phase 6 | Unless declined (card: `User guide:`); version on the `Docs theme:` card line |
 | `docs/07-release.md` | Release record (incl. full-suite re-run on the candidate + keel-verify output) | Phase 7 | Always |
+| `docs/security-audit.md` | The counts-only security-audit log: one row per run (date, audited commit, scope, profiles, verification mode, confirmed by severity, `needs_validation`, `rejected`, still open). While a finding is open, nothing in it describes that finding; a finding gains its title, severity and fix commit only once the fix ships (`references/security-audit.md`) | Phase 7 | Card `Security audit: required` — or any project on which an audit has run |
+| `docs/security-audit/` listed in `.gitignore` | The run directories (`recon.md`, `coverage.md`, `findings.json`, `SECURITY-AUDIT.md`) stay out of Git while confirmed findings are open; the ignore line is added before the first file is written | The first audit run | Any project on which an audit has run — unless `reports committed (D-0XX)` on the card |
 | `<site-docs>/` (`docs/site/` or the site's own repo, per the recorded decision) | Phase 8 site set: `PRODUCT-BRIEF.md`, site discovery, spec, design docs | Phase 8 | Website intent only |
 | `<site-docs>/design/design-handoff/SPEC/art-direction.md` | The site's decided visual language per `references/phase-8-art-direction.md` (read, four dials with reasons, chosen direction + rejected alternatives + its decision entry, signature elements with recurrence points and CSS, blacklist overrides, both self-critique answers) | Phase 8 design handoff | Website intent only (since v5.12.0) |
 | `~/.keel/art-ledger.md` | Machine-local, cross-project, NEVER committed and never in any repository: one appended entry per site (archetype, dials, type, palette, hero paradigm, grid, signature elements, date). Its last three entries constrain the next site. Absence is an absent constraint, not a gap | Phase 8 art direction close | Website intent only (since v5.12.0) |
@@ -87,7 +89,7 @@ Verification is phase-aware and condition-aware: read the project card and phase
 | `docs/old/` | Archive (move, never delete) | First sprint close | When archiving starts |
 | `docs/04-adoption-audit.md` | Gap audit vs Keel standards | Adoption step 5 | Adopted projects only |
 
-Project-card lines that must exist (inside `docs/PROGRESS.md`): the full card per the `references/project-state.md` template, including `Keel portability:`, `Assistant config:` (introduced v1.10.0 as `Claude config:`; renamed with the tools list in v3.0.0), `Keel baseline:` (since v1.10.0), `Client budget:` and `User guide:` (both since v2.0.0), `Docs theme:` (since v3.2.0 — set when the theme is vendored at Phase 6), `Models:` (since v3.3.0 — the role→model map, set when the assistant-config package includes agents; `n/a` otherwise), `Chaining:` (since v5.3.0 — `off`, `prefill`, or `start`: what a clean close-out does with `docs/continuation-prompt.md` beyond writing it; since v5.10.0 its RECOMMENDED value follows `Autonomy:` — automatic recommends the maximum tier the gates allow, everything else recommends `off`), and `Issue sweep interval:` (since v5.8.0 — on the `Autonomy:` line; `n/a` unless the after-sprint issue duty was accepted), and `Test-first policy:` (since v5.11.0 — `pure-logic` / `pure-logic + acceptance` / `none` with its D-entry, or `n/a` where the project ships no executable product; asked once at Phase 2 §4e, or in the adoption batch on an adopted project), and `Sprints:` (since v5.21.0 — `on` written with the state files and never asked; `off` only on the user's explicit statement, with its D-entry), and `Push test scope:` (since v6.0.0 — `affected` written with the card and never asked; `full` only on the user's explicit request, with its D-entry; `n/a` where the project ships no executable product).
+Project-card lines that must exist (inside `docs/PROGRESS.md`): the full card per the `references/project-state.md` template, including `Keel portability:`, `Assistant config:` (introduced v1.10.0 as `Claude config:`; renamed with the tools list in v3.0.0), `Keel baseline:` (since v1.10.0), `Client budget:` and `User guide:` (both since v2.0.0), `Docs theme:` (since v3.2.0 — set when the theme is vendored at Phase 6), `Models:` (since v3.3.0 — the role→model map, set when the assistant-config package includes agents; `n/a` otherwise), `Chaining:` (since v5.3.0 — `off`, `prefill`, or `start`: what a clean close-out does with `docs/continuation-prompt.md` beyond writing it; since v5.10.0 its RECOMMENDED value follows `Autonomy:` — automatic recommends the maximum tier the gates allow, everything else recommends `off`), and `Issue sweep interval:` (since v5.8.0 — on the `Autonomy:` line; `n/a` unless the after-sprint issue duty was accepted), and `Test-first policy:` (since v5.11.0 — `pure-logic` / `pure-logic + acceptance` / `none` with its D-entry, or `n/a` where the project ships no executable product; asked once at Phase 2 §4e, or in the adoption batch on an adopted project), and `Sprints:` (since v5.21.0 — `on` written with the state files and never asked; `off` only on the user's explicit statement, with its D-entry), and `Push test scope:` (since v6.0.0 — `affected` written with the card and never asked; `full` only on the user's explicit request, with its D-entry; `n/a` where the project ships no executable product), and `Security audit:` (since v6.3.0 — `required — <criterion>` / `optional` / `declined (D-0XX)`, DERIVED at Phase 2 §4c from the threat model and never asked).
 
 ## Table 2 — Skill files and the Keel version that last changed them
 
@@ -95,21 +97,21 @@ After an update, re-read `SKILL.md`, the current phase's reference, and THIS fil
 
 | Skill file | Last changed in |
 |---|---|
-| `SKILL.md` | v6.2.0 |
-| `MANIFEST.md` | v6.2.0 |
-| `CHANGELOG.md` | v6.2.0 |
+| `SKILL.md` | v6.3.0 |
+| `MANIFEST.md` | v6.3.0 |
+| `CHANGELOG.md` | v6.3.0 |
 | `references/keel-maintenance.md` | v5.10.3 |
 | `references/notifications.md` | v5.14.0 |
 | `references/playground-recipes.md` | v5.1.0 |
 | `references/test-automation.md` | v6.0.0 |
-| `references/maintenance.md` | v6.0.0 |
+| `references/maintenance.md` | v6.3.0 |
 | `references/guide-theme.md` | v3.2.1 |
 | `references/assistant-config.md` | v6.1.0 |
 | `references/phase-5-development.md` | v6.2.0 |
-| `references/phase-7-release.md` | v6.0.0 |
-| `references/project-state.md` | v6.2.0 |
-| `references/phase-1-discovery.md` | v6.0.0 |
-| `references/phase-2-functional-spec.md` | v6.0.0 |
+| `references/phase-7-release.md` | v6.3.0 |
+| `references/project-state.md` | v6.3.0 |
+| `references/phase-1-discovery.md` | v6.3.0 |
+| `references/phase-2-functional-spec.md` | v6.3.0 |
 | `references/adoption.md` | v6.0.0 |
 | `references/estimation-budget.md` | v6.0.0 |
 | `references/phase-6-documentation.md` | v5.2.0 |
@@ -134,8 +136,9 @@ After an update, re-read `SKILL.md`, the current phase's reference, and THIS fil
 | `references/security/mcp-server.md` | v4.0.0 |
 | `references/security/library-component.md` | v4.0.0 |
 | `references/security/website.md` | v4.0.0 |
+| `references/security-audit.md` | v6.3.0 |
 | `LICENSE` | v1.0.0 |
-| `NOTICE` | v2.0.0 |
+| `NOTICE` | v6.3.0 |
 
 ## Table 3 — Per-version actions on an existing project (the reconciliation delta)
 
@@ -197,6 +200,7 @@ What the reconciliation APPLIES, version by version, for every version newer tha
 | v6.0.0 | MAJOR: two new UNBREAKABLE rules that change what a session does at its start and end and what a push costs. Three new scripts and one hook, one new committed file, one gitignored file, one new card line, one new slice field; the LOCK BLOCK TEXT CHANGED (refresh it, not only its stamp). **(1) Session time.** Generate `scripts/keel-time` per `references/project-state.md` ("Session time"); create `docs/sessions.md` from its template; add `docs/.keel/clock.jsonl` to `.gitignore`; add `docs/sessions.md` to the bookkeeping-file list wherever the project's `keel-verify` and `keel-stop-hook` carry it. From the next session on, every session opens with `scripts/keel-time start` (the clock, what is left, what this session plans, with hours) before any work and closes with `scripts/keel-time end` and its report (done slices estimated vs measured, the deviation, what is left) shown unprompted. **(2) Slice field `actual_source: measured \| estimated`.** Mark every EXISTING `actual_hours` as `estimated` — none of them was read from a clock — and never relabel one as measured. **(3) Regenerate `scripts/keel-close`** with step 0, `scripts/keel-time end`, before its commit. **(4) Test scope.** Add the card line `Push test scope: affected` (never asked; `full` only on the user's explicit request, with its D-entry). Add the `Test selection` line to `docs/03-technical-plan.md` §Testing — the stack's impact tool or path convention, the always-run set, the project's concrete paths for the widening list — and generate `scripts/keel-affected-tests` and `.githooks/pre-push` from it; verify both on a real diff (a dependent's tests selected, a push blocked by a red selection, an uncovered file widened rather than passed). If the project's CI runs on `main+develop` or `all-branches`, switch the non-`main` triggers to the affected selection. From then on every test point, push and sprint close runs the selection, and the entire suite runs only at the Phase 7 gate on the release candidate, recorded as `scope: full — M of M`. **(5) Regenerate `scripts/keel-verify`** with the test-selection row and the session-time row (`references/phase-5-development.md` §1a). **(6) Refresh the lock block** in `CLAUDE.md` + `AGENTS.md`. |
 | v6.1.0 | MINOR, and structural only on a chaining project: **the tool registry becomes DATA**. On a project whose card is not `Chaining: off`/`supervised`, generate `scripts/keel-tools/<tool>.sh` — one row file per tool on the card's `Assistant config:` tools list — from `references/project-state.md` ("The registry is DATA"), carrying every field that contract lists; a tool whose action is `NONE` still gets a row, because a recorded "this one prints" is an answer and a missing row is not. Then **move every per-tool fact OUT of the shared scripts and into its row**: `scripts/keel-continue`, `scripts/keel-close`, `scripts/keel-stop-hook` and `scripts/keel-chain-check` source the detected tool's row and must carry no tool name on an executable line (comments may keep the history). Regenerate `scripts/keel-verify` with the four new rows (row per accepted tool, every field declared, no tool name in a shared script outside a comment, and each tool's `KEEL_TOOL_HOOK_FILE` mentioning `scripts/keel-stop-hook` exactly when its `KEEL_TOOL_STOP_HOOK` is `yes`). **Run that fourth check on the existing tree before anything else and repair what it finds by REMOVING the registration from the tool whose row says `no` — never by changing the hook's output**, which breaks the one integration already proven, in a tool that is not even running and re-run `scripts/keel-chain-check --smoke`, since the card's `Chain verified:` line now carries the fired row's checksum beside the launcher's — an unproven row prints instead of firing. Restamp the lock block's version in `CLAUDE.md` + `AGENTS.md` (the block TEXT is unchanged this version). Projects on `Chaining: off` or `supervised`: none structural. |
 | v6.2.0 | MINOR, and structural only on a project that accepted Codex: **the Codex launch flags changed** — `--sandbox workspace-write` becomes `--sandbox danger-full-access` (`references/project-state.md`, the tool registry). Regenerate `scripts/keel-tools/codex.sh` so its `keel_tool_launch` carries the measured flags, leave every other row file untouched (a row belongs to the tool whose session edits it), and re-run `scripts/keel-chain-check --smoke` — the card's `Chain verified:` line carries the row's checksum, so a corrected row is an unproven chain until it is observed firing again. Restamp the lock block's version in `CLAUDE.md` + `AGENTS.md` (the block TEXT is unchanged this version). Projects without Codex, or on `Chaining: off`/`supervised`: none structural. |
+| v6.3.0 | MINOR: **an active security audit, optional, and a Phase 7 gate on critical projects** (`references/security-audit.md`). The existing `references/security/*.md` profiles are unchanged; they become the audit's hunting modules. **(1) NEW CARD LINE `Security audit:`**: derive it, never ask. It is `required — <criterion>` when money moves, personal data is held, or a programmatic surface (MCP tools or abilities, REST or GraphQL, webhooks, public AJAX or `admin-post`) is reachable from outside, reading `docs/threat-model.md` or, where that predates the criteria, the code. Otherwise it is `optional`. **(2) Nothing is created until an audit runs.** The first run adds `docs/security-audit/` to `.gitignore` before writing, and commits the counts-only `docs/security-audit.md` log. **(3) On a `required` project the next release gate needs an audit covering its candidate, or a D-entry declining it.** Say so when the line is written, so the requirement does not surface for the first time at the tag. **(4)** Restamp the lock block's version in `CLAUDE.md` + `AGENTS.md` (the block TEXT is unchanged this version). |
 
 ## Maintenance (part of EVERY release — no exceptions)
 
