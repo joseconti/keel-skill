@@ -951,6 +951,7 @@ The order is the contract, and it is the order for a reason — **every commit h
 5. **`scripts/keel-chain-check`**, output captured (diagnostic, never a veto).
 6. **`scripts/keel-continue`** when the card is `prefill`/`start`, relaying what it printed verbatim. The fire records itself in this session's fire ledger — inside the launcher, before the launch — so the stop hook that runs on this same session's next turn end sees that the queue was already handed on and stands down instead of opening a second window ("One launch per hand-off, one launch per session").
 7. **`scripts/keel-handoff-verify --release`**, on every path.
+8. **Record the completed close-out for THIS session at THIS commit**: one file, `closeouts/<repo-key>-<session-id>` in the user's state directory, holding `git rev-parse HEAD`. It is written on every path — including the one where no chat could be opened and so no launch receipt exists — and it is the only evidence rule 4 of `scripts/keel-stop-hook` accepts that the session actually closed out.
 
 Then it **prints what it did, step by step, with each step's evidence** — the verify output, the pushed refs, the hand-off's real `Commit:`, the check's verdict, the launcher's exact words. That printed list is the checklist, and it is the only kind worth having: **an output, produced by having done the work, rather than an input a session ticks from memory.** A step that did not run has no line, and a line that exists carries the command output that proves it.
 
@@ -1015,6 +1016,17 @@ turn:
    and a fire with nothing to be idempotent about is simply a fire (see "One launch per hand-off,
    one launch per session"). The hook still adds no guard of its own — it reads the one the launcher
    writes, which is precisely what the delegation was missing.
+   **And it fires ONLY for a session that completed its close-out at `HEAD`** — the record
+   `scripts/keel-close` step 8 writes, whose content equals `git rev-parse HEAD`. No record, or a
+   record at an older commit, → the hook allows the stop and invokes nothing. **An ordinary turn end
+   is not a hand-off.** Measured on a project running `Chaining: start`: a session ended its turn
+   while waiting on its own reviewers, no other live session was detected, and this rule opened a
+   second chat in the same checkout mid-slice — the new session closed the first one's clock as
+   `unterminated`, finished its slice and closed its sprint while the first was still alive. The
+   ledger could not stop it, because nothing had fired yet; the chain smoke test could not either,
+   because it proves the launcher, never WHEN it fires. A session that dies without closing out
+   leaves the committed state files, which the next chat resumes from by hand — a stall, which is
+   recoverable; a second writer in a live checkout is not (`references/anti-patterns.md`, 12e).
 5. **Any internal error exits 0 and allows the stop.** A hook that can break a session is worse than
    no hook at all, and this one runs on every single turn.
 
@@ -1253,7 +1265,7 @@ It writes nothing to the repository, changes nothing, and asks nothing. Output i
 6. **`env.PATH` is sane**: written expanded and absolute (no `${PATH}`, no `$HOME`, no variable of any kind), it contains the system directories (`/usr/bin`, `/bin`, `/usr/sbin`, `/sbin`), and it contains the user's per-user installer directory. The three failures this row catches are all machine-wide and all silent (`references/keel-maintenance.md`, "Permission mode").
 7. **`docs/continuation-prompt.md` is gitignored.** A committed hand-off is a courier that outlives its own truth.
 7a. **The fire ledger is reachable, and no dead session's entry is sitting in it.** Its directory in the user's state dir exists and is writable, and every entry whose `keel_session_pid` names a process that is no longer alive is reported as debris and cleaned. Two failures, opposite signs: a ledger that cannot be written guards nothing and the double launch comes straight back, while a ledger nothing ever clears is a chain that fires once and then never again on this machine — and that second one would present as "chaining silently stopped working", which is the hardest shape to diagnose from the outside.
-7b. **Both invokers of `scripts/keel-continue` are wired to the same brake.** Two greppable facts: `scripts/keel-continue` claims the session's fire-ledger entry before firing, and `scripts/keel-stop-hook` reads that ledger in its rule 4 and stands down when an entry exists. Either missing → NOT READY, naming which one. This row exists because of the defect that produced two chats at every close on two different projects, and it is the shape of the whole class: **each script was individually correct, and neither knew the other existed.** A brake that only one of two callers consults is not a brake, it is a coincidence — and the only way to keep that from re-appearing on the next mechanism that learns to launch is to check the wiring rather than to write the rule again.
+7b. **Both invokers of `scripts/keel-continue` are wired to the same brake.** Two greppable facts: `scripts/keel-continue` claims the session's fire-ledger entry before firing, and `scripts/keel-stop-hook` reads that ledger in its rule 4 and stands down when an entry exists — and fires at all only on this session's close-out record at `HEAD`, which `scripts/keel-close` step 8 writes. Any of the three missing → NOT READY, naming which one. This row exists because of the defect that produced two chats at every close on two different projects, and it is the shape of the whole class: **each script was individually correct, and neither knew the other existed.** A brake that only one of two callers consults is not a brake, it is a coincidence — and the only way to keep that from re-appearing on the next mechanism that learns to launch is to check the wiring rather than to write the rule again.
 
 **Section B — `start`-only rows, added when the card says `start`.**
 
