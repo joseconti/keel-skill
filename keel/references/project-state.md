@@ -313,7 +313,8 @@ it no longer discovers.
 sprint and for the whole plan — `estimated_hours` (every slice not `dropped`), `done_hours` (the
 estimates of `done` slices), `actual_hours` (the actuals of `done` slices), `remaining_hours` (the
 estimates of every slice neither `done` nor `dropped`), `deviation_hours` (`actual_hours` minus
-`done_hours`), `percent_done` (from `done_hours` over `estimated_hours`), and `unit`. Contingency and
+`done_hours`), `pace_factor`, `projected_remaining_hours` (defined below), `percent_done` (from
+`done_hours` over `estimated_hours`), and `unit`. Contingency and
 `deferred.md` are excluded from all of them, as above.
 
 **How "what is left?" / "how long until it is done?" is answered (UNBREAKABLE).** It is a question,
@@ -326,12 +327,47 @@ Sprint 4 — <goal>: 2 slices pending, 3.5 h left
   S-031 <title> — 2 h
 Sprint 5 — <goal>: 6 h
 Total left: 9.5 h of AI working time plus supervision (contingency not included)
-So far: 4 slices done, 6 h estimated, 7.25 h actual (+1.25 h)
+So far: 4 slices done, 6 h estimated, 7.25 h actual (+1.25 h, +20.8 %)
+Projection if the observed pace continues: 11.48 h left (factor 1.2083; 4 measured slices)
 ```
 
 In the conversation's language, with the unit stated on the total. If the same message also asks for
 work, this comes first in the same reply. On `Sprints: off` the answer is `docs/PROGRESS.md`'s open
 items, saying that no time figure exists because sprints are off.
+
+### Remaining-time projection (mandatory)
+
+At EVERY session close, and whenever remaining time is requested, show both the original
+`remaining_hours` and `projected_remaining_hours`, with the cumulative deviation used for the
+projection. These are AI working hours plus supervision, not a calendar completion date. The
+projection is labelled **"if the observed pace continues"** and never replaces or rewrites the plan.
+
+Compute from the sprint sources, once per completed slice across ALL sessions:
+
+- Eligible slices: `status: done`, `actual_source: measured`, positive estimated `hours`, and
+  non-negative numeric `actual_hours`. Exclude dropped, deferred, unfinished and estimated-source
+  slices. A slice completed over several sessions contributes its full cumulative actual once.
+- `pace_factor = sum(eligible actual_hours) / sum(eligible hours)`. The cumulative deviation on
+  this same sample is `sum(actual_hours) - sum(hours)` and `(pace_factor - 1) × 100 %`.
+  Never average session percentages or divide a partial session's time by its whole planned scope.
+- `projected_remaining_hours = remaining_hours × pace_factor`. Compute the plan-wide factor and
+  use it for the current sprint, later sprints and the total. State the number of eligible slices
+  and the estimated/actual totals behind it; a small sample is labelled provisional.
+- Preserve the definition of `remaining_hours`: estimates of slices neither done nor dropped.
+  Time spent on an unfinished slice is shown separately; never subtract it silently from the
+  baseline or the projection. An explicit re-estimate of outstanding scope is a plan update.
+- With no eligible slices, `pace_factor` and the projection are `null`, printed as
+  **"unavailable — no measured completed work"**. If no work remains, the projection is 0 h even
+  without a factor. With `Sprints: off`, say **"unavailable — no time plan"**, but still show the
+  session's measured active time. Under `NO-EXECUTION`, estimated-source hours cannot establish a
+  measured pace; any existing eligible recorded sample remains usable, with its scope stated.
+- Calculate with unrounded values; round only for display. Existing estimated-source actuals are
+  never relabelled as measured to produce a projection.
+
+`plan.json` is regenerated after the last slice update before `keel-time end` prints its report;
+`report` reads up-to-date sources without writing. The report and the appended session row use the
+same remaining hours and factor. Session totals count intervals within this session; finished-slice
+comparisons use each slice's entire lifetime. Keep these distinct when a slice spans sessions.
 
 **The bookkeeping files** — the only paths whose commits do not need a plan update — are exactly
 `docs/sprints/`, `docs/.keel/`, `docs/PROGRESS.md`, `docs/sessions.md` and `docs/token-ledger.md`.
@@ -357,6 +393,8 @@ one of these is mechanical:
 | `docs/PROGRESS.md` "Current position" names a slice id that exists and is neither `done` nor `dropped`, unless every slice is closed | A position that points at nothing cannot be resumed, and cannot be timed |
 | Every `actual_source` is `measured` or `estimated`; every `done` slice marked `measured` is listed in the `Done` column of at least one `docs/sessions.md` row | A "measured" figure no session ever recorded was typed, and a typed figure labelled as measured is the exact lie the clock exists to end |
 | Every `docs/sessions.md` row: `End` is not before `Start`, and `Deviation h` equals `Actual h` minus `Est. h` (±0.05) | A deviation that is not the difference of its own columns was written, not computed |
+| Every new session row records `Active h = Wall-clock h - Paused h`, and a numeric projection equals `Left after h × Pace factor` (±0.05 h); unavailable values carry the reason in `Notes` | Both remaining figures and the measured session duration must survive the close, not only appear in conversation |
+| `plan.json` carries the factor and projection computed from eligible completed slices, with nulls only under the unavailable-data rules | A guessed pace or an average of percentages is not the observed cumulative deviation |
 | `.gitignore` carries `docs/.keel/clock.jsonl` | The raw clock changes at every boundary; committed, it dirties the tree between commits and trips every clean-tree check |
 
 ## Session time — `scripts/keel-time` and `docs/sessions.md` (UNBREAKABLE)
@@ -393,7 +431,7 @@ the file and local time in everything printed.
 | `slice-start <id>` | Opens an interval for the slice. A slice already open in this session is closed first, as `in-progress`. |
 | `slice-end <id> --status <s>` | Closes the interval and writes the slice's cumulative `actual_hours` and `actual_source: measured` into its sprint file's frontmatter, so the value lands in the commit that records the slice. Prints estimated vs measured. |
 | `pause <reason>` / `resume` | Brackets every wait on the person. Paused time is subtracted from any interval it falls inside. |
-| `end` | Closes open intervals as `in-progress`, writes their partial `actual_hours`, appends the session's row to `docs/sessions.md`, and prints the session report. |
+| `end` | Closes open intervals as `in-progress`, writes their partial `actual_hours`, appends the session's row to `docs/sessions.md`, and prints the mandatory session report including baseline and projected remaining hours. |
 | `report` | Prints the report for the session so far, writing nothing. |
 
 **Cumulative across sessions.** A slice worked in three sessions carries the sum of its intervals from
@@ -423,7 +461,7 @@ slice is added first and appears in this block.
 ### The session report — printed at the end of every session, unprompted
 
 ```
-Session — 16:24 → 18:40 CEST (2 h 16 min wall-clock, 18 min paused)
+Session — 16:24 → 18:40 CEST (2 h 16 min wall-clock, 18 min paused, 1 h 58 min active)
 Planned at start: S-030, S-031 — 3.5 h
 Done:
   S-030 <title> — estimated 1.5 h, measured 1.2 h (−0.3 h)
@@ -432,8 +470,17 @@ Not finished:
 Unplanned, added this session:
   S-034 <title> — estimated 0.5 h, measured 0.4 h (−0.1 h)
 Deviation on finished work: estimated 2 h → measured 1.6 h (−0.4 h, −20 %)
-Left: sprint 4 — 1 slice, 2 h (1.4 h after what is already spent) · total 8 h
+Left according to plan: sprint 4 — 1 slice, 2 h · total 8 h
+Cumulative measured finished work: estimated 2 h → measured 1.6 h (−20 %, factor 0.8; 2 slices)
+Projection if the observed pace continues: sprint 4 — 1.6 h · total 6.4 h (provisional sample)
 ```
+
+All fields above are mandatory at every close, without waiting for the user to ask. Show the
+session's planned hours even when some of that work remains unfinished; compare estimated and
+actual hours only for the same completed scope. The cumulative deviation used for the projection
+is shown separately from this session's finished-work deviation. When a figure is unavailable,
+keep its line and explain the reason. Even a session with no completed slices shows active time,
+planned hours, remaining planned hours and the cumulative projection or its unavailability.
 
 Every figure is AI working time plus supervision, and the report says so once. A negative deviation
 is reported as plainly as a positive one: the point is calibration, not blame. Where the deviation on
@@ -448,9 +495,15 @@ line on why, so the next estimate of that kind of slice starts from the measured
 > One row per working session, appended by `scripts/keel-time end`. Times come from the system clock,
 > never from the model. Hours are AI working time plus supervision.
 
-| Start | End | Wall-clock h | Paused h | Planned (slices, est. h) | Done | Est. h | Actual h | Deviation h | Not finished (h spent) | Left after h | Notes |
-|---|---|---|---|---|---|---|---|---|---|---|---|
+| Start | End | Wall-clock h | Paused h | Planned (slices, est. h) | Done | Est. h | Actual h | Deviation h | Not finished (h spent) | Left after h | Active h | Pace factor | Projected left h | Notes |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 ```
+
+`Active h` is wall-clock minus pauses; `Pace factor` is the plan-wide measured cumulative ratio;
+`Projected left h` is `Left after h × Pace factor`. Missing data is written `—` with the reason in
+`Notes`, following the projection rules. On upgrade, add these columns and leave historical cells
+`—` marked `legacy — projection not recorded`; do not reconstruct a historical projection from
+current plan data. Old rows remain valid; all new rows must carry the fields or a stated reason.
 
 `Done` lists slice ids; `Est. h` and `Actual h` are the sums over those slices; `Notes` carries
 `unterminated` or `estimated — no clock` where either applies. Append-only. Phase 7's token
@@ -1429,7 +1482,7 @@ The project root carries the Keel block below in TWO files, always: `CLAUDE.md` 
 One tool needs a third step: **Gemini CLI reads `GEMINI.md`, not `AGENTS.md`, by default.** If the user works with Gemini CLI, ask once and record the pick: mirror the same block in `GEMINI.md` (a third copy of the lock, refreshed with the others), or commit a `.gemini/settings.json` whose `context.fileName` includes `AGENTS.md` (no third copy to maintain). Either satisfies the lock.
 
 ```
-<!-- KEEL:BEGIN — v6.3.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
+<!-- KEEL:BEGIN — v6.4.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
 # Keel protocol (mandatory for ANY assistant working in this repository)
 
 This project is governed by the Keel workflow. Before reading code or changing ANYTHING:

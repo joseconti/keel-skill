@@ -1387,3 +1387,26 @@ Asked for by the user, and adapted from the METHOD of Cloudflare's open-source `
 - **After the report:** every confirmed finding becomes a slice whose fix starts from a failing reproduction test; critical and high on a released product take the hotfix path. A threat-model control the audit found missing goes back to `TO BUILD`. New section in `references/maintenance.md` for audits of released projects.
 
 **Reconciliation:** `MANIFEST.md` Table 3, v6.3.0. Derive the `Security audit:` card line; nothing is created until an audit runs; restamp the lock block (its text is unchanged).
+
+
+## 6.4.0
+
+### Added
+- **Mandatory remaining-time projection at every session close**, shown unprompted beside the
+  baseline remaining hours: `remaining_hours × (measured actual / estimated hours of completed
+  slices)`, labelled "if the observed pace continues". Uses the cumulative measured sample,
+  counts each finished slice once, excludes unfinished and estimated-source actuals, and explains
+  unavailable data. The same projection accompanies remaining-time questions.
+- Session reports explicitly show active working time (wall-clock minus pauses), planned hours,
+  like-for-like finished-work deviation and the cumulative deviation behind the projection.
+- Derived `pace_factor` and `projected_remaining_hours` in `plan.json`; `Active h`, `Pace factor`
+  and `Projected left h` in the session ledger, with verification rules and a legacy-row migration.
+
+### Changed
+- Generated `keel-time` and `keel-verify` contracts, the development close checklist and the
+  estimation procedure now require both remaining-time figures. Original estimates are preserved;
+  projections never rewrite the plan or silently deduct time spent on unfinished work.
+
+**Minor update. Reconciliation:** `MANIFEST.md` Table 3, v6.4.0. Refresh the generated timing and
+verification scripts and plan fields; extend the ledger without fabricating historical projections;
+restamp the lock version (its text is unchanged).

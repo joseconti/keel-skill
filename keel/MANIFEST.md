@@ -1,4 +1,4 @@
-# Keel Manifest — v6.3.0
+# Keel Manifest — v6.4.0
 
 One file, three tables, one purpose: looking ONLY at this file, a session can tell (1) whether a project contains everything Keel requires at its current phase, (2) which skill files changed in which Keel version — so after an update it knows exactly what to re-read, without interpreting the changelog — and (3) what concrete actions each version asks of an existing project (the reconciliation delta).
 
@@ -13,8 +13,8 @@ Verification is phase-aware and condition-aware: read the project card and phase
 | `docs/PROGRESS.md` | Living state: project card, phase status, position, deferred items (template: `references/project-state.md`) | Phase 1 step 0a | Always |
 | `docs/decisions.md` | Append-only decision log (same template source) | Phase 1 step 0a | Always |
 | `docs/lessons-learned.md` | Append-only problem→solution log (same) | Phase 1 step 0a | Always |
-| `docs/sessions.md` | One row per working session, appended by `scripts/keel-time end`: clock-read start and end, wall-clock and paused hours, what was planned, the slices done with estimated vs measured hours, the deviation, what was left unfinished and what is left (template: `references/project-state.md` "Session time") | Phase 1 step 0a | Unless `Sprints: off` |
-| `scripts/keel-time` | The only reader of the clock: `start` (closes an unterminated session at its last event, prints the time, what is left and what this session plans) / `slice-start` / `slice-end` (writes the measured cumulative `actual_hours` + `actual_source: measured` into the sprint file) / `pause` / `resume` / `end` (writes the `docs/sessions.md` row, prints the session report) / `report` | Phase 1 step 0a — or the reconciliation to v6.0.0 on an existing project | Unless `Sprints: off` |
+| `docs/sessions.md` | One row per working session, appended by `scripts/keel-time end`: clock-read start and end, wall-clock, paused and active hours, what was planned, the slices done with estimated vs measured hours, the deviation, what was left unfinished, baseline remaining hours and the cumulative measured-pace projection or its explicit unavailability (template: `references/project-state.md` "Session time") | Phase 1 step 0a | Unless `Sprints: off` |
+| `scripts/keel-time` | The only reader of the clock: `start` (closes an unterminated session at its last event, prints the time, what is left and what this session plans) / `slice-start` / `slice-end` (writes the measured cumulative `actual_hours` + `actual_source: measured` into the sprint file) / `pause` / `resume` / `end` (writes the `docs/sessions.md` row, prints the mandatory active/planned time, deviation, baseline remaining hours and cumulative-pace projection) / `report` | Phase 1 step 0a — or the reconciliation to v6.0.0 on an existing project | Unless `Sprints: off` |
 | `docs/.keel/clock.jsonl` | Machine-local raw clock events (`schema: keel.clock/1`; `event` one of `session-start`/`slice-start`/`slice-end`/`pause`/`resume`/`session-end`; UTC timestamps) — GITIGNORED, never committed; what it produces is committed through the sprint files and `docs/sessions.md` | The first `scripts/keel-time start` | Unless `Sprints: off` |
 | Off-machine durability — a Git remote, or a tree that replicates off this computer | The work must survive this machine (SKILL.md "Work never lives only on this machine"): checked with commands (`git rev-parse --git-dir`, `git remote -v`, the tree's absolute path), recorded on the project card's `Durability:` line, and — where the user declined — carrying its accepted-risk D-entry with the consequence stated. `scripts/keel-verify` fails a remoteless repo that has no such record | Phase 1 step 0a (before anything is created); adoption step 2 | Always |
 | A clean working tree at every block close | Nothing left uncommitted: commits land on `develop` or on a work branch bound for it, and a repo with only `main`/`master` gets `develop` created first (SKILL.md "Git flow") | Phase 1 step 0a | Always (where the project is a Git repository) |
@@ -97,9 +97,9 @@ After an update, re-read `SKILL.md`, the current phase's reference, and THIS fil
 
 | Skill file | Last changed in |
 |---|---|
-| `SKILL.md` | v6.3.0 |
-| `MANIFEST.md` | v6.3.0 |
-| `CHANGELOG.md` | v6.3.0 |
+| `SKILL.md` | v6.4.0 |
+| `MANIFEST.md` | v6.4.0 |
+| `CHANGELOG.md` | v6.4.0 |
 | `references/keel-maintenance.md` | v5.10.3 |
 | `references/notifications.md` | v5.14.0 |
 | `references/playground-recipes.md` | v5.1.0 |
@@ -107,13 +107,13 @@ After an update, re-read `SKILL.md`, the current phase's reference, and THIS fil
 | `references/maintenance.md` | v6.3.0 |
 | `references/guide-theme.md` | v3.2.1 |
 | `references/assistant-config.md` | v6.1.0 |
-| `references/phase-5-development.md` | v6.2.0 |
+| `references/phase-5-development.md` | v6.4.0 |
 | `references/phase-7-release.md` | v6.3.0 |
-| `references/project-state.md` | v6.3.0 |
+| `references/project-state.md` | v6.4.0 |
 | `references/phase-1-discovery.md` | v6.3.0 |
 | `references/phase-2-functional-spec.md` | v6.3.0 |
 | `references/adoption.md` | v6.0.0 |
-| `references/estimation-budget.md` | v6.0.0 |
+| `references/estimation-budget.md` | v6.4.0 |
 | `references/phase-6-documentation.md` | v5.2.0 |
 | `references/phase-3-design-handoff.md` | v3.5.0 |
 | `references/phase-4-faithful-build.md` | v5.2.0 |
@@ -201,6 +201,7 @@ What the reconciliation APPLIES, version by version, for every version newer tha
 | v6.1.0 | MINOR, and structural only on a chaining project: **the tool registry becomes DATA**. On a project whose card is not `Chaining: off`/`supervised`, generate `scripts/keel-tools/<tool>.sh` — one row file per tool on the card's `Assistant config:` tools list — from `references/project-state.md` ("The registry is DATA"), carrying every field that contract lists; a tool whose action is `NONE` still gets a row, because a recorded "this one prints" is an answer and a missing row is not. Then **move every per-tool fact OUT of the shared scripts and into its row**: `scripts/keel-continue`, `scripts/keel-close`, `scripts/keel-stop-hook` and `scripts/keel-chain-check` source the detected tool's row and must carry no tool name on an executable line (comments may keep the history). Regenerate `scripts/keel-verify` with the four new rows (row per accepted tool, every field declared, no tool name in a shared script outside a comment, and each tool's `KEEL_TOOL_HOOK_FILE` mentioning `scripts/keel-stop-hook` exactly when its `KEEL_TOOL_STOP_HOOK` is `yes`). **Run that fourth check on the existing tree before anything else and repair what it finds by REMOVING the registration from the tool whose row says `no` — never by changing the hook's output**, which breaks the one integration already proven, in a tool that is not even running and re-run `scripts/keel-chain-check --smoke`, since the card's `Chain verified:` line now carries the fired row's checksum beside the launcher's — an unproven row prints instead of firing. Restamp the lock block's version in `CLAUDE.md` + `AGENTS.md` (the block TEXT is unchanged this version). Projects on `Chaining: off` or `supervised`: none structural. |
 | v6.2.0 | MINOR, and structural only on a project that accepted Codex: **the Codex launch flags changed** — `--sandbox workspace-write` becomes `--sandbox danger-full-access` (`references/project-state.md`, the tool registry). Regenerate `scripts/keel-tools/codex.sh` so its `keel_tool_launch` carries the measured flags, leave every other row file untouched (a row belongs to the tool whose session edits it), and re-run `scripts/keel-chain-check --smoke` — the card's `Chain verified:` line carries the row's checksum, so a corrected row is an unproven chain until it is observed firing again. Restamp the lock block's version in `CLAUDE.md` + `AGENTS.md` (the block TEXT is unchanged this version). Projects without Codex, or on `Chaining: off`/`supervised`: none structural. |
 | v6.3.0 | MINOR: **an active security audit, optional, and a Phase 7 gate on critical projects** (`references/security-audit.md`). The existing `references/security/*.md` profiles are unchanged; they become the audit's hunting modules. **(1) NEW CARD LINE `Security audit:`**: derive it, never ask. It is `required — <criterion>` when money moves, personal data is held, or a programmatic surface (MCP tools or abilities, REST or GraphQL, webhooks, public AJAX or `admin-post`) is reachable from outside, reading `docs/threat-model.md` or, where that predates the criteria, the code. Otherwise it is `optional`. **(2) Nothing is created until an audit runs.** The first run adds `docs/security-audit/` to `.gitignore` before writing, and commits the counts-only `docs/security-audit.md` log. **(3) On a `required` project the next release gate needs an audit covering its candidate, or a D-entry declining it.** Say so when the line is written, so the requirement does not surface for the first time at the tag. **(4)** Restamp the lock block's version in `CLAUDE.md` + `AGENTS.md` (the block TEXT is unchanged this version). |
+| v6.4.0 | MINOR: **mandatory session close with measured vs planned time and both remaining-time figures**. **(1)** Regenerate `scripts/keel-time` against `references/project-state.md`: active hours, planned hours, like-for-like deviation, baseline remaining hours and the projection labelled "if the observed pace continues", with the cumulative measured sample and explicit unavailable-data reasons. **(2)** Extend the `plan.json` generator with `pace_factor` and `projected_remaining_hours`; regenerate after slice updates. **(3)** Add `Active h`, `Pace factor` and `Projected left h` to `docs/sessions.md`; historical cells stay `—` with `legacy — projection not recorded` in Notes. Never manufacture historical forecasts or relabel estimated actuals. **(4)** Regenerate `scripts/keel-verify` with the new arithmetic, data-eligibility and ledger checks; legacy rows are exempt only from new fields. Exercise the timing report with a partial slice, no measured completed slices and a measured multi-session completion. **(5)** Restamp the lock version in `CLAUDE.md` + `AGENTS.md` (block TEXT unchanged). |
 
 ## Maintenance (part of EVERY release — no exceptions)
 

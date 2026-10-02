@@ -282,3 +282,19 @@
 - Context: the user asked for a version bump, changelog, commit and tag without push, and answered "v6.3.0" to the explicit version question.
 - Decision: **v6.3.0**, MINOR. It adds an optional reference, one derived card line and one conditional Phase 7 gate; it removes nothing a project depends on and needs no change on an `optional` project beyond the card line and the lock restamp. Committed and tagged on `develop`, like v6.2.0. Not pushed, on the user's instruction; publishing and the merge to `main` are the user's.
 - Consequence: `MANIFEST.md` Tables 1, 2 and 3 carry the release; `python3 tests/lint-release.py` passed.
+
+
+## D-035 — Mandatory close report and cumulative remaining-time projection; v6.4.0 minor
+
+- Date: 2026-10-02
+- Context: the user requested actual vs planned session time, remaining planned hours and remaining
+  hours adjusted by the deviation observed so far, then explicitly asked to make it mandatory and
+  label the change a minor update.
+- Decision: v6.4.0, MINOR. Every session close reports active hours, planned hours, like-for-like
+  finished-work deviation and both remaining-time figures. The projection uses total measured
+  actual divided by estimated hours on completed slices, once per slice across sessions, and is
+  labelled "if the observed pace continues". Missing data stays explicit; the original plan stays
+  visible. New derived fields and ledger columns have verification and legacy migration rules.
+- Consequence: existing projects regenerate their timing and verification scripts and plan output,
+  extend the session ledger and restamp their lock. The user subsequently authorised the commit and push to develop and the v6.4.0 release AFTER
+  their merge to main. The merge remains the user's action.
