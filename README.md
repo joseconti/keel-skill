@@ -4,7 +4,7 @@
 
 Use it for any new project — WordPress/WooCommerce plugins, MCP servers, web apps, components, libraries, or websites. Keel runs a complete multi-phase workflow so you never have to re-explain your standing requirements every time you start something new.
 
-- **Version:** 6.3.0
+- **Version:** 6.4.0
 - **License:** GPL-3.0-or-later
 - **Author:** [José Conti](https://plugins.joseconti.com/en)
 
@@ -69,7 +69,7 @@ Keel also keeps itself current. At the start of every session it checks this rep
 - Maximum extensibility for extensible project types: filterable user-facing strings, before/after hooks on decisions, filterable queries and responses, replaceable public classes.
 - Real functional verification whenever possible, not only automated tests: a runnable playground with a per-platform recipe (wp-env or WordPress Playground, MCP Inspector, Playwright, XCUITest on a dedicated simulator, a headless Android emulator, a virtual display for Linux GUIs, a real PTY for interactive CLIs, a clean consumer project for libraries) and synthetic seed data, where real flows, CLI, and API calls are exercised by the assistant — and the user gets access details plus try-it instructions (`docs/playground.md`) as an option, never a duty. Anything a compile, a boot, or a basic test would have caught is caught before hand-over, and a failing test is never weakened to pass.
 - Budgets are AI-time based, never human-time based: the AI's hours plus the vibe coder's supervision hours, itemized per segment, with the AI's token cost separate — and the actuals reconciled against the estimate at release.
-- Every session is timed by the system clock, never by the model's recollection: it opens with the time, what is left and what the session plans (with hours), and closes with what was done, estimated against measured hours, and the deviation (`scripts/keel-time`, `docs/sessions.md`).
+- Every session is timed by the system clock, never by the model's recollection: it opens with the time, what is left and what the session plans (with hours), and closes with what was done, estimated against measured hours, and the deviation, followed by both the remaining planned hours and a projection if the observed cumulative pace continues (`scripts/keel-time`, `docs/sessions.md`).
 - Every test is written, but not every test runs on every push: each push runs only the tests its change reaches (`scripts/keel-affected-tests`, enforced by a pre-push hook), and the entire suite runs at every release, on the candidate.
 - Forge issues are tracked in a living log (`docs/issues.md`): everything there is, everything resolved and exactly how, everything still pending.
 - Confirm before advancing a phase. Each phase has a definition of done.
