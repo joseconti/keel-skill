@@ -1410,3 +1410,31 @@ Asked for by the user, and adapted from the METHOD of Cloudflare's open-source `
 **Minor update. Reconciliation:** `MANIFEST.md` Table 3, v6.4.0. Refresh the generated timing and
 verification scripts and plan fields; extend the ledger without fabricating historical projections;
 restamp the lock version (its text is unchanged).
+
+
+## 6.5.0
+
+### Added
+- **A browser MCP costs one browser per session, so it is configured, shared and cleaned up by
+  rule** (`references/test-automation.md`). Registered at project level only, never per user;
+  `--headless --isolated` by default; one shared Chrome over `--cdp-endpoint`, bound to
+  `127.0.0.1` with a throwaway profile, where several sessions run at once; `browser_close` at the
+  end of every driven check; orphaned browsers reaped.
+- **Three advisory `keel-doctor` rows** that check it instead of relying on memory: a browser MCP
+  registered at user level, a project registration missing `--headless`/`--isolated` (or
+  `--cdp-endpoint`), and Playwright browsers orphaned to PID 1 with their resident memory. `--fix`
+  kills exactly those PIDs, never `pkill -f ms-playwright`.
+- **Local Playwright workers are capped** from the config (`PW_WORKERS`, default 2; CI keeps the
+  default) and the cap is recorded in the Testing block. Measured on a 32 GB laptop: one e2e run
+  held about 2 GB (two workers, each with a headless browser and an `ffmpeg` recording video), with
+  no MCP involved; four sessions running suites exhausted the machine.
+
+### Changed
+- The fan-out rule (`references/assistant-config.md`) treats the machine's memory as an
+  environment: concurrent browser suites take turns under "one executing verifier per
+  environment". The MCP registration section names the browser MCP's scope and flags, and the
+  Phase 2 Testing block records the browser MCP shape.
+
+**Minor update. Reconciliation:** `MANIFEST.md` Table 3, v6.5.0. Cap local workers, register any
+browser MCP at project level with its flags, regenerate the doctor rows; restamp the lock version
+(its text is unchanged).
