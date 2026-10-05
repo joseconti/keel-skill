@@ -16,13 +16,13 @@
 - Keel portability: lock only — this repo is the SOURCE of the skill; it does not embed a copy of itself.
 - Assistant config: none (tools: claude) — no `.claude/` package generated for this repo.
 - Models: n/a no agents
-- Keel baseline: v6.4.0 — this repository authors the version it is on, so the baseline always equals the version being written.
+- Keel baseline: v6.5.0 — this repository authors the version it is on, so the baseline always equals the version being written.
 - Website intent: no
 - Client budget: no — the skill is the user's own product, not client work.
 - User guide: n/a — `README.md` and `INSTALL.md` serve that role for a skill.
 - Docs theme: n/a
 - Test-first policy: n/a — this repository ships no executable product; its only code is `tests/lint-release.py`, whose checks are added the moment the promise they verify is written. The two universal rules still apply: a linter bug is fixed from a failing check first, and a check derived from a release rule is never relaxed to make a release pass.
-- Sprints: on — plan in `docs/sprints/` since 2026-09-16 (sprint 1 = v6.0.0, sprint 2 = v6.1.0, sprint 3 = v6.3.0, sprint 4 = v6.4.0). Sessions timed by hand with `date -u` into `docs/.keel/clock.jsonl` (no `scripts/keel-time` in this repo — see deferred items).
+- Sprints: on — plan in `docs/sprints/` since 2026-09-16 (sprint 1 = v6.0.0, sprint 2 = v6.1.0, sprint 3 = v6.3.0, sprint 4 = v6.4.0, sprint 5 = v6.5.0). Sessions timed by hand with `date -u` into `docs/.keel/clock.jsonl` (no `scripts/keel-time` in this repo — see deferred items).
 - Push test scope: n/a — this repository ships no executable product; its only check, `python3 tests/lint-release.py`, is run whole at every release.
 - Durability: **git remote `origin` — https://github.com/joseconti/keel-skill.git** (verified 2026-07-31 with `git remote -v`). The tree is not inside a synced folder; the remote covers the requirement on its own.
 - Autonomy: **automatic** — Keel does not ask, and does every merge to `develop` and every push itself (`.claude/settings.local.json` written by Keel, gitignored; see D-003, D-004) / issues: on-request — this repo's forge issues are worked when the user raises them / Issue sweep interval: n/a (the after-sprint duty was not accepted here)
@@ -46,17 +46,17 @@ This repository was adopted into its own discipline late (state files created 20
 | 8 Website | n/a — website intent: no | — |
 
 ## Current position
-- Phase: maintenance — **v6.4.0 ready for the user's merge to main**, sprint 4 / S-009 complete (D-035): mandatory session close with measured vs planned time and both baseline and cumulative-pace-adjusted remaining hours. Release linter passed. Commit and push to `develop` authorised by the user; the release is authorised AFTER their merge to `main`.
-- Previous states: v6.2.0 committed and tagged on `develop` 2026-09-19 (Codex launch flags; it carries no D-entry of its own in this log, recorded here rather than back-filled); v6.1.0 released 2026-09-18 (the tool registry as data, D-029–D-031); the history before it is in `keel/CHANGELOG.md` and git.
-- Next action: after the user merges `develop` into `main`, verify the merge candidate, tag v6.4.0 there and publish the release; other projects still need their recorded reconciliation.
+- Phase: maintenance — **v6.5.0 ready for the user's merge to main**, sprint 5 / S-010 complete (D-036): browsers stop multiplying per session (browser MCP scope and flags, shared browser, `browser_close`, orphan reaping, three advisory doctor rows, local worker cap). Release linter passed. The user pushes `develop`; the release is authorised AFTER their merge to `main`.
+- Previous states: v6.4.0 merged to `main` by PR #18 and tagged; v6.2.0 committed and tagged on `develop` 2026-09-19 (Codex launch flags; it carries no D-entry of its own in this log, recorded here rather than back-filled); v6.1.0 released 2026-09-18 (the tool registry as data, D-029–D-031); the history before it is in `keel/CHANGELOG.md` and git.
+- Next action: after the user merges `develop` into `main`, verify the merge candidate, tag v6.5.0 there and publish the release; other projects still need their recorded reconciliation.
 
 ## Open items
 - Unresolved user questions: none
 - Open Design Requests: none
 - Unverified external steps/assets: none
 - Forge issues in progress: none
-- **Ready for `main`:** v6.4.0 — mandatory timing report and remaining-time projection. The user performs the merge; the assistant creates the release afterwards.
-- **Reconciliation pending on other projects:** v6.0.0 → v6.3.0, starting with `new-gymai`.
+- **Ready for `main`:** v6.5.0 — browser MCP and test-runner memory. The user performs the merge; the assistant creates the release afterwards.
+- **Reconciliation pending on other projects:** v6.0.0 → v6.5.0, starting with `new-gymai`.
 
 ### Deferred items (consciously postponed work)
 - **No `scripts/keel-time` and no `plan.json` generator in this repo** — severity: low — review trigger: the next session that finds timing by hand error-prone. The clock is read with `date -u` at every boundary and the events appended to `docs/.keel/clock.jsonl`; `docs/sessions.md` is written from them.
@@ -64,4 +64,4 @@ This repository was adopted into its own discipline late (state files created 20
 - **Notification reach is desktop-only unless Remote Control is connected** — severity: low — review trigger: the first time a real absence goes unnoticed, or if the user wants alerts while away from the building. The native channel covers "walked away from the desk"; an SMTP sender or messaging MCP would be the escalation, and is not built.
 - **This repo has no `scripts/keel-verify`, `keel-doctor` or `keel-handoff-verify`** — severity: low — review trigger: if the repo ever ships executable content. `tests/lint-release.py` is this project's equivalent gate and is genuinely mechanical; generating the other three would be ceremony over a Markdown package.
 
-Last updated: 2026-10-02 — maintenance, v6.4.0 minor update ready for merge; release awaits the user's main merge
+Last updated: 2026-10-05 — maintenance, v6.5.0 minor update ready for merge; release awaits the user's main merge
