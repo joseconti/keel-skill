@@ -184,6 +184,8 @@ The four cases where serial is correct, and no others:
 
 **File isolation does not buy environment isolation, so it never dissolves the second case.** Where a harness offers to run each agent in its own git worktree, what that isolates is FILES: two agents editing the same path stop colliding. The serial case above is not about files — it is about two EXECUTING verifiers sharing one port, one database, one seed dataset, one deployed origin, and two worktrees fight over all four exactly as two directories in one checkout would. "One executing verifier per environment" therefore stays a serial stage whatever the isolation mechanism offers, and an isolated worktree is never the reason to relax it.
 
+**The machine is an environment too, and a browser is its most expensive tenant.** Every executing agent or session that drives a browser through an MCP server starts its own Chromium unless the project shares one; several sessions on one laptop multiply that until the machine swaps (measured: four sessions exhausted 32 GB). So the browser count is a concurrency cap of the fourth kind below, and the configuration that keeps it at one — project-level registration only, `--headless --isolated` or one shared browser over `--cdp-endpoint`, `browser_close` at the end of every test, orphans reaped — is in `references/test-automation.md` ("A browser MCP costs one browser per session"), checked by the doctor rather than remembered.
+
 **Merging is the main session's job and it is not optional.** Each agent returns findings for its own slice of the work and nothing else; the session collects every block's results, deduplicates findings several agents raised against the same `file:line`, and reports once. A gate is passed against the merged set — never against the first agent that answered, and never against a partial set because one agent is still running.
 
 ### Workflows — the same fan-out, written as a script
@@ -390,6 +392,8 @@ Create it ONLY when `docs/03-technical-plan.md` defines MCP servers used during 
 **Cursor** — the same object in `.cursor/mcp.json`. **Copilot / VS Code** — the same servers under the `servers` key in `.vscode/mcp.json`. **Gemini CLI** — the same servers under `mcpServers` in `.gemini/settings.json`. **Codex** — `[mcp_servers.<name>]` tables in `.codex/config.toml` (trusted projects). **Windsurf** — no repo-level file: put the server setup in `docs/playground.md` for the user to register at user level.
 
 Hard rule, every container: NEVER a literal secret — each tool's environment-expansion form only (e.g. `${VAR}`; adapt to the container's syntax), with the variable documented in `docs/playground.md`. If a tool offers no expansion mechanism for a needed secret, that server is NOT committed for that tool — user-level registration instead. Every MCP file passes through the same confidential-data gate as everything else. If the project needs no dev MCP servers, these files simply do not exist — do not create empty ones.
+
+**A browser MCP (the Playwright MCP) is registered here, at project level, and NEVER at user level** — a user-level registration starts a browser in every session on the machine, projects without a UI included. Its args carry `--headless` and `--isolated`, or `--cdp-endpoint` to one shared browser: `"args": ["@playwright/mcp@latest", "--headless", "--isolated"]`. The reasons, the shared-browser setup and the doctor rows that check it are in `references/test-automation.md` ("A browser MCP costs one browser per session").
 
 ## Personal files and `.gitignore`
 
