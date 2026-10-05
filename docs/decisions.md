@@ -298,3 +298,21 @@
 - Consequence: existing projects regenerate their timing and verification scripts and plan output,
   extend the session ledger and restamp their lock. The user subsequently authorised the commit and push to develop and the v6.4.0 release AFTER
   their merge to main. The merge remains the user's action.
+
+
+## D-036 — Browsers stop multiplying per session; v6.5.0 minor
+
+- Date: 2026-10-05
+- Context: four concurrent sessions exhausted the user's 32 GB laptop. The user asked Keel to carry
+  the browser MCP guidelines (project-level registration, `--headless --isolated`, one shared
+  browser over `--cdp-endpoint`, `browser_close`, orphan cleanup). Inspection on the machine then
+  showed no MCP registered anywhere: the memory was a running e2e suite. The user then asked for
+  v6.5.0, since v6.4.0 was already released.
+- Decision: v6.5.0, MINOR. The guidelines go into `references/test-automation.md`, and because a
+  rule that already failed is not fixed by stronger wording, they become three advisory
+  `keel-doctor` rows. Local Playwright workers are capped from the config. `--fix` kills only
+  orphans; `pkill -f ms-playwright` is documented as the blunt tool for when no session is driving.
+- Consequence: projects with a browser surface cap their workers, register any browser MCP at
+  project level with its flags, regenerate their doctor and restamp the lock. Advisory rows never
+  block a gate.
+
