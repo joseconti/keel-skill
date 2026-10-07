@@ -1,4 +1,4 @@
-# Keel Manifest — v7.0.0
+# Keel Manifest — v7.1.0
 
 One file, three tables, one purpose: looking ONLY at this file, a session can tell (1) whether a project contains everything Keel requires at its current phase, (2) which skill files changed in which Keel version — so after an update it knows exactly what to re-read, without interpreting the changelog — and (3) what concrete actions each version asks of an existing project (the reconciliation delta).
 
@@ -99,20 +99,20 @@ After an update, re-read `SKILL.md`, the current phase's reference, and THIS fil
 
 | Skill file | Last changed in |
 |---|---|
-| `SKILL.md` | v7.0.0 |
-| `MANIFEST.md` | v7.0.0 |
-| `CHANGELOG.md` | v7.0.0 |
+| `SKILL.md` | v7.1.0 |
+| `MANIFEST.md` | v7.1.0 |
+| `CHANGELOG.md` | v7.1.0 |
 | `scripts/keel_parallel.py` | v7.0.0 |
 | `references/keel-maintenance.md` | v7.0.0 |
 | `references/notifications.md` | v5.14.0 |
 | `references/playground-recipes.md` | v5.1.0 |
-| `references/test-automation.md` | v6.5.0 |
+| `references/test-automation.md` | v7.1.0 |
 | `references/maintenance.md` | v6.6.0 |
 | `references/guide-theme.md` | v3.2.1 |
 | `references/assistant-config.md` | v7.0.0 |
 | `references/phase-5-development.md` | v7.0.0 |
-| `references/phase-7-release.md` | v6.3.0 |
-| `references/project-state.md` | v7.0.0 |
+| `references/phase-7-release.md` | v7.1.0 |
+| `references/project-state.md` | v7.1.0 |
 | `references/phase-1-discovery.md` | v7.0.0 |
 | `references/phase-2-functional-spec.md` | v6.5.0 |
 | `references/adoption.md` | v7.0.0 |
@@ -209,6 +209,7 @@ What the reconciliation APPLIES, version by version, for every version newer tha
 | v6.5.0 | MINOR, and structural only on a project with a browser surface: **browsers stop multiplying per session**. **(1)** In the project's Playwright config, cap local workers: `workers: process.env.CI ? undefined : Number(process.env.PW_WORKERS ?? 2)`, and record the cap beside the run mode in the technical plan's `## Testing` block. **(2)** Where the assistant drives the browser through an MCP server, register it in the repo-level MCP file only (`.mcp.json` for Claude Code) with `--headless --isolated`, or `--cdp-endpoint` to one shared browser, and record that shape in the same block; remove any user-level registration only with the user's OK, since it is their machine-wide config. **(3)** Regenerate `scripts/keel-doctor` with the three advisory browser-MCP rows (`references/test-automation.md`): user-level registration, missing flags, Playwright browsers orphaned to PID 1. **(4)** Restamp the lock version in `CLAUDE.md` + `AGENTS.md` (block TEXT unchanged). Projects without a browser surface: only the lock restamp. |
 | v6.6.0 | MINOR: **scope ownership and residual estimates make split work count once**. **(1)** Migrate each legacy slice's `hours` into immutable `original_hours`; preserve its historical actual and never infer a residual from elapsed time. **(2)** Map every open slice's exclusive requirement ownership and explicitly estimate `residual_hours`; until this is complete, set `reconciliation_status: unreconciled` and label the balance accordingly. **(3)** Regenerate `scripts/keel-time`, the plan generator and `scripts/keel-verify` for `original_hours`/`residual_hours`, `added\|extracted\|re-estimated`, append-only estimate changes, same-checkpoint parent/child reconciliation, the explained balance equation, and the split/outlier regressions. **(4)** Reconcile each existing parent/child decomposition as ordinary planned work; do not mark unfinished features done or subtract actuals. **(5)** Restamp the lock version in `CLAUDE.md` + `AGENTS.md` (block text changed). |
 | v7.0.0 | MAJOR: **approved independent development becomes a dependency-aware rolling worker pool.** **(1)** Add `Parallel development: auto; max_workers: 2 \| off` to the project card, preserving an explicit prior fan-out acceptance; otherwise settle it once before paid or writing workers launch. **(2)** When `auto`, migrate only the active sprint to `keel.sprint/2`, preserving IDs, estimates, statuses and historic reports while adding exact write paths, semantic contract reads/writes, exclusive resources and eligibility. Missing mappings remain unknown, never broad permission. **(3)** If Python 3 already exists, copy `scripts/keel_parallel.py` from the installed skill byte-for-byte to executable `scripts/keel-parallel`, record its SHA-256, gitignore `docs/.keel/parallel/` and keep `docs/.keel/slices/<run>/<slice>/<attempt>.json` tracked. **(4)** Probe this session for a native isolated writing backend, then a verified unattended CLI adapter; without either, record the exact serial fallback. Do not infer capability from a product name or install anything silently. **(5)** Regenerate worker-aware locks/hooks: a registered assignment validates Git common directory, cwd, branch, base, scope and attempt before write; workers keep local secrets/scope/test guards but never run global close, push, chain or aggregate-state writes. **(6)** Integrate only after structured result validation and independent review; serialize merge plus aggregate updates, run post-merge verification, then mark the dependency integrated. **(7)** Keep elapsed duration, summed worker effort, coordinator time and available usage/cost counters separate. **(8)** Restamp `CLAUDE.md` + `AGENTS.md`; ordinary serial projects retain their existing workflow and gain no runtime dependency. |
+| v7.1.0 | MINOR: **static-analysis evidence now distinguishes code findings from a tool that never reached analysis.** At every test point and release gate, classify each canonical invocation as `PASS`, `FINDINGS`, or `BLOCKED — ENVIRONMENT`; record the command, exit status, earliest failure line, scope and missing capability. A local socket, runner or launch failure is neither a code finding nor a passing analysis. A sequential/no-parallel run is diagnostic only unless the technical plan explicitly proves equivalent command, configuration and scope; it never upgrades the failed canonical command. Re-run every mandatory canonical command before accepting a slice or release result. Existing projects: no new file or card line; apply this evidence rule at the next test point, and restamp the portability lock. |
 
 ## Maintenance (part of EVERY release — no exceptions)
 

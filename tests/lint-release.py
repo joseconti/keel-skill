@@ -24,8 +24,10 @@ Checks:
   9. Every MANIFEST Table 1 row required AT A PHASE is named by that phase's own
      reference — the shape v5.3.1 and v5.4.0 both had to fix: a requirement
      recorded in the index with no phase reference telling anyone to create it.
- 10. Packaged executable helpers are executable, no Python bytecode is present,
+10. Packaged executable helpers are executable, no Python bytecode is present,
      and repository-only implementation plans are excluded from release archives.
+11. Static-analysis evidence distinguishes a blocked tool launch from an analysed
+    target, and the release gate preserves that distinction.
 """
 
 import re
@@ -282,6 +284,24 @@ if plan_rule not in attributes:
     fail("repository-only parallel implementation plan is not export-ignored")
 else:
     ok("parallel implementation plan is excluded from release archives")
+
+# ---- 11. Static-analysis evidence contract --------------------------------
+test_automation = (KEEL / "references" / "test-automation.md").read_text(encoding="utf-8")
+phase7 = (KEEL / "references" / "phase-7-release.md").read_text(encoding="utf-8")
+required_static_contract = (
+    "**PASS**",
+    "**FINDINGS**",
+    "**BLOCKED — ENVIRONMENT**",
+    "canonical invocation into PASS",
+)
+missing_static_contract = [phrase for phrase in required_static_contract if phrase not in test_automation]
+if missing_static_contract:
+    fail("static-analysis evidence contract is incomplete in test-automation.md: "
+         f"missing {missing_static_contract}")
+elif "Classify every static check before accepting it." not in phase7:
+    fail("Phase 7 release gate does not require static-check classification")
+else:
+    ok("static-analysis evidence contract and release gate are present")
 
 # ---- Result ----------------------------------------------------------------
 print()

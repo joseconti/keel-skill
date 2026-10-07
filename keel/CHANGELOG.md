@@ -1518,3 +1518,21 @@ verification scripts, and refresh the lock block.
 **Major update. Reconciliation:** `MANIFEST.md` Table 3, v7.0.0. Existing serial projects continue
 unchanged. Projects opting into parallel writing migrate only their active sprint, scaffold the helper and
 runtime ignores, verify one isolated backend, and refresh the portability lock.
+
+## 7.1.0
+
+### Fixed
+
+- Static-analysis runs that fail before analysing their target now have an explicit
+  `BLOCKED — ENVIRONMENT` verdict. Their launcher or socket error cannot be reported
+  as a code finding or merged into a passing result.
+- The canonical command's exit status, first failure line, scope and missing
+  capability must be recorded. An alternate sequential/no-parallel run may diagnose
+  the code separately, but is not equivalent unless the technical plan says so and
+  never changes the blocked canonical invocation into PASS.
+- Phase 7 now requires every mandatory canonical static-analysis command to run on
+  the candidate before release evidence is accepted.
+
+**Minor update. Reconciliation:** `MANIFEST.md` Table 3, v7.1.0. No new project
+artifact or card line; apply the evidence classification at the next test point and
+refresh the portability lock.
