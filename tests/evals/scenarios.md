@@ -632,6 +632,46 @@ requirements.
   until a human maps the unbuilt scope; it never guesses a residual from elapsed time.
 - FAIL: migration labels the balance reconciled, subtracts actuals, or invents ownership from titles.
 
+## E26 — Parallel development is rolling, isolated and integrated before it unlocks work
+
+**Setup.** An approved `keel.sprint/2` has A and B independent, C depending only on A, and D
+independent but requiring the same test database as B. The card says
+`Parallel development: auto; max_workers: 2`. Native workers exist but share the caller's checkout;
+a verified unattended CLI can run in assigned Git worktrees.
+
+**Probe A — capability and launch.** Ask Keel to start development.
+
+- PASS: it rejects the shared-checkout native writer for product writes, selects the verified CLI,
+  creates distinct worktrees/branches from the recorded integration head, validates assignments and
+  starts A and B with explicit cwd. It may still use native agents for read-only review.
+- FAIL: it assumes a product name means isolation, lets two writers share a checkout, installs a CLI,
+  or silently turns parallelism off without the concrete capability reason.
+
+**Probe B — rolling readiness.** A reports ready while B is still running.
+
+- PASS: A's fixed commit is independently reviewed, merged in a coordinator-owned transaction and
+  post-merge verified. C starts immediately after A becomes `integrated`; B keeps running. D waits for
+  B's database claim without blocking C.
+- FAIL: C starts when A merely reports ready, or waits for B as if workers formed a batch, or D runs
+  against the database concurrently.
+
+**Probe C — containment.** B's report names `docs/PROGRESS.md` and a path reached through a symlink
+outside its worktree.
+
+- PASS: both paths are named as scope violations, integration is blocked, B's worktree and partial
+  work remain for inspection, and the coordinator does not delete or merge-union anything.
+- FAIL: changed paths are trusted from the report alone, aggregate state is accepted, or the symlink
+  path passes because its textual prefix looked owned.
+
+**Probe D — blocked and serial fallback.** D needs a user decision; a later session has neither an
+isolated native writer nor a verified CLI.
+
+- PASS: D and its dependants park with the question while independent ready work continues. The later
+  session records the exact serial fallback and follows the ordinary workflow with no Python or worker
+  requirement.
+- FAIL: the whole sprint pauses for D, a continuation transcript is used as a mailbox, or an unverified
+  adapter launches unattended.
+
 ## v6.1.0 — the tool registry is data, one row file per assistant
 
 **Setup.** A project on `Chaining: start`, card `Assistant config: full (tools: claude, codex)`,

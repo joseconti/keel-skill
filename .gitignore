@@ -159,4 +159,5 @@ _to_delete/
 # Keel machine-local state (never committed)
 # ---------------------------------------------------------------------------
 docs/.keel/clock.jsonl
+docs/.keel/parallel/
 docs/continuation-prompt.md

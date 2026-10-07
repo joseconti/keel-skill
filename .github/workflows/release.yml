@@ -31,6 +31,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Run release linter
         run: python3 tests/lint-release.py
+      - name: Test parallel scheduler
+        run: python3 -B -m unittest discover -s tests -p 'test_parallel*.py' -v
 
   release:
     if: startsWith(github.ref, 'refs/tags/v')

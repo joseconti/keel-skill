@@ -24,6 +24,8 @@ Checks:
   9. Every MANIFEST Table 1 row required AT A PHASE is named by that phase's own
      reference — the shape v5.3.1 and v5.4.0 both had to fix: a requirement
      recorded in the index with no phase reference telling anyone to create it.
+ 10. Packaged executable helpers are executable, no Python bytecode is present,
+     and repository-only implementation plans are excluded from release archives.
 """
 
 import re
@@ -255,6 +257,31 @@ for md in sorted(ROOT.rglob("*.md")):
             i += 1
 if not any("markdown table row" in f for f in failures):
     ok(f"markdown tables: no unescaped pipe inside a cell ({table_rows_checked} rows)")
+
+# ---- 10. Script and archive packaging hygiene ------------------------------
+parallel_helper = KEEL / "scripts" / "keel_parallel.py"
+if not parallel_helper.is_file():
+    fail("parallel helper is missing from the packaged skill")
+elif not parallel_helper.stat().st_mode & 0o111:
+    fail("keel/scripts/keel_parallel.py is not executable")
+else:
+    ok("parallel helper is present and executable")
+
+bytecode = sorted(
+    str(p.relative_to(ROOT)) for p in KEEL.rglob("*")
+    if p.name == "__pycache__" or p.suffix in {".pyc", ".pyo"}
+)
+if bytecode:
+    fail(f"Python bytecode/cache present in packaged skill: {bytecode}")
+else:
+    ok("packaged skill contains no Python bytecode/cache")
+
+attributes = (ROOT / ".gitattributes").read_text(encoding="utf-8")
+plan_rule = "/docs/parallel-development-action-plan.md export-ignore"
+if plan_rule not in attributes:
+    fail("repository-only parallel implementation plan is not export-ignored")
+else:
+    ok("parallel implementation plan is excluded from release archives")
 
 # ---- Result ----------------------------------------------------------------
 print()

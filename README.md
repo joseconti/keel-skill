@@ -4,7 +4,7 @@
 
 Use it for any new project — WordPress/WooCommerce plugins, MCP servers, web apps, components, libraries, or websites. Keel runs a complete multi-phase workflow so you never have to re-explain your standing requirements every time you start something new.
 
-- **Version:** 6.6.0
+- **Version:** 7.0.0
 - **License:** GPL-3.0-or-later
 - **Author:** [José Conti](https://plugins.joseconti.com/en)
 
@@ -28,6 +28,8 @@ After Phase 7 the project enters **maintenance** (`references/maintenance.md`): 
 Security is cross-cutting. As soon as Phase 1 fixes the project type, Keel loads the matching security profile (WordPress/WooCommerce, web app, MCP server, library/component, or website for Phase 8 sites) and keeps it in mind through every later phase. Every profile ends in a "Verify with" block naming the exact tools (phpcs with the WordPress security sniffs and Plugin Check, npm/composer/pip audit, OWASP ZAP baseline, MCP Inspector) — at a test point, the command and its result are the evidence, and an unrecorded check did not happen. The MCP profile covers model-facing threats (tool-result injection, description poisoning, confused deputy, destructive-tool consent, Origin validation).
 
 Verification is executable, not declarative. Every gate that can be checked mechanically is: acceptance criteria map to named automated tests (unit, integration, and browser-driven e2e for UI flows), test-point rows carry the exact commands with their output and commit hash, every push runs the tests its change reaches and the entire suite runs at every release, the handoff audit leaves evidence per item and recomputes contrast ratios from the delivered hex values, and each project generates its own release linter (`scripts/keel-verify`) and environment doctor (`scripts/keel-doctor`). Independent subagents (code reviewer, security auditor, docs verifier, design-fidelity auditor, playground QA, launch verifier, accessibility auditor, test driver) break the self-certification loop wherever the environment provides them. The standing bar: anything a compile, a boot of the playground, or a basic test would have caught must be caught before the work is handed over.
+
+Development can use a dependency-aware rolling worker pool. Keel records each slice's owned paths, semantic contracts and shared runtime resources, then starts every ready independent slice up to the project's cap. Every writing worker receives its own Git worktree and validated assignment. The ordinary project session remains the coordinator and sole owner of aggregate state, integration and pushes; dependants unlock only after post-merge verification. If the environment has no verified isolated writing backend, development continues serially and records why. The standard-library `scripts/keel_parallel.py` helper makes scheduling and result acceptance executable.
 
 **The assistant runs the tests, not the user.** Anything a machine can drive, Keel drives: it starts the environment, fills every field with valid, empty and invalid values, walks every branch including the failure paths, asserts what the interface actually shows, reads back console errors and failed requests and platform logs, runs the sniffers, and runs the automated accessibility pass per screen and per state — headless wherever the platform allows, so it never takes over the user's screen. Work goes back to the person only for what is physically impossible to automate, tagged with one of six reasons: a credential that is theirs, hardware, a real assistive-technology pass, a product judgment, a third party's approval, or a platform the machine cannot run. Anything that cannot be driven is recorded as unverified with its steps — never silently skipped, never reported as passing. `references/test-automation.md` is the protocol; `scripts/keel-doctor` detects what the machine is missing and installs it only after showing the exact command list.
 
@@ -100,6 +102,8 @@ keel-skill/
     ├── CHANGELOG.md       # Oldest to newest, never inverted
     ├── LICENSE            # GPL-3.0-or-later
     ├── NOTICE             # Copyright notice
+    ├── scripts/
+    │   └── keel_parallel.py # Deterministic rolling scheduler and worker-state validator
     └── references/        # Phase reference files, loaded on demand
         ├── keel-maintenance.md
         ├── project-state.md
@@ -109,6 +113,7 @@ keel-skill/
         ├── test-automation.md
         ├── assistant-config.md
         ├── estimation-budget.md
+        ├── parallel-development.md
         ├── phase-1-discovery.md
         ├── phase-2-functional-spec.md
         ├── phase-3-design-handoff.md

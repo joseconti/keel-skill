@@ -11,6 +11,8 @@ Load this reference at these moments, and only these:
 - The user asks "what would this cost / how long will this take" at any point.
 - **End of every working session (and every phase/sprint close)** → append the session's row to `docs/token-ledger.md` (see "The token ledger" below — one line, cheap).
 
+Parallel development changes elapsed time, not approved scope. Reports keep four figures separate: wall-clock elapsed time, summed worker effort, coordinator review/integration effort, and token/API usage where observable. Two workers active for one hour contribute two worker-hours and one elapsed hour. Coordinator waiting is not counted again as implementation effort. Scheduling never reduces `residual_hours`; only integrated completion or a recorded scope change does. Do not quote a speedup until a real-project pilot measures one.
+
 Whether a client budget exists at all is decided once — at Phase 1 step 10, with one question: is there a client to bill or a quote to produce? — and recorded in the PROGRESS.md project card as `Client budget: yes/no`. `docs/estimate.md` and `docs/token-ledger.md` are unconditional: every project gets them, client or not. `docs/budget.md` is produced only when `Client budget: yes`; when `Client budget: no`, the rate, currency and budget-language questions are never asked.
 
 ## The rule this reference exists for (UNBREAKABLE)

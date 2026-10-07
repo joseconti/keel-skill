@@ -316,3 +316,23 @@
   project level with its flags, regenerate their doctor and restamp the lock. Advisory rows never
   block a gate.
 
+## D-037 — Parallel development uses one coordinator, isolated workers and rolling integration; v7.0.0 major
+
+- Date: 2026-10-07
+- Context: the user found Keel's development path unnecessarily linear and asked SOL to assess the
+  architecture, Astra to verify that assessment and produce an unambiguous action plan, then instructed
+  this session to implement the whole plan and explicitly named the result v7.0.0.
+- Decision: keep the ordinary project session as the only coordinator; run approved independent slices
+  through a dependency-aware rolling queue; give every writing worker a validated Git worktree and
+  assignment; keep aggregate state, reviews, integration and pushes coordinator-owned; and unlock
+  dependants only after successful integration verification. Capability is probed per session, with native
+  isolated writing first, a verified unattended CLI second, and an explicit serial fallback otherwise.
+  The deterministic helper is standard-library Python and never calls a model, merges or grants permission.
+- Alternatives considered: a second director chat (rejected for context/state duplication); shared-checkout
+  native writers (rejected because messaging is not filesystem isolation); batch fan-out (rejected because
+  it leaves free capacity idle); tool-name-specific launch flags (rejected because capability is runtime
+  evidence); and a hosted orchestrator/daemon (rejected as a new dependency outside Keel's scope).
+- Consequence: this is a major contract and schema change, while serial projects remain compatible.
+  Existing projects opt in once, migrate only their active sprint and scaffold the helper. Deterministic
+  behavior is verified in this release; no real writing backend was exercised during bootstrap, so backend
+  acceptance stays unverified rather than being inferred from the fixture suite.

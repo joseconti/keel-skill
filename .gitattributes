@@ -39,6 +39,8 @@
 # Repo-only documentation (do not ship in release tarballs)
 /README.md         export-ignore
 /INSTALL.md        export-ignore
+/docs/parallel-development-action-plan.md export-ignore
+/docs/parallel-development-review.md export-ignore
 
 # Tests and tooling (release linter + eval scenarios; repo-only, never shipped)
 /tests/            export-ignore

@@ -15,6 +15,8 @@ keel/
 ├── CHANGELOG.md
 ├── LICENSE
 ├── NOTICE
+├── scripts/
+│   └── keel_parallel.py
 └── references/
     ├── keel-maintenance.md
     ├── phase-1-discovery.md
@@ -28,7 +30,11 @@ keel/
         └── website.md
 ```
 
-`MANIFEST.md` is part of the skill — a copy without it breaks the post-update reconciliation. Copy the `keel/` directory whole, never file by file.
+`MANIFEST.md`, `scripts/` and `references/` are parts of the skill. A copy without the helper breaks parallel-development scaffolding and a copy without the manifest breaks reconciliation. Copy the `keel/` directory whole, never file by file, and verify helper files as well as Markdown.
+
+The parallel helper requires Python 3.9+ and POSIX locking/process groups (macOS/Linux). Environments
+without those capabilities use serial development; installing or reading the skill does not require Python.
+Actual model writing additionally requires a verified isolated backend as described in the parallel reference.
 
 Top-level files in this repository (`README.md`, `INSTALL.md`, `.gitignore`, `.gitattributes`) are repository metadata. They are **not** part of the skill and do not need to be copied to the install location.
 

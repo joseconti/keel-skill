@@ -140,7 +140,7 @@ Ask the user, in batched questions, only what you can't infer:
 
 Pin down exactly one primary type (note a secondary if it genuinely spans):
 
-- Website (marketing/content) 
+- Website (marketing/content)
 - WordPress plugin / WooCommerce extension
 - MCP server
 - Web app (SPA, API backend, hosted service)
@@ -238,9 +238,11 @@ Load `references/test-automation.md` now. This is a preflight, not the full doct
 3. **Will testing take over the user's screen, and on which platforms?** Web, API, MCP, CLI, Android and the iOS Simulator all run without touching it. A **macOS or native Windows UI test drives the real cursor and keyboard** and cannot be made headless — if the project has one of those surfaces, agree the mitigation now (a dedicated machine or VM, a separate user session, or batching those runs at an agreed time) and record it. The user should never be ambushed by an automated test grabbing their keyboard.
 4. **What will need installing, and does the user agree?** Show the list — the requirement, the exact command, and what it changes. **Offer to install it now**, with the same mechanics the doctor will use later (show the plan, one OK, install, re-detect, report). Installing here rather than three phases later matters more than it looks: Phase 4 builds real UI, and a build nobody can run is a build nobody can verify. If the user prefers to wait, that is fine and it is recorded — but the offer is made, once, explicitly. Flag anything with a licence or privilege consequence in the same breath — Docker Desktop can create a paid-licence obligation the developer has no authority to accept, and adding a user to the `docker` group is effectively granting root. Where a lighter path exists (Docker Engine on Linux, Colima on macOS, a version manager in the user's home instead of a system package, the browser-based WordPress runtime instead of Docker at all), offer it.
 
-5. **Is the assistant's own CLI available on this machine, and does it run?** — asked when the project card's `Chaining:` (settled at step 0a) is `prefill` or `start`, **and independently whenever this project may fan a sprint out over git worktrees** (Phase 5), because that dispatch launches one CLI process per worker and therefore needs the same binary for a different reason. The row is not applicable only when BOTH are false: a card that says `Chaining: off` or `Chaining: supervised` on a project that will never fan out. Ask the fan-out half plainly at this step rather than inferring it — a project that discovers the answer at dispatch time discovers it with the sprint already planned.
+5. **Which writing-worker backend can this session actually use?** — settle the project's `Parallel development:` choice in the setup/reconciliation batch, then probe runtime capabilities without launching paid workers. A native agent API qualifies only when it can bind every writer to an assigned Git worktree and exposes lifecycle/results. Otherwise probe an accepted assistant CLI whose unattended worker adapter has explicit cwd, project restrictions, process observation and cancellation. A continuation launcher does not prove a worker adapter. If neither is verified, record serial development with the exact reason; read-only review may still fan out. Full decision order: `references/parallel-development.md`.
 
-   **`command -v claude` is the first probe, not the verdict.** Apply the corroboration rule in `references/test-automation.md` ("Detection rules that are not obvious") in both directions: a negative is corroborated against the login shell, the platform's install locations and `CLAUDE_CODE_EXECPATH` before it may be written as missing, since an assistant's restricted `PATH` hides binaries that work perfectly in the user's own shell; and a positive is followed by `claude --version` against the package's declared engine before it may be written as available. Record the absolute path that actually works, because that is what the fan-out dispatch will use.
+   The CLI half below is also asked when the project card's `Chaining:` is `prefill` or `start`. It is not applicable only when chaining needs no CLI and native isolated writing is either available or parallel development is off. Probe the current tool's CLI, never a hard-coded product name, and apply the corroboration rule in `references/test-automation.md` in both directions. Record the absolute executable and observed version; a positive interactive invocation does not upgrade the worker adapter to verified.
+
+   For Claude Code specifically, `command -v claude` is the first probe, not the verdict. Apply the same corroboration against the login shell, platform install locations and `CLAUDE_CODE_EXECPATH`; follow a positive with `claude --version`. Other tools use their own documented equivalent. Never pass one tool's flags to another.
 
    Probing rather than assuming is worth the two commands, because it is genuinely not obvious: **neither the desktop app nor the VS Code extension puts `claude` on PATH** — the app runs Claude Code graphically, and the extension bundles a private copy for its own panel — so someone can have both installed, use Claude Code every day, and still have no `claude` command. The official documentation says it plainly: the desktop app includes Claude Code, and using `claude` from the terminal means installing the CLI separately. Missing → **offer the install** with the command for this platform, and record the answer either way:
    - **macOS** — `curl -fsSL https://claude.ai/install.sh | bash`, or `brew install --cask claude-code`.
@@ -249,7 +251,7 @@ Load `references/test-automation.md` now. This is a preflight, not the full doct
 
    **The `npm` route installs onto whatever runtime is active and only WARNS when the package declares a newer one** (`EBADENGINE`), so it can leave a `claude` on PATH whose runtime does not meet the requirement — verify with `claude --version` after installing, never from the installer's exit code. Where the user's runtime is managed by a version manager or a conda environment and can change under them, prefer the native installer, which bundles its own.
 
-   Declined, or unavailable on this machine → **`start` is not offered, `prefill` is the maximum**, and the reason is recorded beside the `Chaining:` answer. This is the fourth gate on `start` (`references/project-state.md`); what this step adds is the probe and the offer, so the requirement is discovered here instead of at the first close-out of a chain — which under `start` is precisely when nobody is watching. The same answer governs the fan-out independently: **no working CLI means a sprint is built serially in the session**, which is recorded here as a fact about the machine, so Phase 5 plans around it instead of discovering it at dispatch.
+   Declined or unavailable CLI → **`start` is not offered, `prefill` is the maximum** for chaining. Development is serial only when no verified native isolated writer is available either. Record both conclusions separately so Phase 5 does not confuse a chaining limitation with a development limitation.
 
 6. **What can this session's environment NOT do?** Some environments cannot do what the rest of this skill assumes, and the cost of finding that out late is measured in retries rather than minutes. Detect what this session can actually do and say it in one line, at Phase 1, alongside the English-docs default and the accessibility commitment — a protected environment is a fact about the session, not a failure, and saying it late is what makes it expensive. The measured case is Cowork's device bridge, and every item below was hit for real:
 
@@ -283,7 +285,7 @@ Ask now whether the project will have its own presentation website. This is aske
 
 ### 8. Decide if design is needed
 
-State plainly: does this have a UI a human will see and that needs visual design? 
+State plainly: does this have a UI a human will see and that needs visual design?
 - Yes → Phases 3 and 4 are mandatory.
 - No (pure backend/library/MCP server with no UI) → Phases 3 and 4 are skipped; note this in the discovery doc with the reason.
 
