@@ -1438,3 +1438,29 @@ restamp the lock version (its text is unchanged).
 **Minor update. Reconciliation:** `MANIFEST.md` Table 3, v6.5.0. Cap local workers, register any
 browser MCP at project level with its flags, regenerate the doctor rows; restamp the lock version
 (its text is unchanged).
+
+
+## 6.6.0
+
+### Changed
+
+- **Planning now distinguishes approved scope, current unbuilt scope and elapsed work.** Every
+  executable slice has immutable `original_hours`, explicit `residual_hours`, and separate
+  `actual_hours`; historical actuals and approved estimates are never rewritten to make a balance
+  fall.
+- **A split is a same-checkpoint reconciliation.** Extracted work declares its parent and exclusive
+  requirement ownership; the parent loses that ownership in the same plan update, and the balance
+  records completion, genuine additions and explicit residual re-estimates separately. Counted
+  parent/child scope may not overlap. Grouping containers are uncounted.
+- **Remaining time is honest about its evidence.** A split with unchanged scope conserves remaining
+  work. Time spent on an unfinished item is shown separately and never deducted automatically. A
+  legacy plan stays `unreconciled` until unbuilt requirements and residuals are explicitly mapped.
+  The conditional pace projection may legitimately rise after a measured outlier while remaining
+  residual scope falls.
+- **Generated plan tooling is now required to verify the contract.** `keel-verify` checks ownership,
+  residual change history, same-checkpoint reconciliation and the explained balance equation; E25
+  covers split conservation, child completion, genuine additions, re-estimation and pace outliers.
+
+**Minor update. Reconciliation:** `MANIFEST.md` Table 3, v6.6.0. Migrate legacy estimates without
+inventing residuals, reconcile open parent/child scope as planned work, regenerate the plan/timing/
+verification scripts, and refresh the lock block.

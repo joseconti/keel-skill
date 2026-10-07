@@ -1,4 +1,4 @@
-# Keel Manifest — v6.5.0
+# Keel Manifest — v6.6.0
 
 One file, three tables, one purpose: looking ONLY at this file, a session can tell (1) whether a project contains everything Keel requires at its current phase, (2) which skill files changed in which Keel version — so after an update it knows exactly what to re-read, without interpreting the changelog — and (3) what concrete actions each version asks of an existing project (the reconciliation delta).
 
@@ -40,9 +40,9 @@ Verification is phase-aware and condition-aware: read the project card and phase
 | `docs/BUILD-SPEC.md` | Consolidated faithful-build contract (§1 is the evidence table) | Phase 4 | UI projects only |
 | `docs/design/design-requests/` | Numbered DR register | Phase 4 | When the first Design Request appears |
 | `.gitignore` + `.gitattributes` | Hygiene boundaries (full rules at Phase 7); `.gitignore` ALWAYS includes `CLAUDE.local.md`, `.claude/settings.local.json`, `docs/.keel/clock.jsonl` (since v6.0.0), `.keel-update-check` (the machine-local update-check throttle stamp), and `docs/continuation-prompt.md` (ephemeral session hand-off, never committed), plus the accepted tools' personal files (`AGENTS.override.md`, `.gemini/.env`, `.gemini/tmp/`) | Phase 5 scaffold | Always |
-| `docs/sprints/` | One file per sprint: YAML frontmatter (`schema: keel.sprint/1`, sprint, goal, status, and per slice `id`/`title`/`status`/`hours`/`actual_hours`/`actual_source` (since v6.0.0)/`depends_on`/`criteria`) as the DATA, markdown body as the prose (`references/project-state.md`, "The sprint plan"). Holds EVERY unit of work, whatever phase or entry mode it came from, and is updated in the commit that finishes each slice (SKILL.md "Sprints are the ledger of all work") | Phase 5 §0 at the latest — before the first unit of work in ANY phase or entry mode (adoption, maintenance, reconciliation) | Unless `Sprints: off` with its D-entry |
+| `docs/sprints/` | One file per sprint: YAML frontmatter (`schema: keel.sprint/1`, sprint, goal, status, and per slice `id`/`title`/`status`/`original_hours`/`residual_hours`/`change_kind`/`parent_slice`/exclusive `owns`/`actual_hours`/`actual_source`/`depends_on`/`criteria`) as the DATA, markdown body as the prose (`references/project-state.md`, "Scope ownership and residual estimates"). Holds EVERY unit of work; extractions reconcile ownership and residual balance in the same checkpoint, while original estimate and actual remain preserved. | Phase 5 §0 at the latest — before the first unit of work in ANY phase or entry mode (adoption, maintenance, reconciliation) | Unless `Sprints: off` with its D-entry |
 | `docs/sprints/deferred.md` | ONE backlog file: everything wanted and not in this version, same item schema plus `target:` (proposed version or `null`) and `reason:`. Ids share one namespace with the sprint slices, so promoting an item is a MOVE that keeps its id. Its hours are what the next version would cost and are NOT in the Phase 5 total | Phase 5 §0 at the latest — with the first sprint file | Unless `Sprints: off` with its D-entry |
-| `docs/.keel/plan.json` | The whole plan derived into one machine-readable file — totals, `remaining_hours`, `actual_hours`, the deviation and every percentage computed from the hours, never stored in the sources; regenerated in every commit that changes a slice, never hand-edited, and drift from its sources — or a plan behind the work — fails `scripts/keel-verify` (`references/project-state.md`) | Phase 5 §0 at the latest — with the first sprint file | Unless `Sprints: off` with its D-entry |
+| `docs/.keel/plan.json` | The whole plan derived into one machine-readable file — original estimates, residual `remaining_hours`, actuals, reconciliation status, explained scope delta, deviation and computed percentages; regenerated in every commit that changes a slice, never hand-edited. Drift, unexplained residual changes, overlapping ownership, or a plan behind the work fails `scripts/keel-verify` (`references/project-state.md`) | Phase 5 §0 at the latest — with the first sprint file | Unless `Sprints: off` with its D-entry |
 | `docs/05-test-points.md` | Test-point log, all columns including evidence (commands + output + commit), the two coverage columns — `Criterion` (the `AC-nn` ID) and `Coverage` (`driven` or one of the eight delegation tags — never free text) — and `Red first` (one of the five fixed values, per the project's `Test-first policy:`) | Phase 5 | Always |
 | `docs/api/INDEX.md` | One line per public surface | Phase 5 first slice | Always |
 | `docs/keel-conformance.md` | The conformance sweep: one row per applicable MANIFEST Table 1 requirement with its state (`present` / `missing` / `declined` + D-entry / `n/a` + condition) — derived from this manifest, never from recollection (SKILL.md "Applying Keel completely") | Phase 1 step 0a; always at adoption step 4a and at every post-update reconciliation | Always |
@@ -97,23 +97,23 @@ After an update, re-read `SKILL.md`, the current phase's reference, and THIS fil
 
 | Skill file | Last changed in |
 |---|---|
-| `SKILL.md` | v6.5.0 |
-| `MANIFEST.md` | v6.5.0 |
-| `CHANGELOG.md` | v6.5.0 |
+| `SKILL.md` | v6.6.0 |
+| `MANIFEST.md` | v6.6.0 |
+| `CHANGELOG.md` | v6.6.0 |
 | `references/keel-maintenance.md` | v5.10.3 |
 | `references/notifications.md` | v5.14.0 |
 | `references/playground-recipes.md` | v5.1.0 |
 | `references/test-automation.md` | v6.5.0 |
-| `references/maintenance.md` | v6.3.0 |
+| `references/maintenance.md` | v6.6.0 |
 | `references/guide-theme.md` | v3.2.1 |
 | `references/assistant-config.md` | v6.5.0 |
-| `references/phase-5-development.md` | v6.4.0 |
+| `references/phase-5-development.md` | v6.6.0 |
 | `references/phase-7-release.md` | v6.3.0 |
-| `references/project-state.md` | v6.4.0 |
+| `references/project-state.md` | v6.6.0 |
 | `references/phase-1-discovery.md` | v6.3.0 |
 | `references/phase-2-functional-spec.md` | v6.5.0 |
-| `references/adoption.md` | v6.0.0 |
-| `references/estimation-budget.md` | v6.4.0 |
+| `references/adoption.md` | v6.6.0 |
+| `references/estimation-budget.md` | v6.6.0 |
 | `references/phase-6-documentation.md` | v5.2.0 |
 | `references/phase-3-design-handoff.md` | v3.5.0 |
 | `references/phase-4-faithful-build.md` | v5.2.0 |
@@ -203,6 +203,7 @@ What the reconciliation APPLIES, version by version, for every version newer tha
 | v6.3.0 | MINOR: **an active security audit, optional, and a Phase 7 gate on critical projects** (`references/security-audit.md`). The existing `references/security/*.md` profiles are unchanged; they become the audit's hunting modules. **(1) NEW CARD LINE `Security audit:`**: derive it, never ask. It is `required — <criterion>` when money moves, personal data is held, or a programmatic surface (MCP tools or abilities, REST or GraphQL, webhooks, public AJAX or `admin-post`) is reachable from outside, reading `docs/threat-model.md` or, where that predates the criteria, the code. Otherwise it is `optional`. **(2) Nothing is created until an audit runs.** The first run adds `docs/security-audit/` to `.gitignore` before writing, and commits the counts-only `docs/security-audit.md` log. **(3) On a `required` project the next release gate needs an audit covering its candidate, or a D-entry declining it.** Say so when the line is written, so the requirement does not surface for the first time at the tag. **(4)** Restamp the lock block's version in `CLAUDE.md` + `AGENTS.md` (the block TEXT is unchanged this version). |
 | v6.4.0 | MINOR: **mandatory session close with measured vs planned time and both remaining-time figures**. **(1)** Regenerate `scripts/keel-time` against `references/project-state.md`: active hours, planned hours, like-for-like deviation, baseline remaining hours and the projection labelled "if the observed pace continues", with the cumulative measured sample and explicit unavailable-data reasons. **(2)** Extend the `plan.json` generator with `pace_factor` and `projected_remaining_hours`; regenerate after slice updates. **(3)** Add `Active h`, `Pace factor` and `Projected left h` to `docs/sessions.md`; historical cells stay `—` with `legacy — projection not recorded` in Notes. Never manufacture historical forecasts or relabel estimated actuals. **(4)** Regenerate `scripts/keel-verify` with the new arithmetic, data-eligibility and ledger checks; legacy rows are exempt only from new fields. Exercise the timing report with a partial slice, no measured completed slices and a measured multi-session completion. **(5)** Restamp the lock version in `CLAUDE.md` + `AGENTS.md` (block TEXT unchanged). |
 | v6.5.0 | MINOR, and structural only on a project with a browser surface: **browsers stop multiplying per session**. **(1)** In the project's Playwright config, cap local workers: `workers: process.env.CI ? undefined : Number(process.env.PW_WORKERS ?? 2)`, and record the cap beside the run mode in the technical plan's `## Testing` block. **(2)** Where the assistant drives the browser through an MCP server, register it in the repo-level MCP file only (`.mcp.json` for Claude Code) with `--headless --isolated`, or `--cdp-endpoint` to one shared browser, and record that shape in the same block; remove any user-level registration only with the user's OK, since it is their machine-wide config. **(3)** Regenerate `scripts/keel-doctor` with the three advisory browser-MCP rows (`references/test-automation.md`): user-level registration, missing flags, Playwright browsers orphaned to PID 1. **(4)** Restamp the lock version in `CLAUDE.md` + `AGENTS.md` (block TEXT unchanged). Projects without a browser surface: only the lock restamp. |
+| v6.6.0 | MINOR: **scope ownership and residual estimates make split work count once**. **(1)** Migrate each legacy slice's `hours` into immutable `original_hours`; preserve its historical actual and never infer a residual from elapsed time. **(2)** Map every open slice's exclusive requirement ownership and explicitly estimate `residual_hours`; until this is complete, set `reconciliation_status: unreconciled` and label the balance accordingly. **(3)** Regenerate `scripts/keel-time`, the plan generator and `scripts/keel-verify` for `original_hours`/`residual_hours`, `added\|extracted\|re-estimated`, append-only estimate changes, same-checkpoint parent/child reconciliation, the explained balance equation, and the split/outlier regressions. **(4)** Reconcile each existing parent/child decomposition as ordinary planned work; do not mark unfinished features done or subtract actuals. **(5)** Restamp the lock version in `CLAUDE.md` + `AGENTS.md` (block text changed). |
 
 ## Maintenance (part of EVERY release — no exceptions)
 

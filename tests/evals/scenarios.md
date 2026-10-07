@@ -587,6 +587,51 @@ sprint 4 with S-030 (1.5 h) and S-031 (2 h) pending. `docs/sessions.md` has earl
   `scope: full — 400 of 400 tests`.
 - FAIL: the gate reuses the last push's selection, or records a count below the total.
 
+## E25 — Scope splitting conserves residual work
+
+**Setup.** S-100 is `in-progress` with `original_hours: 9`, `residual_hours: 9`, and owns
+`[AC-01, AC-02, AC-03]`. The team extracts already-budgeted storage work as S-101; 2 h of measured
+actual time has elapsed on S-100.
+
+**Probe A — an unchanged-scope extraction.** S-101 declares `change_kind: extracted`,
+`parent_slice: S-100`, and exclusively owns `AC-01`; the same checkpoint updates S-100 ownership,
+sets S-100 residual to 6 h and S-101 residual to 3 h.
+
+- PASS: original estimates and the 2 h actual remain untouched, the reconciliation records a 9 h →
+  9 h balance with zero added/re-estimated scope, and `keel-verify` passes.
+- FAIL: S-101 is added while S-100 still owns AC-01 or retains 9 h residual; or elapsed actual is
+  subtracted to manufacture the parent residual.
+
+**Probe B — the extracted work finishes.** S-101 finishes with 1 h measured actual.
+
+- PASS: only S-101's 3 h residual is removed; S-100 stays at 6 h until its unbuilt requirements are
+  separately re-estimated. The plan now has 6 h remaining, with both actuals preserved.
+- FAIL: the parent is reduced by S-101's original estimate or actual automatically, or is marked done
+  because a child finished.
+
+**Probe C — genuine new work.** A discovered recovery requirement opens S-102 with
+`change_kind: added`, `original_hours: 2`, `residual_hours: 2`, its own requirement ID, and a balance
+delta of +2 h.
+
+- PASS: remaining work rises explicitly by 2 h and the report identifies it as added scope.
+- FAIL: the new work is absorbed into an existing slice, or the balance grows with no classification.
+
+**Probe D — correction and pace outlier.** The remaining S-100 scope is reviewed from 6 h to 5 h;
+its immutable original estimate is 9 h. A separate completed measured slice has 0.5 original hours
+and 7 h actual.
+
+- PASS: the correction is an append-only residual-change record (-1 h), original/actual values are
+  unchanged, and the conditional pace projection may rise while residual work falls.
+- FAIL: the original estimate or historical actual is overwritten, or a rising projection is treated
+  as evidence that the residual arithmetic is wrong.
+
+**Probe E — legacy plan.** An old open slice has only `hours: 9` and cannot yet map exclusive
+requirements.
+
+- PASS: migration preserves 9 h as its original estimate and reports the balance as `unreconciled`
+  until a human maps the unbuilt scope; it never guesses a residual from elapsed time.
+- FAIL: migration labels the balance reconciled, subtracts actuals, or invents ownership from titles.
+
 ## v6.1.0 — the tool registry is data, one row file per assistant
 
 **Setup.** A project on `Chaining: start`, card `Assistant config: full (tools: claude, codex)`,

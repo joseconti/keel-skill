@@ -249,7 +249,12 @@ slices:
   - id: S-014
     title: Authorization code exchange
     status: done                # same enum
-    hours: 1.5                  # AI working time + supervision (SKILL.md's unit rule)
+    original_hours: 1.5         # approved estimate at creation; immutable (AI working time + supervision)
+    residual_hours: 0           # current estimate of unbuilt scope; 0 only when done/dropped
+    change_kind: added          # added | extracted | re-estimated
+    parent_slice: null          # required for extracted; otherwise null
+    owns: [AC-07, AC-08]        # requirements owned exclusively by this counted slice
+    estimate_changes: []        # append-only: before/after residual, reason, date, decision/reference
     actual_hours: 1.25          # same unit, MEASURED: the slice's intervals in the clock log minus pauses, written by
                                 # scripts/keel-time — cumulative and partial while in-progress, final in the done commit;
                                 # null until the slice is first worked
@@ -285,6 +290,34 @@ fact has exactly one author.**
    two implementations of one rule eventually disagree. The human index table is generated in the
    same pass.
 
+### Scope ownership and residual estimates (UNBREAKABLE)
+
+Each executable slice stores three independent facts: `original_hours` (the approved estimate when
+created), `residual_hours` (the current estimate of its unbuilt scope), and `actual_hours` (measured
+or explicitly estimated elapsed work). `original_hours` is immutable; a correction creates an
+append-only `estimate_changes` entry with `before_residual_hours`, `after_residual_hours`, reason,
+date and decision/reference. `actual_hours` never changes a residual automatically.
+
+`change_kind: added` means genuinely new scope; `extracted` means scope already represented by a
+named `parent_slice`; `re-estimated` changes only the residual estimate. An extracted slice must
+declare `parent_slice` and exclusive `owns` requirement IDs. In the **same checkpoint**, its parent
+loses those IDs from `owns`, both residual estimates are written, and the plan records a
+`scope_reconciliation` (`remaining_before`, `completed_residual`, `added_scope`,
+`explicit_residual_reestimates`, `remaining_after`, affected slice IDs and reason) with the
+before/after balance and any explicit re-estimate delta. A grouping
+container has `residual_hours: 0` and is not counted; a counted parent and any counted descendant
+may never own the same requirement. Do not infer ownership from titles or subtract a child's original
+estimate from a parent mechanically: estimate the genuinely unbuilt remainder.
+
+For each plan update, record and verify:
+
+`remaining_before - completed_residual + added_scope + explicit_residual_reestimates = remaining_after`.
+
+An unchanged-scope split therefore conserves remaining work. Completing an extracted child removes
+its then-current residual; it does not subtract its elapsed actual from the parent. If old slices
+cannot be mapped to exclusive requirements, `plan.json` sets `reconciliation_status: unreconciled`
+and the balance is labelled as such, rather than presented as a reliable completion estimate.
+
 **Percentages are NEVER stored — they are computed from hours.** The plan is explicitly not a closed
 contract: items are added, removed and moved. A hand-written `%` is therefore wrong the first time
 anything changes, and wrong in silence. Hours are the single stored unit; every percentage is a
@@ -310,11 +343,13 @@ phase or entry mode that happens. And the commit that finishes a slice is the co
 it no longer discovers.
 
 **What `plan.json` carries, computed at generation time and never stored in the sources:** for each
-sprint and for the whole plan — `estimated_hours` (every slice not `dropped`), `done_hours` (the
-estimates of `done` slices), `actual_hours` (the actuals of `done` slices), `remaining_hours` (the
-estimates of every slice neither `done` nor `dropped`), `deviation_hours` (`actual_hours` minus
-`done_hours`), `pace_factor`, `projected_remaining_hours` (defined below), `percent_done` (from
-`done_hours` over `estimated_hours`), and `unit`. Contingency and
+sprint and for the whole plan — `original_estimated_hours` (every slice not `dropped`),
+`completed_original_hours` (original estimates of `done` slices), `actual_hours` (actuals of `done`
+slices), `remaining_hours` (sum of `residual_hours` for every slice neither `done` nor `dropped`),
+`deviation_hours` (`actual_hours` minus `completed_original_hours`), `pace_factor`,
+`projected_remaining_hours` (defined below), `reconciliation_status`, `scope_delta` (added scope,
+extraction and explicit re-estimates separately), `percent_done` (from completed original over
+original estimate), and `unit`. Contingency and
 `deferred.md` are excluded from all of them, as above.
 
 **How "what is left?" / "how long until it is done?" is answered (UNBREAKABLE).** It is a question,
@@ -323,10 +358,10 @@ drift — and reply, before and instead of any work:
 
 ```
 Sprint 4 — <goal>: 2 slices pending, 3.5 h left
-  S-030 <title> — 1.5 h
+  S-030 <title> — 1.5 h residual
   S-031 <title> — 2 h
 Sprint 5 — <goal>: 6 h
-Total left: 9.5 h of AI working time plus supervision (contingency not included)
+Total left: 9.5 h of AI working time plus supervision (contingency not included; reconciled)
 So far: 4 slices done, 6 h estimated, 7.25 h actual (+1.25 h, +20.8 %)
 Projection if the observed pace continues: 11.48 h left (factor 1.2083; 4 measured slices)
 ```
@@ -344,18 +379,18 @@ projection is labelled **"if the observed pace continues"** and never replaces o
 
 Compute from the sprint sources, once per completed slice across ALL sessions:
 
-- Eligible slices: `status: done`, `actual_source: measured`, positive estimated `hours`, and
+- Eligible slices: `status: done`, `actual_source: measured`, positive `original_hours`, and
   non-negative numeric `actual_hours`. Exclude dropped, deferred, unfinished and estimated-source
   slices. A slice completed over several sessions contributes its full cumulative actual once.
-- `pace_factor = sum(eligible actual_hours) / sum(eligible hours)`. The cumulative deviation on
-  this same sample is `sum(actual_hours) - sum(hours)` and `(pace_factor - 1) × 100 %`.
+- `pace_factor = sum(eligible actual_hours) / sum(eligible original_hours)`. The cumulative deviation on
+  this same sample is `sum(actual_hours) - sum(original_hours)` and `(pace_factor - 1) × 100 %`.
   Never average session percentages or divide a partial session's time by its whole planned scope.
 - `projected_remaining_hours = remaining_hours × pace_factor`. Compute the plan-wide factor and
   use it for the current sprint, later sprints and the total. State the number of eligible slices
   and the estimated/actual totals behind it; a small sample is labelled provisional.
-- Preserve the definition of `remaining_hours`: estimates of slices neither done nor dropped.
-  Time spent on an unfinished slice is shown separately; never subtract it silently from the
-  baseline or the projection. An explicit re-estimate of outstanding scope is a plan update.
+- Preserve the definition of `remaining_hours`: residual estimates of slices neither done nor
+  dropped. Time spent on an unfinished slice is shown separately; never subtract it silently from
+  the baseline or the projection. An explicit re-estimate of outstanding scope is a recorded plan update.
 - With no eligible slices, `pace_factor` and the projection are `null`, printed as
   **"unavailable — no measured completed work"**. If no work remains, the projection is 0 h even
   without a factor. With `Sprints: off`, say **"unavailable — no time plan"**, but still show the
@@ -368,6 +403,23 @@ Compute from the sprint sources, once per completed slice across ALL sessions:
 `report` reads up-to-date sources without writing. The report and the appended session row use the
 same remaining hours and factor. Session totals count intervals within this session; finished-slice
 comparisons use each slice's entire lifetime. Keep these distinct when a slice spans sessions.
+
+### Migration and mechanical verification
+
+Existing `hours` values are historical approved estimates: migrate each to `original_hours`, preserve
+the value in its migration record, and set `residual_hours` only after reviewing the unbuilt scope.
+Do not derive the residual from `actual_hours`, child estimates, or elapsed clock time. Until every
+open legacy slice has exclusive `owns` requirements and an explicit residual, emit
+`reconciliation_status: unreconciled` and retain the legacy balance only as an unreconciled baseline.
+
+`scripts/keel-verify` must fail a changed/new plan when: a slice lacks numeric non-negative
+`original_hours` or `residual_hours`; a done/dropped slice has non-zero residual; an extracted slice
+lacks its parent, ownership, or same-checkpoint reconciliation; a parent/child or two counted slices
+own the same requirement; a residual change has no `estimate_changes` record; or the recorded balance
+equation does not hold. It must also exercise these regressions: an unchanged-scope split conserves
+the balance; completing an extracted child reduces only its residual; genuine added scope increases
+the balance explicitly; re-estimation preserves original estimates and actuals; and a measured pace
+outlier may raise the conditional projection while remaining residual work falls.
 
 **The bookkeeping files** — the only paths whose commits do not need a plan update — are exactly
 `docs/sprints/`, `docs/.keel/`, `docs/PROGRESS.md`, `docs/sessions.md` and `docs/token-ledger.md`.
@@ -384,7 +436,8 @@ one of these is mechanical:
 | Every `depends_on` resolves, and resolves to the SAME sprint or an EARLIER one | This is the rule "nothing depends on something not yet built", made executable instead of hoped for |
 | No `depends_on` points at an item still in `deferred.md` | Same rule, the case that actually happens |
 | `docs/.keel/plan.json` matches its sources | A derived file that drifted shows a confident lie to every reader; drift fails the run |
-| Phase 5 hours in `docs/estimate.md` equal the sum of the plan's slice hours | One set of hours, not two |
+| Phase 5 approved hours in `docs/estimate.md` equal the sum of the plan's `original_hours`; current remaining work is the separate residual total | Original approval, residual scope and actuals are different facts |
+| Every counted slice has exclusive ownership; every extraction and residual change has its same-checkpoint reconciliation and balance equation | A split cannot leave parent scope counted twice |
 | A slice that left a sprint is in `deferred.md` or carries `status: dropped` with its D-entry | Removable without a trace means the plan shrinks itself and "what is left" looks excellent |
 | The card carries `Sprints:`; `off` cites a real D-entry. Every row below is skipped only under a valid `off` | The default is not a question, and an opt-out nobody recorded is an inference |
 | At least one `docs/sprints/sprint-<N>.md` exists | Work with no plan is the measured defect this row closes |
@@ -1482,7 +1535,7 @@ The project root carries the Keel block below in TWO files, always: `CLAUDE.md` 
 One tool needs a third step: **Gemini CLI reads `GEMINI.md`, not `AGENTS.md`, by default.** If the user works with Gemini CLI, ask once and record the pick: mirror the same block in `GEMINI.md` (a third copy of the lock, refreshed with the others), or commit a `.gemini/settings.json` whose `context.fileName` includes `AGENTS.md` (no third copy to maintain). Either satisfies the lock.
 
 ```
-<!-- KEEL:BEGIN — v6.5.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
+<!-- KEEL:BEGIN — v6.6.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
 # Keel protocol (mandatory for ANY assistant working in this repository)
 
 This project is governed by the Keel workflow. Before reading code or changing ANYTHING:
