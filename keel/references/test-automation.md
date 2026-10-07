@@ -424,6 +424,33 @@ Code review by tooling is driving too, and it runs on every slice, not once befo
 
 Every one of these has an exact command in `docs/03-technical-plan.md` §Tooling commands, runs in the same test point as the tests, and its output is recorded. A finding is a slice defect, not a note for later. Suppressions are narrow, carry a written reason, and are counted at every sprint close so the count can only go down deliberately.
 
+### A tool that did not analyse is not a result (UNBREAKABLE)
+
+Classify every static-check invocation before using its output. There are only three
+states: **PASS** (the command completed and the tool reports no findings),
+**FINDINGS** (the command completed and the tool analysed its target, reporting
+findings), and **BLOCKED — ENVIRONMENT** (the tool could not reach analysis because
+its process, runner, transport, socket, permissions, dependency, configuration or
+other prerequisite failed first). A non-zero exit code alone does not distinguish
+the last two; the recorded output and the stage at which it stopped do.
+
+`BLOCKED — ENVIRONMENT` is neither PASS nor FINDINGS. Do not turn its launcher
+message into a code defect, and do not claim that the target was analysed. Record the
+exact canonical command, exit status, the earliest failure line, the affected scope,
+and the missing capability in the test-point evidence. Re-run the command after a
+safe in-scope repair or a documented environment change. Until it runs, the affected
+leg is `⚠ unverified — NO-EXECUTION` only when this session cannot supply the
+missing capability; otherwise it remains a blocking environment defect to fix, not a
+delegation to the user.
+
+An alternate mode (for example PHPStan's sequential/no-parallel mode after a local
+socket failure) is diagnostic evidence only unless the technical plan explicitly
+declares it equivalent for that command, configuration and target scope. It may
+separate code findings from a launcher failure, but it never converts the failed
+canonical invocation into PASS. Record the alternate command and its scope beside
+the blocked run, then run every still-required canonical command before accepting a
+slice or release result. Never merge reports from the two runs into one verdict.
+
 ## Accessibility is part of driving, not a separate errand
 
 The automated pass costs almost nothing once a driver exists, and it is the assistant's job in full:
