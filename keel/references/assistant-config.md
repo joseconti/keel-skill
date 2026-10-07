@@ -160,7 +160,7 @@ The rules that govern rubrics are stated where they are authored (`references/ph
 
 No rubric on record means the agents run as before — rubrics are opt-in depth, never a gate.
 
-This file DEFINES the agents; the phase references INVOKE them: the Phase 1 competitor scan, the Phase 2 §6a spec review, Phase 4 Step 7, Phase 5 test points and sprint closes, the Phase 6 guide check, the Phase 7 gate, the Phase 8 launch checklist. If the environment provides no subagents (Codex, Windsurf, or any tool without them), the session runs the same checks inline and says so — the check never disappears with the mechanism.
+This file DEFINES optional project verifier agents; the phase references INVOKE them. Runtime delegation is probed, never inferred from a product name: the presence or absence of project agent files does not prove what the current session can launch. If the runtime provides no subagents, the session runs the same checks inline and says so. Writing development workers use the distinct isolation and lifecycle contract in `references/parallel-development.md`; a native agent that shares the coordinator checkout is suitable for reading, not concurrent product writes.
 
 ## Parallel fan-out — verifiers run at once, never in a chain
 

@@ -1464,3 +1464,57 @@ browser MCP at project level with its flags, regenerate the doctor rows; restamp
 **Minor update. Reconciliation:** `MANIFEST.md` Table 3, v6.6.0. Migrate legacy estimates without
 inventing residuals, reconcile open parent/child scope as planned work, regenerate the plan/timing/
 verification scripts, and refresh the lock block.
+
+
+## 7.0.0
+
+### Hardened during pre-release review
+
+- Cross-worktree coordination now uses a shared POSIX file lock in the canonical Git common directory
+  and a persistent run-owner registry. Two runs cannot independently claim the same integration branch;
+  a worktree/branch cannot be assigned to two live attempts.
+- Registered assignments and approved scope are snapshotted. Historical completed slices do not require
+  migration, future sprints are not dispatched, and accounting updates cannot forge dependency completion.
+- Launch is registered under the lock before another caller can dispatch. Failed/blocked attempts retain
+  claims until explicit quiescent resolution; retry is bounded. Worker role checks validate actual cwd and
+  committed, staged, unstaged and untracked paths.
+- Candidate checks execute in a separate clean worktree. Integration acceptance requires evidence produced
+  by `verify-integration`, the actual promoted branch head and worker/report ancestry. Fabricated commit
+  strings, altered evidence and branch movement cannot unlock dependencies.
+- Regression coverage now includes simultaneous real local processes writing and committing in worktrees,
+  candidate verification/merge, launch races, assignment substitution, migration, and failure recovery.
+  These fixtures exercise Git/process behavior; model backends still require their own smoke acceptance.
+
+### Added
+
+- **Dependency-aware parallel development.** Approved independent slices now enter a rolling queue:
+  ready work fills free slots immediately, while dependants unlock only after their prerequisite is
+  integrated and verified. The ordinary project session remains the sole coordinator and state writer.
+- **Executable scheduler contract.** The standard-library `scripts/keel_parallel.py` validates the DAG,
+  ownership, shared resources and semantic contracts; locks claims atomically; validates Git worktree
+  identity; rejects symlink escapes and aggregate-state writes; records results, reviews and integration
+  idempotently; reconciles dead workers; and launches verified CLI adapters with explicit cwd/deadlines.
+- **Versioned worker artifacts.** `keel.sprint/2`, `keel.worker-assignment/1` and
+  `keel.worker-result/1` carry exact scope, repository identity, evidence, state contributions and timing.
+  Runtime journals stay gitignored; per-attempt result reports remain committed.
+- **Deterministic regression suite.** Local Git/worktree fixtures cover the A/B/C rolling queue,
+  dependency errors, path/resource/contract collisions, wrong branches, symlink escapes, review gating,
+  idempotence, explicit cwd, bounded cancellation and paths containing spaces. CI runs it with bytecode
+  disabled before a release can pass.
+
+### Changed
+
+- Capability discovery now tests what the current session can actually isolate and observe: native writing
+  workers first, a verified unattended CLI adapter second, and an explicit serial fallback otherwise.
+  Product names, reviewer-agent config and continuation launchers are not treated as worker capability.
+- Worker role entry, timing, verification and close rules are separate from ordinary-session duties.
+  Workers cannot update aggregate state, push, release or chain; the coordinator applies structured
+  contributions in the serialized integration transaction and re-runs affected post-merge checks.
+- Parallel accounting reports elapsed run duration, summed worker effort, coordinator time and available
+  token/cost counters separately. Scheduling never changes approved scope or estimates.
+- The obsolete v5 launch commands and numeric report/signal format were removed from active documentation,
+  eliminating a contradictory fallback path.
+
+**Major update. Reconciliation:** `MANIFEST.md` Table 3, v7.0.0. Existing serial projects continue
+unchanged. Projects opting into parallel writing migrate only their active sprint, scaffold the helper and
+runtime ignores, verify one isolated backend, and refresh the portability lock.

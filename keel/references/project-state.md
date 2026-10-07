@@ -60,6 +60,7 @@ Keep it to roughly one page. Detail lives in the linked files, never accumulated
 - Docs theme: [keel-docs-theme vX.Y.Z vendored in guide/_theme/ / n/a until Phase 6 — per references/guide-theme.md]
 - Test-first policy: [pure-logic / pure-logic + acceptance / none (D-0XX) / n/a — <why> (only where the project ships no executable product at all, e.g. a documentation or instruction package)] — asked once at Phase 2 step 4e, default `pure-logic`; decides whether pure logic (and, on the wider value, each slice's acceptance criterion) gets its test written and seen failing BEFORE the code. Never re-asked. Two rules hold at EVERY value including `none`: a bug fix starts from a failing reproduction test, and a test derived from an AC-nn or a reproduced bug is never edited to make it pass. Per references/test-automation.md ("When the test is written")
 - Push test scope: [affected — the default, written with the card and never asked / full (D-0XX) — only on the user's explicit request to run the whole suite on every push] — per `references/test-automation.md` ("Which tests run when"): on `affected`, every test point and every push run the selection `scripts/keel-affected-tests` derives from the diff, and the ENTIRE suite runs at the Phase 7 gate on the release candidate. `n/a — <why>` only where the project ships no executable product. Never switched to `full` by inference ("it is a small project", "the suite is fast today")
+- Parallel development: [auto; max_workers: 2 / off (D-0XX)] — settled once before launching paid or writing workers. `auto` uses the rolling scheduler only with a verified isolated writing backend; lack of one falls back to serial with the exact reason. `Autonomy`, chaining and reviewer agents do not answer this choice (`references/parallel-development.md`)
 - Sprints: [on — the default, written when the state files are created and never asked / off (D-0XX) — only on the user's explicit statement that they do not want sprints] — per SKILL.md "Sprints are the ledger of all work": on `on`, every unit of work in every phase and entry mode is a slice with its hours BEFORE it starts, and the commit that finishes it sets `done`, writes `actual_hours` and regenerates `docs/.keel/plan.json`. Never switched off by inference ("it is small", "it is only an audit", "we are in maintenance")
 - Durability: [git remote <name> <url> / synced folder <service> / both / repo but NO remote — <what is pending> / NONE — accepted risk (D-0XX)] — per SKILL.md "Work never lives only on this machine": the work must survive this computer. Asked as Question 0 of the session-start setup batch, before anything is created. The ANSWER is never re-asked, but the two facts behind it (a repository exists; it has a remote or the tree replicates off the machine) are re-verified every session — a remote can be removed and a folder can leave sync without anyone noticing
 - Autonomy: [automatic — Keel does not ask, and does every merge to develop and every push itself | not automatic — Keel asks every time and pushes only what was explicitly requested] / issues: [after-sprint|on-request|n/a no forge] / Issue sweep interval: [Xh — default 24h; n/a unless after-sprint] / Issue capture: [on — a problem the user reports becomes a forge issue before the work starts | off | n/a no forge] — the session-start setup batch (SKILL.md), asked once and applied silently thereafter. Everything hangs off the first value; it is never inferred per action. `Issue sweep interval:` gates the kickoff-side check in `references/phase-5-development.md` ("Sprint kickoff") against `docs/issues.md`'s `Last inbound sweep:` line. The MODE lives in a per-machine file (`.claude/settings.local.json` is gitignored, so a fresh checkout has none) while this line is the recorded DECISION, so a new machine gets the file written without re-asking
@@ -97,7 +98,7 @@ Keep it to roughly one page. Detail lives in the linked files, never accumulated
 Last updated: [date — phase/step]
 ```
 
-Update rules: mark a phase `done` only when its definition of done passed (reported ✓/✗ to the user). `parked — <why>` is a recognized project status: set it when the user parks or discards the project — at the Phase 1 verdict or at any later point; the artifacts stay in place, never deleted, so the project can be resumed or revisited cold. "Next action" must always be executable by a fresh session with no other context. Never let PROGRESS.md drift from reality — a stale state file is worse than none. One deliberate exception to "the session updates it at the moment of change": when work is fanned out over git worktrees, only the session owning the MAIN tree writes this file, and a worker writes a report instead — see "Fan-out over worktrees" below, which records why.
+Update rules: mark a phase `done` only when its definition of done passed (reported ✓/✗ to the user). `parked — <why>` is a recognized project status: set it when the user parks or discards the project — at the Phase 1 verdict or at any later point; the artifacts stay in place, never deleted, so the project can be resumed or revisited cold. "Next action" must always be executable by a fresh session with no other context. Never let PROGRESS.md drift from reality — a stale state file is worse than none. One deliberate exception to "the session updates it at the moment of change": a validated writing worker never edits aggregate state; it returns a versioned report and the coordinator applies contributions during integration (`references/parallel-development.md`).
 
 Deferred items are the living list of consciously postponed WORK — a definition-of-done ✗ the user accepted, a performance finding accepted as-is — each entry carrying a severity and a review trigger ("revisit when touching X", "before release"). This is the greenfield counterpart of adoption's fix-now / fix-when-touched / accepted triage: `docs/decisions.md` logs the DECISION to defer; this list tracks the work until its trigger fires or the user closes it.
 
@@ -241,7 +242,7 @@ sprint lives in the body. A reader parses the first and never the second.
 
 ```
 ---
-schema: keel.sprint/1
+schema: keel.sprint/2
 sprint: 3
 goal: OAuth + PKCE end to end
 status: in-progress            # not-started | in-progress | done | dropped
@@ -262,6 +263,14 @@ slices:
                                 # or for an actual backfilled from before the clock existed, and always said so
     depends_on: [S-011]         # ids, never titles
     criteria: [AC-07, AC-08]    # the AC-nn this slice satisfies
+    execution:
+      write_paths: [src/oauth/, tests/oauth/]
+      contracts:
+        reads: [session-v1]
+        writes: [oauth-token-v1]
+      exclusive_resources: [test-db-default]
+      parallel: eligible        # eligible | serial
+      serial_reason: null       # required when parallel is serial
 ---
 
 # Sprint 3 — OAuth + PKCE end to end
@@ -646,7 +655,8 @@ Everything in this skill that a program parses without a model follows ONE conve
 writes one parser and one version check rather than one per artifact:
 
 - **Location:** `docs/.keel/<name>.json` (or `.jsonl`). `docs/` holds documents for people;
-  `docs/.keel/` holds the machine's copy. `docs/.keel/slices/<n>.json` was already here.
+  `docs/.keel/` holds the machine's copy. Worker attempts use the nested, versioned path
+  `docs/.keel/slices/<run-id>/<slice-id>/<attempt-id>.json`.
 - **`schema` is mandatory and self-identifying:** `keel.<name>/<n>` — `keel.plan/1`,
   `keel.e2e-status/1`, `keel.sprint/1`. A bare integer does not say what it is the schema OF, which
   is worthless the moment a reader handles two artifacts.
@@ -1411,90 +1421,22 @@ It is NOT run at every sprint close. The close runs Section A+B, which is static
 **And the reason it can be trusted to say READY: it is the same source as the contract.** The rows above are generated from the numbered `keel-continue` contract and the four `start` gates in this file — one row per requirement — so a requirement added here without a row is a release bug in the same way a manifest row missing its reference is. `scripts/keel-verify` checks that the script exists and that its row count matches.
 
 
-## Fan-out over worktrees — who writes the state, and how a worker reports
+## Historical v5 fan-out notes — superseded, never execute
 
-A session may dispatch several workers into git worktrees to work on independent slices at once. Everything in this section was measured; it applies to any such fan-out, and none of it requires a second chat with a role (see "Designs measured and rejected" below).
+This section preserves measurements that explain the rejected designs below. **None of its commands, report schemas, ownership rules or completion signals is an active instruction.** The sole authoritative development-worker contract is `references/parallel-development.md`: it replaces this original batch dispatch with capability-based isolated workers, a rolling scheduler, coordinator-owned aggregate state, versioned assignments/results, bounded process observation and post-merge verification. Keep the historical incidents because they prevent regressions; never use their obsolete mechanics to launch work.
 
-### Dispatching a worker
-
-One worktree and one branch per slice, then one process per worker, launched from the main tree's session after the sprint kickoff approved the slices:
-
-```bash
-git worktree add -q ../w<N> -b slice-<N>
-mkdir -p ../w<N>/.claude && cp .claude/settings.local.json ../w<N>/.claude/   # see below — it does NOT travel
-"$KEEL_CLI" --session-id <uuid> --model <model> -p --permission-mode auto \
-  "$(cat ../slice-<N>.prompt)" > ../w<N>.log 2>&1 &
-```
-
-**`$KEEL_CLI` is resolved, never assumed.** The dispatch needs the assistant's own CLI on this machine, and the bare word `claude` is a probe rather than an answer — resolve it per the corroboration rule in `references/test-automation.md` ("Detection rules that are not obvious"), which covers both the shell whose `PATH` hides an installed binary and the binary that is present but cannot run. A session running under Claude Code already holds the answer in `CLAUDE_CODE_EXECPATH`, an absolute path that works with no `PATH` at all. If no working CLI can be resolved, the fan-out does not happen: say so and build the sprint's slices in this session, serially, which is a slower plan and not a degraded one.
-
-**`--session-id <uuid>` assigns the id up front** instead of looking it up afterwards, so the dispatcher knows every worker's id before it starts. The log file is for post-mortem reading, never for detecting completion (see the report section below).
-
-**`--permission-mode auto`, and NOT `bypassPermissions` (UNBREAKABLE).** An earlier version of this dispatch used `bypassPermissions` on the grounds that it is what lets an unattended worker finish. **That premise is false, and it was measured: `bypassPermissions` asks for confirmation EVERY time** — entering it is itself a gated act, so instead of removing prompts it guarantees one, and an unattended worker sits waiting for an answer nobody will give. It therefore breaks precisely the automation it was chosen to enable, which is the worst kind of wrong flag: it fails in the direction of looking like a hang rather than an error.
-
-The safety argument points the same way, and would be sufficient on its own. `bypassPermissions` evaluates no permission rules at all, `deny` included. That put the skill in direct contradiction with itself: the session-start step writes a `deny` block precisely to keep `rm -rf /*`, `sudo *` and `curl * | sh` out of reach, and then the fan-out handed that exemption to the only sessions that are simultaneously **parallel, unattended, and writing to real branches** — the worst place in the whole skill to remove a barrier, and the one where nobody is watching to notice. `auto` keeps the worker moving through everything the allow-list covers and keeps the `deny` block enforced.
-
-**The honest cost of that swap, stated rather than discovered:** `auto` is not a drop-in. A worker in `-p` mode that reaches an action the allow-list does not cover cannot be asked, so that call is refused and the slice may fail. That is the correct failure direction — a refused call surfaces in the worker's report and its log and is fixed by extending the allow-list, whereas an unattended `sudo` is not fixed by anything. So: if workers stall, **extend the project's allow-list; never go back to bypassing.** And the fan-out's other three preconditions stand unchanged, because they were never a substitute for this one: dispatched only from a session with a person in it, only over slices approved at the kickoff, only into worktrees of this repository.
-
-**A worktree does NOT inherit the permission settings, and this is the part that silently undoes everything above.** `.claude/settings.local.json` is gitignored — that is what makes it machine-local — so `git worktree add` produces a clean checkout **without it**. A worker launched there falls back to user-level configuration: no project `deny` block, no project `env.PATH`, no project allow-list. The rule that was just enforced on the flag would be quietly absent in the directory. So the dispatch **copies the file into each worktree before launching**, as in the command above, and a dispatch that skips that step is not dispatching under the project's rules whatever flag it passes. Verify it landed: the file's absence is invisible at runtime and shows up only as a worker mysteriously blocked, or mysteriously unblocked.
-
-### The living state is written by the session that owns the MAIN tree — and by nobody else
-
-This **inverts** the rule that governs everywhere else in this file ("update state at the moment of change"), so it is recorded as a deliberate decision with its reason rather than left as an exception someone will treat as an oversight.
-
-- **The session in the main tree writes `docs/PROGRESS.md`**, after each merge, as always.
-- **A worker in a worktree never writes it.** Not a line. The prohibition goes in the worker's own prompt, in those words.
-
-The measurement: with three worktrees where each worker touched its own code file AND `docs/PROGRESS.md`, the code merged clean every time and `PROGRESS.md` conflicted in **100% of merges — N−1 times for N workers**, and not on one line but on the whole structured block. With the workers writing only their own report path instead, three merges produced **zero conflicts** and `PROGRESS.md` was left intact for the main session to rewrite.
-
-**`.gitattributes` with `merge=union` is not the fix and must not be reached for.** With two branches that only APPEND it works; a Keel `PROGRESS.md` is REWRITTEN — phase, version, position — and union merging then produces a clean merge and a corrupt file: two contradictory `**Fase actual:**`/`Phase:` lines, two `## Log` headings, and no conflict marker anywhere. A silent wrong answer is worse than a conflict.
-
-### The worker's report — `docs/.keel/slices/<n>.json`
-
-What a worker writes instead, committed on its own branch, one path per worker so two never touch the same file:
-
-```json
-{ "slice": "3", "status": "blocked", "branch": "slice-3", "commit": "4416bf5",
-  "needs_user": "What should divide(a, b) do when b is 0?" }
-```
-
-`status` is `done` or `blocked`. A `blocked` report is **not merged**: the branch and its worktree stay untouched, the question goes to the user in the chat where a person actually is, and the main session records the block in `PROGRESS.md`. That escalation is the whole reason a fan-out is driven from a session with a human in it — a worker that invents an answer to a product question is the failure this prevents.
-
-Two things the report deliberately is not. **Not stdout:** a `claude -p` worker writes nothing until it finishes, so a working worker and a dead one both show an empty log (measured: 0 lines while both were working). **Not the transcript:** it belongs to the process rather than to the project, and a transcript resumed after an interruption gains a fabricated `Continue from where you left off.` turn that nobody wrote.
-
-### The close-out contract — this order, and the order is the point
-
-Every worker prompt ends with these four steps in exactly this sequence:
-
-1. `git add -A && git commit -m "slice <N>: …"`
-2. Write `docs/.keel/slices/<N>.json` and commit it.
-3. Signal completion **atomically**: `printf '<N> done\n' > <signal>.tmp && mv <signal>.tmp <signal>.done`.
-4. Finish.
-
-The signal comes LAST so that **an existing signal implies committed work, never the reverse**. It is written by rename because a rename cannot be observed half-written, which a direct `>` redirect can. The dispatching session waits on the signal file — one blocking call with a ceiling (`until [ -f <signal>.done ]; do sleep 5; done`), which costs one line of context however long it takes.
-
-### The slice prompt is self-sufficient, and is not a continuation prompt
-
-Each worker receives a complete prompt that starts with the ABSOLUTE path of ITS worktree, states that no other directory may be touched, forbids reading or writing `docs/PROGRESS.md`, and carries the task in full. It reads no state file. There is also a mechanical reason the hand-off cannot get confused with a slice prompt: `docs/continuation-prompt.md` is gitignored, so a fresh worktree does not contain one at all (measured). The party that needs a hand-off is the session that owns the main tree, never the workers.
-
-**What needs serialising is the merge, not the slice.** Three worktrees give three different `git rev-parse --show-toplevel` values and therefore three legitimate lanes, exactly as the single-lane lock already intends. Since only the main session merges, the main tree's lane already covers the thing that must not happen twice at once; nothing about the lock changes for this.
-
-### Seeing which sessions are live — `claude agents --json`
-
-The supported way to enumerate live sessions, replacing any parsing of `*.jsonl` transcripts. It returns one object per session with `pid`, `cwd`, `kind`, `sessionId`, `name` and a status of `idle` or busy — enough to discover sessions, spot a dead one, and tell whether one is working. It needs no TTY and is scriptable.
-
-Two caveats, both measured, both load-bearing:
-
-- **`-p` (print) sessions do NOT appear** — only interactive and `--bg` ones. So it is not a completion detector for `-p` workers; the done-signal file is.
-- **`--session-id <uuid>` lets the launcher assign the id up front**, so whoever dispatches a worker already knows its id without looking it up.
+The obsolete launch commands and report/signal schemas were removed in v7.0.0 so a model cannot
+mistake measured history for an executable fallback. The measurements retained below still explain
+why Keel uses one ordinary coordinator, isolated worktrees and structured results, but all current
+execution details live only in `references/parallel-development.md`.
 
 ## Designs measured and rejected — do not re-propose
 
 Each of these was built or probed on a real machine and failed for a reason that will not change by trying again. They are recorded so the next session finds the result before spending the round that produces it a second time.
 
-- **A "chat director" — a second chat whose role is orchestrating worker chats. Abandoned as a design.** It works: a prototype ran three slices with three workers, merged without conflicts, wrote the state itself, and escalated a product question instead of inventing an answer. It still does not earn its scaffolding. Measured, it costs **≈7k tokens of context per slice in a toy project and 15–20k in a real one** (a `PROGRESS.md` of 4–18 KB read and rewritten every slice is what fills it, not the waiting loop — that is one Bash call returning one line however long it blocks), which degrades the director **between the 6th and the 9th slice**. It has no cost accounting, no cancellation and no concurrency cap, all to obtain parallelism that native subagents and workflows already provide with all three. Its one genuine advantage — a chat with a person in it, which can be asked a question and can answer — is obtained by something far smaller: **one ordinary Keel session that, in a single turn, dispatches N workers into worktrees, waits for their signals and merges**, exactly as this section describes. The chat where the person is, is the chat you are already working in.
+- **A "chat director" — a second chat whose role is orchestrating worker chats. Abandoned as a design.** It works: a prototype ran three slices with three workers, merged without conflicts, wrote the state itself, and escalated a product question instead of inventing an answer. It still does not earn its scaffolding. Measured, it costs **≈7k tokens of context per slice in a toy project and 15–20k in a real one** (a `PROGRESS.md` of 4–18 KB read and rewritten every slice is what fills it, not the waiting loop — that is one Bash call returning one line however long it blocks), which degrades the director **between the 6th and the 9th slice**. It has no cost accounting, no cancellation and no concurrency cap, all to obtain parallelism the ordinary coordinator can provide through the bounded, versioned contract in `references/parallel-development.md`. The chat where the person is, is the coordinator chat.
 - **Delivering a message into a live session with `claude --resume`.** There is no mailbox. `--resume` starts a NEW process that reads the transcript from disk and writes to the same file: against an idle session the target's window sees nothing, and against a session mid-turn the transcript FORKS, a `Continue from where you left off.` / `No response requested.` pair that nobody wrote is fabricated, and the message is **silently lost** from the resumable history. It is also scoped to the current directory's slug, so a worker in a worktree could not reach a session in the main tree even if the mechanism worked. Workers report through their file, and nothing else.
-- **Closing another session's window from a script.** Measured on macOS with Terminal.app: `close` takes **40–78 seconds** with no confirmation and no error either way, so the caller cannot know whether it happened without polling; it is a hard kill that runs **no cleanup hooks at all** (three signal traps were installed and none fired, and the log file was never created); and because the holder can therefore never release its lane, an orphaned lock is guaranteed rather than exceptional. Killing the child instead leaves the window open with an idle shell. Opening an unrequested window was already placed behind the user's decision; closing one is more destructive and its mechanics are worse. **Do not do it, not even opt-in.** The defensible version, if it is ever wanted, is `kill -TERM` on a worker whose done-signal already exists — the commit is guaranteed by the close-out order — leaving the window open; even that needs an explicit lane release, which is specified for the arriving session and not for a third party.
+- **Closing another session's window from a script.** Measured on macOS with Terminal.app: `close` takes **40–78 seconds** with no confirmation and no error either way, so the caller cannot know whether it happened without polling; it is a hard kill that runs **no cleanup hooks at all** (three signal traps were installed and none fired, and the log file was never created); and because the holder can therefore never release its lane, an orphaned lock is guaranteed rather than exceptional. Killing the child instead leaves the window open with an idle shell. **Do not do it, not even opt-in.** Current worker cancellation targets only the registered owned process group and retains claims when termination cannot be confirmed (`references/parallel-development.md`).
 
 ## Context & cache discipline (how every session works)
 
@@ -1535,10 +1477,19 @@ The project root carries the Keel block below in TWO files, always: `CLAUDE.md` 
 One tool needs a third step: **Gemini CLI reads `GEMINI.md`, not `AGENTS.md`, by default.** If the user works with Gemini CLI, ask once and record the pick: mirror the same block in `GEMINI.md` (a third copy of the lock, refreshed with the others), or commit a `.gemini/settings.json` whose `context.fileName` includes `AGENTS.md` (no third copy to maintain). Either satisfies the lock.
 
 ```
-<!-- KEEL:BEGIN — v6.6.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
+<!-- KEEL:BEGIN — v7.0.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
 # Keel protocol (mandatory for ANY assistant working in this repository)
 
 This project is governed by the Keel workflow. Before reading code or changing ANYTHING:
+
+**Parallel-worker exception:** before step 1, check for a coordinator-registered
+`keel.worker-assignment/1` in this exact worktree using `scripts/keel-parallel`.
+A valid assignment routes this session to `references/parallel-development.md`'s
+worker entry: read the assignment and only its named immutable inputs; do not run
+maintenance, resume, reconciliation, global timing/close, push or chaining. The
+worker may write only its assigned paths and per-attempt report. A bare environment
+variable or prompt cannot select this role. Invalid worker identity fails closed.
+With no valid assignment, follow every normal step below unchanged.
 
 1. Read the FULL Keel `SKILL.md` FIRST, before anything else in this repository —
    from the installed `keel` skill if present, otherwise from the embedded copy
@@ -1632,6 +1583,11 @@ This project is governed by the Keel workflow. Before reading code or changing A
      does not depend on a previous result.
    - Delegate broad searches/scans to a subagent when the environment provides them;
      bring back conclusions, never file dumps — the main context stays clean.
+   - For approved Phase 5 development, follow `references/parallel-development.md`:
+     fill the recorded cap from the ready dependency set, give every writer its own
+     worktree, keep aggregate state and integration with the coordinator, and unlock
+     dependants only after verified integration. No verified isolated writer means
+     explicit serial development, not shared-checkout concurrent writes.
    - The same batching rule governs delegation: independent READING verifiers at one
      gate, and one agent per independent unit (screen, locale, competitor), go out in
      ONE parallel block — with at most one EXECUTING verifier per environment running
@@ -1733,6 +1689,6 @@ These NEVER move while the project is alive: `PROGRESS.md`, `decisions.md`, `les
 - From Phase 5: `docs/api/INDEX.md` exists and matches the docs; sprint files follow the template.
 - Every session opened with `scripts/keel-time start` and its block before any work, and ended with `scripts/keel-time end` and its report shown; `docs/sessions.md` has its row, every `actual_hours` came from the clock or carries `actual_source: estimated`, and `docs/.keel/clock.jsonl` is gitignored.
 - Any session ending mid-work produced a continuation prompt — and so did every sprint close, whether or not the session stopped there, with `docs/continuation-prompt.md` left CURRENT rather than describing a commit the work has since moved past.
-- Where work was fanned out over worktrees: only the main tree's session wrote `docs/PROGRESS.md`, every worker left its `docs/.keel/slices/<n>.json` report committed on its own branch, every done-signal was written after its commit, and no `blocked` report was merged.
+- Where parallel writing ran: each assignment validated repository/cwd/branch/base/scope, every attempt left its versioned committed result, review and integration evidence are distinct, only the coordinator changed aggregate state, and no dependency unlocked before successful integration verification.
 - The project card carries `Keel baseline:`; a completed reconciliation updated it and left its D-entry; a deferred one is listed in PROGRESS.md open items.
 - Any reconciliation read `MANIFEST.md`, ran the full conformance sweep (Table 1 parity plus Table 3's per-version delta) and left `docs/keel-conformance.md` complete — every applicable row `present`, `declined` with its D-entry, or `n/a` with its condition. Every `missing` row reached the batched plan and ended in a user decision; the sweep table was reported to the user in full.
