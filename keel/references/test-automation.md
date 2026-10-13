@@ -23,6 +23,7 @@ Why this is a hard rule and not a preference: a human walking a flow is slow, is
 | Work | Non-negotiable because |
 |---|---|
 | Starting, seeding, resetting and stopping the environment | It is a documented command; running it is the assistant's job by definition |
+| Opening and closing the inbound tunnel that lets an external service call the playground, and driving the flow that depends on it (`references/inbound-tunnel.md`) | Reachability is a command, not a credential; a flow that stops where the outside world must answer has not been tested |
 | Filling every form field — text, select, checkbox, radio, date, file upload, rich editors | This is the single most common thing wrongly handed to the user, and every driver in this file does it natively |
 | Clicking, tapping, hovering, dragging, scrolling, keyboard navigation | Same |
 | Asserting what the interface shows — success text, validation errors, empty states, permission denials | The assertion is the test; a human eyeball is not an assertion |
@@ -413,6 +414,29 @@ Driving without reading back is half a test. A page can look correct and be thro
 - **Android:** `adb logcat`, plus `adb shell uiautomator dump` for the view hierarchy when a locator fails.
 - **Everywhere:** attach the evidence to the test result rather than pasting it into chat. Chat is not an artifact.
 
+## The live drive — every new feature is used for real, beside its tests
+
+A green end-to-end suite is a claim made by the same session that wrote the code, and it can be wrong in ways the suite cannot see:
+
+- It asserts only what its author thought to assert. A misunderstanding of the requirement lands in the code and in the test together, and they agree.
+- It stubs, intercepts or fakes the third party, so it proves the handler against the assistant's idea of the provider and not against the provider.
+- It starts from an ideal seeded state and takes the shortest path a script can take, which is rarely the path a person takes.
+- A locator matches something other than what was meant, or the assertion holds for a reason unrelated to the feature.
+- It passes with a whole leg missing, because nothing in it waited for that leg: the order is created and the test ends before the notification that would have paid it.
+
+So the suite is necessary and is never the whole verification. **At every slice's test point, every new or changed behaviour is also driven live by the assistant**, as a person would use it:
+
+- **A real browser against the running playground.** Playwright, through a throwaway script or the project's browser MCP, on the same installation the suite uses. A project with a browser surface always has Playwright installed for this, from the scaffold, whether or not the slice adds a committed test. Headless by default with video and trace recorded, so it does not take the user's screen and leaves an artifact behind.
+- **Nothing mocked.** No route interception, no stubbed provider, no forged callback. The real third-party sandbox is on the other end, and when that third party calls back, it reaches the playground through `scripts/playground-tunnel` (`references/inbound-tunnel.md`). A drive with the provider intercepted is not a live drive.
+- **From where a user starts to the final state**, then a look around at what the interface does not show: the record in the admin or the database, the product's debug log, the e-mail that was sent, the state on the third party's side where its sandbox exposes it. The read-back duty above applies in full.
+- **The neighbours, briefly.** One pass over what the change could have disturbed on the same screens, because a live drive is where an unrelated breakage is seen.
+
+**Both, never one in place of the other.** The suite is the regression net and stays: it runs unattended at every push and at the release. The live drive is discovery: it finds what nobody wrote a test for. Whatever it finds becomes a failing test first and a fix second (the bug-reproduction rule), so the suite learns from every drive. Where the suite stubs a third party for determinism, at least one driven path per integration runs unstubbed, marked to run only when the tunnel is up and skipping with a stated reason otherwise.
+
+**Scope and cost.** The live drive covers the slice's new and changed behaviour, not the whole product; the full walk belongs to the sprint close and the Phase 7 gate. On a surface with no browser the rule is the same with that surface's driver: the tool called over the protocol, the command run in a real PTY, the app on its simulator.
+
+**Evidence.** The `Real run in playground` cell of `docs/05-test-points.md` records what was driven, the final state observed and the artifact path. "e2e green" is not a value for that cell: it belongs in the evidence of the automated test, and the two cells answer different questions.
+
 ## Static checks and sniffers — also the assistant's job
 
 Code review by tooling is driving too, and it runs on every slice, not once before release:
@@ -493,7 +517,8 @@ With those two in place the check is trivial and honest: every `AC-nn` in the sp
 
 Recorded here so it is never rediscovered as a surprise mid-project:
 
-- **A real payment through a live gateway.** Offline methods (cash on delivery, cheque, bank transfer) are fully drivable and are what the end-to-end purchase test uses. Stripe, PayPal and WooPayments need the user's own test credentials, outbound network, and a publicly reachable webhook — that leg is `CREDENTIAL`.
+- **A real payment through a live gateway.** Offline methods (cash on delivery, cheque, bank transfer) are fully drivable and are what the baseline end-to-end purchase test uses. A gateway's SANDBOX is drivable as well, asynchronous notification included, through the inbound tunnel (`references/inbound-tunnel.md`): a publicly reachable webhook is no longer a reason to delegate anything. What stays `CREDENTIAL` is obtaining test credentials that belong to the user, where the gateway does not publish shared ones; what stays `PRODUCTION-RISK` is the live leg.
+- **Opening an ingress in a session whose permissions forbid it.** That guard is deliberate and is not worked around. The user runs the one launch command, the assistant attaches to the open tunnel and drives the rest: the partial `NO-EXECUTION` case, covering the launch alone.
 - **XCUITest without macOS.** `xcodebuild` is a macOS binary and the simulator runtime only loads under macOS. There is no emulation, no port, no workaround — only a real Mac, a hosted macOS runner, or a device farm (which is a hosted Mac with extra steps). On Windows or Linux the Apple section of the plan is inexecutable and the doctor says so and stops.
 - **A native Windows UI test on a headless runner.** UIA needs a live interactive session.
 - **A real assistive-technology pass.** A screen reader tells you what a blind user hears, and no audit reproduces that.
@@ -506,6 +531,7 @@ Recorded here so it is never rediscovered as a surprise mid-project:
 - Where the project has a browser surface driven through an MCP, the server is registered at project level only, headless and isolated (or attached to one shared browser through `--cdp-endpoint`), every driven check ends with `browser_close`, and the doctor's three browser-MCP rows are generated.
 - Every acceptance criterion with a user-visible surface has a driven test that fills the real fields and asserts what the interface shows — not an instruction for the user.
 - Console errors, failed requests, 5xx responses and platform logs are read back and fail the test.
+- Every slice's new or changed behaviour was also driven live against the running playground with nothing mocked, through the inbound tunnel where an external system calls back, and its `Real run in playground` cell says what was observed.
 - The automated accessibility pass runs per screen and per state, inside the same driven tests.
 - Static analysis and sniffers run at every test point with recorded output and a tracked suppression count.
 - Every test point and every push ran the affected selection from `scripts/keel-affected-tests` (or the full suite on `Push test scope: full`), enforced by `.githooks/pre-push`, with its `scope:` line in the evidence; no empty selection passed for a diff that touched source; the entire suite ran on the release candidate at every release.

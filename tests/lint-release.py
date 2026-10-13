@@ -28,6 +28,8 @@ Checks:
      and repository-only implementation plans are excluded from release archives.
 11. Static-analysis evidence distinguishes a blocked tool launch from an analysed
     target, and the release gate preserves that distinction.
+12. The inbound-tunnel contract and the live-drive rule are present, and the
+    phase references that must apply them say so.
 """
 
 import re
@@ -302,6 +304,28 @@ elif "Classify every static check before accepting it." not in phase7:
     fail("Phase 7 release gate does not require static-check classification")
 else:
     ok("static-analysis evidence contract and release gate are present")
+
+# ---- 12. Inbound tunnel and live drive -------------------------------------
+inbound_path = KEEL / "references" / "inbound-tunnel.md"
+inbound = inbound_path.read_text(encoding="utf-8") if inbound_path.is_file() else ""
+phase2 = ref_text.get("phase-2-functional-spec.md", "")
+phase5 = ref_text.get("phase-5-development.md", "")
+tunnel_problems = [
+    what for what, present in (
+        ("inbound-tunnel.md: the three script modes", all(s in inbound for s in ("`scripts/playground-tunnel`", "--url <https-url>", "--restore"))),
+        ("inbound-tunnel.md: restore on every exit path", "Restore on every exit path." in inbound),
+        ("inbound-tunnel.md: the negative control", "The negative control" in inbound),
+        ("inbound-tunnel.md: only the synthetic playground is tunnelled", "Only the synthetic playground is ever tunnelled." in inbound),
+        ("phase-2: the Inbound calls inventory", "Inbound calls (per references/inbound-tunnel.md" in phase2),
+        ("phase-5: the scaffold generates scripts/playground-tunnel", "scripts/playground-tunnel" in phase5),
+        ("test-automation.md: the live-drive section", "## The live drive" in test_automation and "Nothing mocked." in test_automation),
+        ("phase-5: the per-slice live drive", "Live drive, beside the tests." in phase5),
+    ) if not present
+]
+if tunnel_problems:
+    fail(f"inbound-tunnel / live-drive contract is incomplete: {tunnel_problems}")
+else:
+    ok("inbound-tunnel contract and live-drive rule are present")
 
 # ---- Result ----------------------------------------------------------------
 print()

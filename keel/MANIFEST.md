@@ -1,4 +1,4 @@
-# Keel Manifest — v7.1.0
+# Keel Manifest — v7.2.0
 
 One file, three tables, one purpose: looking ONLY at this file, a session can tell (1) whether a project contains everything Keel requires at its current phase, (2) which skill files changed in which Keel version — so after an update it knows exactly what to re-read, without interpreting the changelog — and (3) what concrete actions each version asks of an existing project (the reconciliation delta).
 
@@ -51,6 +51,7 @@ Verification is phase-aware and condition-aware: read the project card and phase
 | `docs/keel-conformance.md` | The conformance sweep: one row per applicable MANIFEST Table 1 requirement with its state (`present` / `missing` / `declined` + D-entry / `n/a` + condition) — derived from this manifest, never from recollection (SKILL.md "Applying Keel completely") | Phase 1 step 0a; always at adoption step 4a and at every post-update reconciliation | Always |
 | `docs/playground.md` | Playground access + try-it instructions + seed/reset commands + `last verified:` stamp | Phase 5 scaffold — or the first maintenance/adoption touch on a project that never had one | If the project can be run |
 | `scripts/keel-verify` | The project's own release linter (`references/phase-5-development.md`) | Phase 5 scaffold — or the first maintenance/adoption touch on a project that never had one | If the project can be run |
+| `scripts/playground-tunnel` | Opens a public HTTPS tunnel to the playground (Cloudflare quick tunnel by default), points the playground's public base URL at it and restores `localhost` on every exit path; three modes — open and wait, `--url <https>` to attach to a tunnel already open, `--restore`; exit 0 done / 2 could not run; never in the distributable (`references/inbound-tunnel.md`) | Phase 5 scaffold — or the first maintenance/adoption touch on a project that never had one | Only if an external system calls the project (payment notifications, webhooks, a URL a third party fetches, a remote client connecting to a local server) |
 | `scripts/keel-affected-tests` | The push-time test selection derived from the diff (`references/test-automation.md` "Which tests run when"): the changed files' tests, their reverse dependencies, the changed tests, the plan's always-run set, and the closed widening list; `--base`, `--run`; an empty selection for a source diff fails; prints one `scope:` line for the evidence | Phase 5 scaffold | If the project has an automated test suite |
 | `.githooks/pre-push` + `core.hooksPath` set | Runs `scripts/keel-affected-tests --run` over every branch being pushed and refuses the push on a red selection or a failed selector; skips tag pushes (the release's evidence is the Phase 7 full-suite run) | Phase 5 scaffold | If the project has an automated test suite |
 | `scripts/keel-doctor` | The environment doctor compiled from the technical plan's `## Environment requirements`: `--check` / `--plan` / `--fix` / `--json`, four states, nothing global installed without the user's OK on an itemized list (`references/test-automation.md`) | Phase 5 scaffold — or the first maintenance/adoption touch on a project that never had one | If the project can be run |
@@ -99,22 +100,23 @@ After an update, re-read `SKILL.md`, the current phase's reference, and THIS fil
 
 | Skill file | Last changed in |
 |---|---|
-| `SKILL.md` | v7.1.0 |
-| `MANIFEST.md` | v7.1.0 |
-| `CHANGELOG.md` | v7.1.0 |
+| `SKILL.md` | v7.2.0 |
+| `MANIFEST.md` | v7.2.0 |
+| `CHANGELOG.md` | v7.2.0 |
 | `scripts/keel_parallel.py` | v7.0.0 |
 | `references/keel-maintenance.md` | v7.0.0 |
 | `references/notifications.md` | v5.14.0 |
-| `references/playground-recipes.md` | v5.1.0 |
-| `references/test-automation.md` | v7.1.0 |
+| `references/playground-recipes.md` | v7.2.0 |
+| `references/inbound-tunnel.md` | v7.2.0 |
+| `references/test-automation.md` | v7.2.0 |
 | `references/maintenance.md` | v6.6.0 |
 | `references/guide-theme.md` | v3.2.1 |
 | `references/assistant-config.md` | v7.0.0 |
-| `references/phase-5-development.md` | v7.0.0 |
+| `references/phase-5-development.md` | v7.2.0 |
 | `references/phase-7-release.md` | v7.1.0 |
-| `references/project-state.md` | v7.1.0 |
+| `references/project-state.md` | v7.2.0 |
 | `references/phase-1-discovery.md` | v7.0.0 |
-| `references/phase-2-functional-spec.md` | v6.5.0 |
+| `references/phase-2-functional-spec.md` | v7.2.0 |
 | `references/adoption.md` | v7.0.0 |
 | `references/estimation-budget.md` | v7.0.0 |
 | `references/parallel-development.md` | v7.0.0 |
@@ -210,6 +212,7 @@ What the reconciliation APPLIES, version by version, for every version newer tha
 | v6.6.0 | MINOR: **scope ownership and residual estimates make split work count once**. **(1)** Migrate each legacy slice's `hours` into immutable `original_hours`; preserve its historical actual and never infer a residual from elapsed time. **(2)** Map every open slice's exclusive requirement ownership and explicitly estimate `residual_hours`; until this is complete, set `reconciliation_status: unreconciled` and label the balance accordingly. **(3)** Regenerate `scripts/keel-time`, the plan generator and `scripts/keel-verify` for `original_hours`/`residual_hours`, `added\|extracted\|re-estimated`, append-only estimate changes, same-checkpoint parent/child reconciliation, the explained balance equation, and the split/outlier regressions. **(4)** Reconcile each existing parent/child decomposition as ordinary planned work; do not mark unfinished features done or subtract actuals. **(5)** Restamp the lock version in `CLAUDE.md` + `AGENTS.md` (block text changed). |
 | v7.0.0 | MAJOR: **approved independent development becomes a dependency-aware rolling worker pool.** **(1)** Add `Parallel development: auto; max_workers: 2 \| off` to the project card, preserving an explicit prior fan-out acceptance; otherwise settle it once before paid or writing workers launch. **(2)** When `auto`, migrate only the active sprint to `keel.sprint/2`, preserving IDs, estimates, statuses and historic reports while adding exact write paths, semantic contract reads/writes, exclusive resources and eligibility. Missing mappings remain unknown, never broad permission. **(3)** If Python 3 already exists, copy `scripts/keel_parallel.py` from the installed skill byte-for-byte to executable `scripts/keel-parallel`, record its SHA-256, gitignore `docs/.keel/parallel/` and keep `docs/.keel/slices/<run>/<slice>/<attempt>.json` tracked. **(4)** Probe this session for a native isolated writing backend, then a verified unattended CLI adapter; without either, record the exact serial fallback. Do not infer capability from a product name or install anything silently. **(5)** Regenerate worker-aware locks/hooks: a registered assignment validates Git common directory, cwd, branch, base, scope and attempt before write; workers keep local secrets/scope/test guards but never run global close, push, chain or aggregate-state writes. **(6)** Integrate only after structured result validation and independent review; serialize merge plus aggregate updates, run post-merge verification, then mark the dependency integrated. **(7)** Keep elapsed duration, summed worker effort, coordinator time and available usage/cost counters separate. **(8)** Restamp `CLAUDE.md` + `AGENTS.md`; ordinary serial projects retain their existing workflow and gain no runtime dependency. |
 | v7.1.0 | MINOR: **static-analysis evidence now distinguishes code findings from a tool that never reached analysis.** At every test point and release gate, classify each canonical invocation as `PASS`, `FINDINGS`, or `BLOCKED — ENVIRONMENT`; record the command, exit status, earliest failure line, scope and missing capability. A local socket, runner or launch failure is neither a code finding nor a passing analysis. A sequential/no-parallel run is diagnostic only unless the technical plan explicitly proves equivalent command, configuration and scope; it never upgrades the failed canonical command. Re-run every mandatory canonical command before accepting a slice or release result. Existing projects: no new file or card line; apply this evidence rule at the next test point, and restamp the portability lock. |
+| v7.2.0 | MINOR: **the playground receives calls from outside, and every new feature is used for real.** **(1)** Inventory the project's inbound calls in the technical plan's `## Testing` block (payment notifications, webhooks, a URL a third party fetches, a remote client connecting to a local server): caller, endpoint, how the URL is learned, whether the hostname must be stable. "None" is a valid answer and ends actions 2–4. **(2)** Where there is at least one, generate `scripts/playground-tunnel` per `references/inbound-tunnel.md` (three modes, restore on every exit path), add the tunnel binary as an `optional` row of `## Environment requirements` and regenerate `scripts/keel-doctor`, add the tunnel section to `docs/playground.md`, and confirm the script and any helper it copies are outside the distributable. **(3)** Test the provider's acceptance of the tunnel URL by hand once and record it as a D-entry before relying on the script. **(4)** Re-examine every open delegation whose only reason was reachability (a `CREDENTIAL` or `⚠ unverified` row citing a public webhook, or a flow parked until a staging deployment): it is now driven through the tunnel, with its negative control. **(5)** From the next test point on, every slice's new or changed behaviour is also driven live by the assistant against the running playground with nothing mocked, recorded in the `Real run in playground` cell; a project with a browser surface that has no Playwright installation gets one at that touch. No new card line; the lock block is unchanged in substance (stamp-only refresh). |
 
 ## Maintenance (part of EVERY release — no exceptions)
 

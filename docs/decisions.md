@@ -336,3 +336,30 @@
   Existing projects opt in once, migrate only their active sprint and scaffold the helper. Deterministic
   behavior is verified in this release; no real writing backend was exercised during bootstrap, so backend
   acceptance stays unverified rather than being inferred from the fixture suite.
+
+## D-038 — The playground is reachable from outside through a tunnel, and new behaviour is driven live; v7.2.0 minor
+
+- Date: 2026-10-13
+- Context: in the Redsys gateway project a Cloudflare quick tunnel, opened by a script, let the
+  Redsys sandbox deliver its payment notification to a local wp-env playground: without it the
+  order stayed pending, through it the order was paid. The user asked for that tunnel to become
+  part of Keel for anything that needs external notifications, so that nothing has to be deployed
+  to an online server to receive them, and named the release 7.2. While the work was in progress
+  the user added that, beyond the end-to-end suites, new functionality must always be tried for
+  real in Playwright against that reachable playground, because end-to-end tests sometimes deceive.
+- Decision: a new cross-cutting reference, `references/inbound-tunnel.md`, with the inbound-call
+  inventory at Phase 2, `scripts/playground-tunnel` generated at the Phase 5 scaffold (open and
+  wait, `--url`, `--restore`), Cloudflare quick tunnel as the default, exposure rules and
+  negative-control evidence. A new section of `references/test-automation.md`, "The live drive",
+  makes the assistant exercise every slice's new or changed behaviour in a real browser with
+  nothing mocked, beside the committed tests.
+- Alternatives considered: a section inside `playground-recipes.md` (rejected: the need cuts across
+  every project type, and the recipes file is a catalogue); shipping one tunnel script inside the
+  skill (rejected: pointing the application at the tunnel is stack-specific, so the script is
+  generated per project like the other `scripts/keel-*` helpers); making the tunnel mandatory for
+  every project (rejected: a project with no inbound call gains only exposure); a new delegation
+  tag for a session that may not open an ingress (rejected: the partial `NO-EXECUTION` case already
+  describes it, and the tag list stays at eight).
+- Consequence: one conditional Table 1 row, no card line, no lock change beyond the stamp. The
+  contract generalises one measured case. The Cloudflare limits it cites were not re-verified in
+  this session and the reference says to re-check them at Phase 2.
