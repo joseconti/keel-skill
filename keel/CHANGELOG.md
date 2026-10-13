@@ -1536,3 +1536,37 @@ runtime ignores, verify one isolated backend, and refresh the portability lock.
 **Minor update. Reconciliation:** `MANIFEST.md` Table 3, v7.1.0. No new project
 artifact or card line; apply the evidence classification at the next test point and
 refresh the portability lock.
+
+## 7.2.0
+
+### Added
+
+- **Inbound tunnel (`references/inbound-tunnel.md`).** A playground on `localhost` can now receive
+  calls from outside — payment notifications, webhooks, a URL a third party fetches, a remote client
+  connecting to a local server — through a public HTTPS tunnel, Cloudflare quick tunnel by default,
+  a named tunnel or a recorded substitute when the hostname must be stable. Keel no longer asks for
+  a deployment to an online server only to be reachable, and reachability is no longer a reason to
+  delegate a flow or to forge the inbound request.
+- **`scripts/playground-tunnel`**, generated at the Phase 5 scaffold when the technical plan lists an
+  inbound call: open and wait, `--url` to attach to a tunnel already open, `--restore`. It points the
+  playground's public base URL at the tunnel, applies a playground-only proxy-scheme shim, and
+  restores `localhost` on every exit path. It never ships.
+- **The live drive (`references/test-automation.md`).** At every slice's test point the assistant
+  also uses the new or changed behaviour for real: a real browser (Playwright) against the running
+  playground, nothing mocked, the real third-party sandbox on the other end, through the tunnel when
+  that third party calls back. It runs beside the end-to-end tests and never replaces them; what it
+  finds becomes a failing test first.
+- Technical-plan `Inbound calls` inventory (Phase 2), negative-control evidence for each inbound
+  flow, exposure rules for a tunnelled playground, and the handling of a session whose permissions
+  forbid opening an ingress (the user launches, the assistant attaches and drives the rest).
+
+### Changed
+
+- A gateway's sandbox payment, asynchronous notification included, is now a driven flow. `CREDENTIAL`
+  covers only test credentials that belong to the user; a publicly reachable webhook is no longer
+  part of it.
+- "e2e green" is not a valid value for the `Real run in playground` evidence cell.
+- The release linter checks that the tunnel contract and the live-drive rule are present.
+
+**Minor update. Reconciliation:** `MANIFEST.md` Table 3, v7.2.0. One conditional project artifact
+(`scripts/playground-tunnel`), no new card line; refresh the portability lock.
