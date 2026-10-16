@@ -16,6 +16,7 @@ keel/
 ├── LICENSE
 ├── NOTICE
 ├── scripts/
+│   ├── keel_clock.py
 │   └── keel_parallel.py
 └── references/
     ├── keel-maintenance.md

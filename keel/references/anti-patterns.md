@@ -905,6 +905,16 @@ Where no clock can be read, the figure says `estimated`. The mechanical check: a
 that no `docs/sessions.md` row lists, or a row whose deviation is not the difference of its own
 columns, fails `scripts/keel-verify`.
 
+**The variant: a clock that assumes one slice at a time.** A `slice-start` that closes every other
+open slice is correct for one writer and wrong the moment work runs in parallel: each slice keeps
+only the minutes until the coordinator's next boundary. Measured on a real project with six writer
+agents: 22 finished slices estimated at 48.25 h were recorded as 2.92 h (−94 %) inside a 4.86 h
+session, and the pace projection built on them was wrong with it. The rule: each slice is measured
+from its OWN intervals, intervals may overlap, a worker's slice is recorded from the worker's own
+start and end, and the report shows wall-clock and summed slice hours apart and projects parallel
+work from throughput, naming the basis. The arithmetic is the shipped `scripts/keel-clock`, covered by
+`tests/test_session_clock.py`, so no project re-derives it.
+
 ### 12y. The whole suite as the price of every push
 
 **The trap.** Every push runs every test. It is correct on day one, when the suite takes seconds,
@@ -1225,7 +1235,7 @@ recollection** — an answer given from memory is not an answer, it is the trap 
 17k. For every probe a guard acts on, can the caller tell "found nothing" from "could not tell" — and has the parser been run against the input shapes that are not the common case (for `git status --porcelain`: a rename and a quoted path)?
 17l. For every at-most-once guard, what deletes the key it is claimed against, and does the deleter know the guard exists — and where the action has more than one caller, does EACH caller claim the brake itself rather than relying on another one having done it?
 17m. Unless the card says `Sprints: off` with a real D-entry: is the newest commit touching anything other than the bookkeeping files contained in the newest commit touching `docs/sprints/` — does every `done` slice carry `actual_hours` — and for every way work entered this project since the last audit (issue, audit, hotfix, maintenance, reconciliation), is there a slice that records it?
-17n. Unless the card says `Sprints: off`: did every session since the last audit open with `scripts/keel-time start` and close with `scripts/keel-time end` — does every `done` slice marked `measured` appear in a `docs/sessions.md` row, does every row's deviation equal its actual minus its estimate, and is `docs/.keel/clock.jsonl` gitignored?
+17n. Unless the card says `Sprints: off`: did every session since the last audit open with `scripts/keel-time start` and close with `scripts/keel-time end` — does every `done` slice marked `measured` appear in a `docs/sessions.md` row, does every row's deviation equal its actual minus its estimate, does every new row name its projection basis (`throughput` whenever `Max concurrency` is above 1 unless `Notes` says why not), does `scripts/keel-time slice-start` leave other open slices open unless the project is single-writer, and is `docs/.keel/clock.jsonl` gitignored?
 17o. Do `scripts/keel-affected-tests` and `.githooks/pre-push` exist with `core.hooksPath` set — does a diff touching an uncovered source file make the script widen or fail rather than select nothing and pass — does every test-point row carry its `scope:` line — and does the last release record show `scope: full` with the suite's total count?
 17p. Where the project generates `scripts/keel-tools/`: does every accepted tool have a row file with every field declared — does a grep of the shared `scripts/keel-*` for the registry's tool names return nothing outside comments — and does each tool's `KEEL_TOOL_HOOK_FILE` mention `scripts/keel-stop-hook` exactly when its `KEEL_TOOL_STOP_HOOK` is `yes`?
 18. (WordPress) Does `wp i18n make-pot` report zero untranslated or wrongly-domained user-facing strings?

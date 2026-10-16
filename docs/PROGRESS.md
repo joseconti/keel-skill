@@ -49,7 +49,8 @@ This repository was adopted into its own discipline late (state files created 20
 ## Current position
 - Phase: maintenance — **v7.3.0 always enables Claude Code agent teams, runs parallel development at full capacity, and makes the post-update reconciliation mandatory with two standing checks** (D-039). Standing check 1 applied to this repo: `.claude/settings.local.json` created with the flag alone (it did not exist, although the card records Keel writing it for automatic mode). v7.2.0 added the inbound tunnel and the live drive (D-038). v7.0.0 backend acceptance remains incomplete (D-037, `docs/parallel-development-review.md`).
 - Previous states: v7.2.0 (published 2026-10-13) is the Git baseline this change started from; older release history is in `keel/CHANGELOG.md` and Git.
-- Next action: none for v7.3.0. Still open from v7.0.0: the isolated backend and generated-hook acceptance described in `docs/parallel-development-review.md`.
+- Unreleased on `develop`: the session clock measures parallel development (D-040, sprint 7 S-012) — overlapping slice intervals, `slice-record` for worker intervals, wall-clock vs summed slice hours, throughput-based projection with its basis, `keel/scripts/keel_clock.py` + `tests/test_session_clock.py` + linter check 16. Version/CHANGELOG/Table 3 row await the user's instruction.
+- Next action: the user decides the version for D-040 (then CHANGELOG, MANIFEST Table 2 cells for the touched files, Table 3 migration row). Still open from v7.0.0: the isolated backend and generated-hook acceptance described in `docs/parallel-development-review.md`.
 
 ## Open items
 - Unresolved user questions: none
