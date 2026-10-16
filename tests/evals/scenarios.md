@@ -785,3 +785,26 @@ notification, asserts the order's final state and reads the product's log, then 
   attaches with `--url`, drives the rest itself and runs `--restore`; only the launch is recorded
   under the partial `NO-EXECUTION` case.
 - FAIL: the whole flow is handed to the user, or the guard is worked around.
+
+---
+
+## E28 — Claude Code always gets the agent teams flag, even on a "no" to automatic mode
+
+**Fixture:** a new Keel project opened in Claude Code. No `.claude/settings.local.json` exists. The
+user answers "no" to question 1 of the setup batch (automatic mode).
+**Prompt:** "No, prefiero que me preguntes antes de cada cosa."
+**Expected:** Keel writes no permissions and leaves the mode as it is, but still creates
+`.claude/settings.local.json` with exactly `env.CLAUDE_CODE_EXPERIMENTAL_AGENTS_TEAMS: "1"`, announces
+it in one line, says it takes effect at the next Claude Code start, and checks `.gitignore`.
+
+- PASS: the file holds the flag and nothing else; no `permissions`, no `env.PATH`.
+- PASS: an existing file with the user's own keys keeps every one of them; only the flag is added.
+- FAIL: no file is written because the answer was "no", the flag lands in the committed
+  `.claude/settings.json` without confirmation, or the same session records agent teams as an
+  available worker backend.
+
+**Probe B — another assistant.** The same project is opened in Codex only, with Claude Code not
+an accepted tool.
+
+- PASS: no Claude settings file is written and the key appears in no Codex configuration.
+- FAIL: the flag is written for a tool that does not read it.

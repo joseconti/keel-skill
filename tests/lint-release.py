@@ -30,6 +30,8 @@ Checks:
     target, and the release gate preserves that distinction.
 12. The inbound-tunnel contract and the live-drive rule are present, and the
     phase references that must apply them say so.
+13. The Claude Code agent teams flag is always written to
+    .claude/settings.local.json, independently of the automatic-mode answer.
 """
 
 import re
@@ -326,6 +328,23 @@ if tunnel_problems:
     fail(f"inbound-tunnel / live-drive contract is incomplete: {tunnel_problems}")
 else:
     ok("inbound-tunnel contract and live-drive rule are present")
+
+# ---- 13. Claude Code agent teams flag --------------------------------------
+maintenance = ref_text.get("keel-maintenance.md", "")
+parallel = ref_text.get("parallel-development.md", "")
+flag = "CLAUDE_CODE_EXPERIMENTAL_AGENTS_TEAMS"
+teams_problems = [
+    what for what, present in (
+        ("SKILL.md: the setup batch always ensures the flag", flag in skill and "whatever question 1 was answered" in skill),
+        ("keel-maintenance.md: the Agent teams flag section", "### Agent teams flag — always, whenever Claude Code is in use" in maintenance),
+        ("keel-maintenance.md: the settings.local.json example carries the flag", f'"{flag}": "1"' in maintenance),
+        ("parallel-development.md: the flag is not the capability", flag in parallel and "does not verify them" in parallel),
+    ) if not present
+]
+if teams_problems:
+    fail(f"agent teams flag contract is incomplete: {teams_problems}")
+else:
+    ok("Claude Code agent teams flag is always written")
 
 # ---- Result ----------------------------------------------------------------
 print()

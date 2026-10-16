@@ -12,6 +12,8 @@ At every kickoff probe the current session without launching paid agents merely 
 2. Otherwise use an accepted assistant CLI only when its unattended worker adapter has been verified on this machine: explicit cwd, project restrictions, model selection, process observation and cancellation.
 3. Otherwise develop serially and record the exact missing capability. Read-only reviewers may still run in parallel.
 
+In Claude Code, the native worker API includes agent teams, which stay off unless `CLAUDE_CODE_EXPERIMENTAL_AGENTS_TEAMS` is `"1"` when the session starts. Keel always merges that key into `.claude/settings.local.json` when Claude Code is in use (`references/keel-maintenance.md`, "Agent teams flag"). The flag only makes agent teams available; it does not verify them. Probe them like any other backend, and remember that a session started before the key was written does not have them.
+
 Capabilities are observed runtime facts, never inferred from an assistant's name. Project agent definition files and runtime delegation are separate facts. A verified continuation launcher is not a verified worker launcher. Never use permission bypass. Do not invent vendor flags: inspect the installed CLI help and current official documentation, and leave an untested adapter unavailable.
 
 `max_workers` caps writing attempts. At kickoff reduce it to fit the session's total agent budget after reserving the coordinator and any reviewer slots. Reviewers borrow only genuinely free capacity; the helper does not count external native-agent tools. A worker never spawns children unless the coordinator assigned capacity. Shared browser/test-machine limits may lower the effective cap.
