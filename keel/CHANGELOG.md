@@ -1570,3 +1570,26 @@ refresh the portability lock.
 
 **Minor update. Reconciliation:** `MANIFEST.md` Table 3, v7.2.0. One conditional project artifact
 (`scripts/playground-tunnel`), no new card line; refresh the portability lock.
+
+## 7.3.0
+
+### Added
+
+- **Claude Code agent teams are always enabled.** Whenever Claude Code is in use, the session-start
+  setup merges `env.CLAUDE_CODE_EXPERIMENTAL_AGENTS_TEAMS: "1"` into `.claude/settings.local.json`,
+  whatever the automatic-mode answer: the key grants no permission and only makes the native
+  orchestration available to parallel development. It takes effect at the next Claude Code start,
+  and the kickoff probe still verifies the capability before any worker relies on it.
+
+### Changed
+
+- **Parallel development runs as many workers as the session can sustain.** The project card
+  default becomes `Parallel development: auto; max_workers: max`. At every kickoff the effective
+  cap resolves to the largest number of concurrent writers the observed limits allow (session agent
+  budget, backend limit, an explicit user ceiling, shared resources), and the sprint plan names the
+  limit that set it. A `max_workers: 2` left by v7.x without a decision choosing it migrates to `max`.
+- The release linter checks both contracts (checks 13 and 14); eval scenarios E28 and E29.
+
+**Minor update. Reconciliation:** `MANIFEST.md` Table 3, v7.3.0. No new file, no new card line;
+merge the flag into `.claude/settings.local.json`, migrate an undecided `max_workers: 2`, refresh
+the portability lock.

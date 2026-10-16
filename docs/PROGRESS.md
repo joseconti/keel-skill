@@ -16,14 +16,14 @@
 - Keel portability: lock only — this repo is the SOURCE of the skill; it does not embed a copy of itself.
 - Assistant config: none (tools: claude) — no `.claude/` package generated for this repo.
 - Models: runtime-selected — no backend is assumed from a product name; real writing backends remain unverified in this repository.
-- Keel baseline: v7.2.0 — this repository authors the version it is on, so the baseline always equals the version being written.
+- Keel baseline: v7.3.0 — this repository authors the version it is on, so the baseline always equals the version being written.
 - Website intent: no
 - Client budget: no — the skill is the user's own product, not client work.
 - User guide: n/a — `README.md` and `INSTALL.md` serve that role for a skill.
 - Docs theme: n/a
 - Test-first policy: n/a — this repository ships no executable product; its only code is `tests/lint-release.py`, whose checks are added the moment the promise they verify is written. The two universal rules still apply: a linter bug is fixed from a failing check first, and a check derived from a release rule is never relaxed to make a release pass.
 - Sprints: on — plan in `docs/sprints/` since 2026-09-16 (sprint 6 = v7.0.0). Sessions timed by hand with `date -u` into `docs/.keel/clock.jsonl` (no `scripts/keel-time` in this repo — see deferred items).
-- Parallel development: auto; max_workers: 2 — capability-gated; this bootstrap ran serially because no real isolated writing backend was verified (D-037).
+- Parallel development: auto; max_workers: max (migrated from the v7.x default 2 at v7.3.0, D-039) — capability-gated; this bootstrap ran serially because no real isolated writing backend was verified (D-037).
 - Push test scope: affected — scheduler changes run `python3 -B -m unittest discover -s tests -p 'test_parallel*.py' -v`; every release also runs `python3 tests/lint-release.py`.
 - Durability: **git remote `origin` — https://github.com/joseconti/keel-skill.git** (verified 2026-07-31 with `git remote -v`). The tree is not inside a synced folder; the remote covers the requirement on its own.
 - Autonomy: **automatic** — Keel does not ask, and does every merge to `develop` and every push itself (`.claude/settings.local.json` written by Keel, gitignored; see D-003, D-004) / issues: on-request — this repo's forge issues are worked when the user raises them / Issue sweep interval: n/a (the after-sprint duty was not accepted here)
@@ -47,9 +47,9 @@ This repository was adopted into its own discipline late (state files created 20
 | 8 Website | n/a — website intent: no | — |
 
 ## Current position
-- Phase: maintenance — **v7.2.0 adds the inbound tunnel and the live drive** (D-038): a playground receives external calls through `scripts/playground-tunnel`, and every new behaviour is driven live beside its end-to-end tests. v7.0.0 backend acceptance remains incomplete (D-037, `docs/parallel-development-review.md`).
-- Previous states: v7.1.0 (published 2026-10-07) is the Git baseline this change started from; older release history is in `keel/CHANGELOG.md` and Git.
-- Next action: none for v7.2.0. Still open from v7.0.0: the isolated backend and generated-hook acceptance described in `docs/parallel-development-review.md`.
+- Phase: maintenance — **v7.3.0 always enables Claude Code agent teams and runs parallel development at full capacity** (D-039). v7.2.0 added the inbound tunnel and the live drive (D-038). v7.0.0 backend acceptance remains incomplete (D-037, `docs/parallel-development-review.md`).
+- Previous states: v7.2.0 (published 2026-10-13) is the Git baseline this change started from; older release history is in `keel/CHANGELOG.md` and Git.
+- Next action: v7.3.0 release candidate on `develop` (`docs/release-v7.3.0.md`): PR `develop` → `main`, then tag and `gh release create` by hand. Still open from v7.0.0: the isolated backend and generated-hook acceptance described in `docs/parallel-development-review.md`.
 
 ## Open items
 - Unresolved user questions: none
@@ -57,7 +57,7 @@ This repository was adopted into its own discipline late (state files created 20
 - Unverified external steps/assets: real writing-backend smoke run in a disposable repository (native or CLI); deterministic scheduling is verified separately and does not prove this.
 - Forge issues in progress: none
 - **Published:** v7.2.0 — evidence in `docs/release-v7.2.0.md`. The tunnel contract was derived from one project's measured use (Redsys sandbox, wp-env); other project types and providers are unexercised.
-- **Reconciliation pending on other projects:** apply the v7.0.0 Table 3 delta only when each project chooses parallel development; v7.1.0's evidence rule at the next static-analysis test point; v7.2.0's inbound-call inventory and live drive at the next test point.
+- **Reconciliation pending on other projects:** v7.3.0's agent teams flag and `max_workers: max` migration at the next session start; apply the v7.0.0 Table 3 delta only when each project chooses parallel development; v7.1.0's evidence rule at the next static-analysis test point; v7.2.0's inbound-call inventory and live drive at the next test point.
 
 ### Deferred items (consciously postponed work)
 - **No `scripts/keel-time` and no `plan.json` generator in this repo** — severity: low — review trigger: the next session that finds timing by hand error-prone. The clock is read with `date -u` at every boundary and the events appended to `docs/.keel/clock.jsonl`; `docs/sessions.md` is written from them.
@@ -65,4 +65,4 @@ This repository was adopted into its own discipline late (state files created 20
 - **Notification reach is desktop-only unless Remote Control is connected** — severity: low — review trigger: the first time a real absence goes unnoticed, or if the user wants alerts while away from the building. The native channel covers "walked away from the desk"; an SMTP sender or messaging MCP would be the escalation, and is not built.
 - **This repo has no project-generated `scripts/keel-verify`, `keel-doctor` or `keel-handoff-verify`** — severity: low — review trigger: if this source repository gains a deployed runtime. `tests/lint-release.py` plus the scheduler suite are its mechanical gates; the packaged `keel/scripts/keel_parallel.py` is a skill resource, not this repo's generated project helper.
 
-Last updated: 2026-10-13 — v7.2.0 (inbound tunnel + live drive) merged to main, tagged and published as the latest GitHub release
+Last updated: 2026-10-16 — v7.3.0 (agent teams flag + full-capacity parallel development) prepared on develop
