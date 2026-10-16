@@ -1588,8 +1588,18 @@ refresh the portability lock.
   cap resolves to the largest number of concurrent writers the observed limits allow (session agent
   budget, backend limit, an explicit user ceiling, shared resources), and the sprint plan names the
   limit that set it. A `max_workers: 2` left by v7.x without a decision choosing it migrates to `max`.
-- The release linter checks both contracts (checks 13 and 14); eval scenarios E28 and E29.
+- **The post-update reconciliation is mandatory.** After every Keel update it runs immediately,
+  before any other work; it is never offered, skipped or left for a later session. Only a production
+  hotfix already under way goes first, and the reconciliation runs right after it. The portability
+  lock now says the reconciliation runs rather than that it is offered.
+- **Two standing checks run in every reconciliation, from this version on**, whether or not the
+  versions crossed mention them, and neither can be declined: the Claude Code agent teams flag is
+  present in `.claude/settings.local.json` wherever Claude Code is in use, and the card's
+  `Parallel development:` is at `max_workers: max` unless the user chose a ceiling in a D-entry.
+  A failing check is fixed on the spot, and `Keel baseline:` does not advance until both pass.
+- The release linter checks all three contracts (checks 13, 14 and 15); eval scenarios E28, E29
+  and E30.
 
-**Minor update. Reconciliation:** `MANIFEST.md` Table 3, v7.3.0. No new file, no new card line;
-merge the flag into `.claude/settings.local.json`, migrate an undecided `max_workers: 2`, refresh
-the portability lock.
+**Minor update. Reconciliation (mandatory):** `MANIFEST.md` Table 3, v7.3.0. No new file, no new
+card line; the two standing checks merge the flag into `.claude/settings.local.json` and migrate an
+undecided `max_workers`; refresh the portability lock.

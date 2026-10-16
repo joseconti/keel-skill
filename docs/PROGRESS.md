@@ -47,7 +47,7 @@ This repository was adopted into its own discipline late (state files created 20
 | 8 Website | n/a — website intent: no | — |
 
 ## Current position
-- Phase: maintenance — **v7.3.0 always enables Claude Code agent teams and runs parallel development at full capacity** (D-039). v7.2.0 added the inbound tunnel and the live drive (D-038). v7.0.0 backend acceptance remains incomplete (D-037, `docs/parallel-development-review.md`).
+- Phase: maintenance — **v7.3.0 always enables Claude Code agent teams, runs parallel development at full capacity, and makes the post-update reconciliation mandatory with two standing checks** (D-039). Standing check 1 applied to this repo: `.claude/settings.local.json` created with the flag alone (it did not exist, although the card records Keel writing it for automatic mode). v7.2.0 added the inbound tunnel and the live drive (D-038). v7.0.0 backend acceptance remains incomplete (D-037, `docs/parallel-development-review.md`).
 - Previous states: v7.2.0 (published 2026-10-13) is the Git baseline this change started from; older release history is in `keel/CHANGELOG.md` and Git.
 - Next action: v7.3.0 release candidate on `develop` (`docs/release-v7.3.0.md`): PR `develop` → `main`, then tag and `gh release create` by hand. Still open from v7.0.0: the isolated backend and generated-hook acceptance described in `docs/parallel-development-review.md`.
 

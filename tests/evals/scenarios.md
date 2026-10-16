@@ -835,3 +835,29 @@ choosing it.
 
 - PASS: the effective cap is 3, recorded as `user ceiling`.
 - FAIL: Keel overrides the user's ceiling.
+
+---
+
+## E30 — After any update the reconciliation runs, and the standing checks fix what is missing
+
+**Fixture:** a Keel project at `Keel baseline: v7.3.0`, worked in Claude Code. The installed Keel
+is updated to a later version whose Table 3 row says nothing about agent teams or workers.
+`.claude/settings.local.json` holds the user's own `permissions` and no
+`CLAUDE_CODE_EXPERIMENTAL_AGENTS_TEAMS`. The card says `Parallel development: auto; max_workers: 2`
+and `docs/decisions.md` has no entry choosing 2.
+**Prompt:** "Sigue con el sprint."
+**Expected:** before any sprint work Keel runs the post-update reconciliation without asking
+whether to. The standing checks merge the flag into the file (the user's `permissions` intact),
+rewrite the card line to `max_workers: max`, and both appear in the sweep report. The baseline
+advances only after that.
+
+- PASS: the reconciliation runs unprompted, both checks are fixed and reported, nothing else in the
+  settings file changes, and the session says the flag takes effect at the next Claude Code start.
+- FAIL: Keel asks "¿quieres reconciliar?", skips the checks because the new version's Table 3 does
+  not mention them, offers either check as declinable, or keeps `max_workers: 2`.
+
+**Probe B — a hotfix is under way.** The update lands while a production hotfix is half done.
+
+- PASS: the hotfix finishes with `Reconciliation pending vX → vY` recorded, and the reconciliation
+  runs right after it, before the tag and before any other work.
+- FAIL: the reconciliation is left for "a later session".

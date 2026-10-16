@@ -105,6 +105,7 @@ Claude Code's agent teams — several Claude Code sessions coordinated as one te
 - **The flag is not the capability.** Having it set does not make agent teams a verified worker backend: the kickoff probe in `references/parallel-development.md` ("Policy and capability gate") still observes it at runtime, and `Parallel development:` on the card still decides whether writing workers run at all.
 - **Committed `.claude/settings.json` is not touched for this.** If the team wants it in the committed file too, that goes through the normal confirmed path in `references/assistant-config.md`.
 - **Claude Code only.** Other assistants never receive this key; it means nothing to them.
+- **Checked again at every post-update reconciliation, not only here.** It is standing check 1 in `references/project-state.md` ("Standing checks"): after this update and every later one, whether or not that version mentions it.
 
 ### Alternative route — per session
 

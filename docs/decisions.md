@@ -386,3 +386,11 @@
 - Consequence: no new file and no card line; Table 3 v7.3.0 migrates an undecided `max_workers: 2`.
   The flag makes agent teams available, not verified: real writing-backend acceptance from v7.0.0
   remains pending (D-037). Machine resource limits (browsers, test databases) still lower the cap.
+- Addendum (same day): the user ruled that a reconciliation must always run after an update, and
+  that after this update and every later one Keel must make sure, where Claude Code is used, that the
+  agent teams flag is set — not as an option — and check whether development is capped at two
+  workers instead of the maximum. Decision: the post-update reconciliation becomes mandatory (it runs,
+  it is never offered; only a production hotfix already under way goes first), and it gains two
+  standing checks that run in every reconciliation regardless of the versions crossed, cannot be
+  declined, and block `Keel baseline:` until they pass. Alternative rejected: carrying the checks only
+  in Table 3's v7.3.0 row, which a project already past v7.3.0 would never re-run.

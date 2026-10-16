@@ -34,6 +34,9 @@ Checks:
     .claude/settings.local.json, independently of the automatic-mode answer.
 14. Parallel development defaults to the maximum sustainable worker count,
     never a small fixed number.
+15. The post-update reconciliation is mandatory and carries the two standing
+    checks (agent teams flag, full-capacity parallel development), and the
+    lock never merely offers it.
 """
 
 import re
@@ -363,6 +366,23 @@ if max_problems:
     fail(f"maximum-capacity parallel contract is incomplete: {max_problems}")
 else:
     ok("parallel development defaults to maximum capacity")
+
+# ---- 15. Mandatory reconciliation with standing checks ---------------------
+standing_problems = [
+    what for what, present in (
+        ("project-state.md: reconciliation is mandatory", "It is mandatory, after EVERY update — it runs, it is not offered (UNBREAKABLE)." in project_state),
+        ("project-state.md: the standing checks section", "### Standing checks — every reconciliation, from v7.3.0 on (NOT optional, NOT declinable)" in project_state),
+        ("project-state.md: standing check 1 is the agent teams flag", "1. **Claude Code agent teams flag.**" in project_state),
+        ("project-state.md: standing check 2 is full capacity", "2. **Parallel development at full capacity, never a leftover 2.**" in project_state),
+        ("project-state.md: the procedure runs the standing checks", "**Then run the standing checks (below) — every reconciliation, whatever the versions involved.**" in project_state),
+        ("project-state.md: nothing still offers the reconciliation", "offer the post-update reconciliation" not in project_state and "offer the\n   post-update reconciliation" not in project_state),
+        ("MANIFEST.md: Table 1 carries both standing rows", manifest.count("never declinable") >= 2),
+    ) if not present
+]
+if standing_problems:
+    fail(f"mandatory reconciliation contract is incomplete: {standing_problems}")
+else:
+    ok("post-update reconciliation is mandatory with its standing checks")
 
 # ---- Result ----------------------------------------------------------------
 print()
