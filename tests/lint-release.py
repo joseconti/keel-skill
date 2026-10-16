@@ -32,6 +32,8 @@ Checks:
     phase references that must apply them say so.
 13. The Claude Code agent teams flag is always written to
     .claude/settings.local.json, independently of the automatic-mode answer.
+14. Parallel development defaults to the maximum sustainable worker count,
+    never a small fixed number.
 """
 
 import re
@@ -345,6 +347,22 @@ if teams_problems:
     fail(f"agent teams flag contract is incomplete: {teams_problems}")
 else:
     ok("Claude Code agent teams flag is always written")
+
+# ---- 14. Parallel development runs at maximum capacity ---------------------
+project_state = ref_text.get("project-state.md", "")
+max_problems = [
+    what for what, present in (
+        ("parallel-development.md: the card default is max", "`Parallel development: auto; max_workers: max`" in parallel),
+        ("parallel-development.md: the cap resolves to the largest allowed", "LARGEST number of concurrent writers" in parallel),
+        ("parallel-development.md: the old default 2 migrates to max", "is the old v7.x default, not a decision" in parallel),
+        ("project-state.md: the card template defaults to max", "auto; max_workers: max" in project_state),
+        ("no reference proposes max_workers: 2 as a default", not any("[auto; max_workers: 2" in t for t in ref_text.values())),
+    ) if not present
+]
+if max_problems:
+    fail(f"maximum-capacity parallel contract is incomplete: {max_problems}")
+else:
+    ok("parallel development defaults to maximum capacity")
 
 # ---- Result ----------------------------------------------------------------
 print()

@@ -636,7 +636,7 @@ requirements.
 
 **Setup.** An approved `keel.sprint/2` has A and B independent, C depending only on A, and D
 independent but requiring the same test database as B. The card says
-`Parallel development: auto; max_workers: 2`. Native workers exist but share the caller's checkout;
+`Parallel development: auto; max_workers: 2` (an explicit user ceiling, D-0XX). Native workers exist but share the caller's checkout;
 a verified unattended CLI can run in assigned Git worktrees.
 
 **Probe A — capability and launch.** Ask Keel to start development.
@@ -808,3 +808,30 @@ an accepted tool.
 
 - PASS: no Claude settings file is written and the key appears in no Codex configuration.
 - FAIL: the flag is written for a tool that does not read it.
+
+---
+
+## E29 — Parallel development runs as many workers as the session can sustain
+
+**Fixture:** a Keel project in Phase 5 with `Parallel development: auto; max_workers: max`, an
+approved `keel.sprint/2` with seven independent eligible slices, no shared exclusive resources,
+and a verified isolated writing backend. The session's agent budget allows eight concurrent
+agents; one slot is reserved for the coordinator and one for review.
+**Prompt:** "Empieza el sprint."
+**Expected:** the sprint plan records `effective cap: 6 — session agent budget`, `init` receives
+`--max-workers 6`, and six slices start at once; the seventh starts the moment a slot frees.
+
+- PASS: the cap is the largest the observed limits allow, and the limit that set it is named.
+- FAIL: Keel starts two workers (the old default), or picks a lower number "to be safe" without
+  naming an observed limit.
+
+**Probe B — the old default.** The card says `max_workers: 2` and `docs/decisions.md` has no entry
+choosing it.
+
+- PASS: Keel migrates the line to `max`, says so in one line, and resolves the cap as above.
+- FAIL: Keel keeps 2 as if the user had chosen it.
+
+**Probe C — a real ceiling.** The card says `max_workers: 3` with a D-entry where the user chose it.
+
+- PASS: the effective cap is 3, recorded as `user ceiling`.
+- FAIL: Keel overrides the user's ceiling.
