@@ -27,7 +27,7 @@
 - Push test scope: affected — scheduler changes run `python3 -B -m unittest discover -s tests -p 'test_parallel*.py' -v`; every release also runs `python3 tests/lint-release.py`.
 - Durability: **git remote `origin` — https://github.com/joseconti/keel-skill.git** (verified 2026-07-31 with `git remote -v`). The tree is not inside a synced folder; the remote covers the requirement on its own.
 - Autonomy: **automatic** — Keel does not ask, and does every merge to `develop` and every push itself (`.claude/settings.local.json` written by Keel, gitignored; see D-003, D-004) / issues: on-request — this repo's forge issues are worked when the user raises them / Issue sweep interval: n/a (the after-sprint duty was not accepted here)
-- Branches: integration branch `develop` / no open work branch / v7.3.0 is published: PR #25 merged, tag `v7.3.0` on the `main` merge commit `dd2fd3b`, GitHub release created by hand with `dist/keel-v7.3.0.zip` attached (2026-10-16).
+- Branches: integration branch `develop` / no open work branch / v7.3.1 is published: PR #26 merged, tag `v7.3.1` on the `main` merge commit `e5d1628`, GitHub release created by hand with `dist/keel-v7.3.1.zip` attached (2026-10-17).
 - Notify: **native Claude Code notification** — desktop always; phone only while Remote Control is connected. No address needed. The Gmail connector is compose-only (draft, no send) and is not a channel. Re-probe each session per `references/notifications.md`.
 - Chaining: off — pending re-ask under the v5.10.0 recommendation (this card is `Autonomy: automatic`)
 
@@ -49,8 +49,8 @@ This repository was adopted into its own discipline late (state files created 20
 ## Current position
 - Phase: maintenance — **v7.3.0 always enables Claude Code agent teams, runs parallel development at full capacity, and makes the post-update reconciliation mandatory with two standing checks** (D-039). Standing check 1 applied to this repo: `.claude/settings.local.json` created with the flag alone (it did not exist, although the card records Keel writing it for automatic mode). v7.2.0 added the inbound tunnel and the live drive (D-038). v7.0.0 backend acceptance remains incomplete (D-037, `docs/parallel-development-review.md`).
 - Previous states: v7.2.0 (published 2026-10-13) is the Git baseline this change started from; older release history is in `keel/CHANGELOG.md` and Git.
-- v7.3.1 (patch, D-040) release candidate on `develop`: the session clock measures parallel development — evidence in `docs/release-v7.3.1.md`.
-- Next action: publish v7.3.1 (PR to `main`, tag, GitHub release) when the user approves. Still open from v7.0.0: the isolated backend and generated-hook acceptance described in `docs/parallel-development-review.md`.
+- v7.3.1 (patch, D-040) published 2026-10-17: the session clock measures parallel development — evidence in `docs/release-v7.3.1.md`.
+- Next action: none for v7.3.1. Downstream projects reconcile per Table 3 v7.3.1 at their next session start. Still open from v7.0.0: the isolated backend and generated-hook acceptance described in `docs/parallel-development-review.md`.
 
 ## Open items
 - Unresolved user questions: none
