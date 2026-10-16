@@ -1,4 +1,4 @@
-# Keel Manifest — v7.3.0
+# Keel Manifest — v7.3.1
 
 One file, three tables, one purpose: looking ONLY at this file, a session can tell (1) whether a project contains everything Keel requires at its current phase, (2) which skill files changed in which Keel version — so after an update it knows exactly what to re-read, without interpreting the changelog — and (3) what concrete actions each version asks of an existing project (the reconciliation delta).
 
@@ -103,10 +103,10 @@ After an update, re-read `SKILL.md`, the current phase's reference, and THIS fil
 
 | Skill file | Last changed in |
 |---|---|
-| `SKILL.md` | v7.3.0 |
-| `MANIFEST.md` | v7.3.0 |
-| `CHANGELOG.md` | v7.3.0 |
-| `scripts/keel_clock.py` | v7.3.0 |
+| `SKILL.md` | v7.3.1 |
+| `MANIFEST.md` | v7.3.1 |
+| `CHANGELOG.md` | v7.3.1 |
+| `scripts/keel_clock.py` | v7.3.1 |
 | `scripts/keel_parallel.py` | v7.0.0 |
 | `references/keel-maintenance.md` | v7.3.0 |
 | `references/notifications.md` | v5.14.0 |
@@ -116,14 +116,14 @@ After an update, re-read `SKILL.md`, the current phase's reference, and THIS fil
 | `references/maintenance.md` | v7.3.0 |
 | `references/guide-theme.md` | v3.2.1 |
 | `references/assistant-config.md` | v7.3.0 |
-| `references/phase-5-development.md` | v7.3.0 |
+| `references/phase-5-development.md` | v7.3.1 |
 | `references/phase-7-release.md` | v7.1.0 |
-| `references/project-state.md` | v7.3.0 |
+| `references/project-state.md` | v7.3.1 |
 | `references/phase-1-discovery.md` | v7.0.0 |
 | `references/phase-2-functional-spec.md` | v7.2.0 |
 | `references/adoption.md` | v7.0.0 |
 | `references/estimation-budget.md` | v7.0.0 |
-| `references/parallel-development.md` | v7.3.0 |
+| `references/parallel-development.md` | v7.3.1 |
 | `references/phase-6-documentation.md` | v5.2.0 |
 | `references/phase-3-design-handoff.md` | v3.5.0 |
 | `references/phase-4-faithful-build.md` | v5.2.0 |
@@ -140,7 +140,7 @@ After an update, re-read `SKILL.md`, the current phase's reference, and THIS fil
 | `references/phase-8-launch-checklist.md` | v5.12.0 |
 | `references/phase-8-technical-seo.md` | v2.0.0 |
 | `references/accessibility.md` | v5.2.0 |
-| `references/anti-patterns.md` | v6.1.0 |
+| `references/anti-patterns.md` | v7.3.1 |
 | `references/security/wordpress.md` | v4.0.0 |
 | `references/security/web-app.md` | v4.0.0 |
 | `references/security/mcp-server.md` | v4.0.0 |
@@ -218,6 +218,7 @@ What the reconciliation APPLIES, version by version, for every version newer tha
 | v7.1.0 | MINOR: **static-analysis evidence now distinguishes code findings from a tool that never reached analysis.** At every test point and release gate, classify each canonical invocation as `PASS`, `FINDINGS`, or `BLOCKED — ENVIRONMENT`; record the command, exit status, earliest failure line, scope and missing capability. A local socket, runner or launch failure is neither a code finding nor a passing analysis. A sequential/no-parallel run is diagnostic only unless the technical plan explicitly proves equivalent command, configuration and scope; it never upgrades the failed canonical command. Re-run every mandatory canonical command before accepting a slice or release result. Existing projects: no new file or card line; apply this evidence rule at the next test point, and restamp the portability lock. |
 | v7.2.0 | MINOR: **the playground receives calls from outside, and every new feature is used for real.** **(1)** Inventory the project's inbound calls in the technical plan's `## Testing` block (payment notifications, webhooks, a URL a third party fetches, a remote client connecting to a local server): caller, endpoint, how the URL is learned, whether the hostname must be stable. "None" is a valid answer and ends actions 2–4. **(2)** Where there is at least one, generate `scripts/playground-tunnel` per `references/inbound-tunnel.md` (three modes, restore on every exit path), add the tunnel binary as an `optional` row of `## Environment requirements` and regenerate `scripts/keel-doctor`, add the tunnel section to `docs/playground.md`, and confirm the script and any helper it copies are outside the distributable. **(3)** Test the provider's acceptance of the tunnel URL by hand once and record it as a D-entry before relying on the script. **(4)** Re-examine every open delegation whose only reason was reachability (a `CREDENTIAL` or `⚠ unverified` row citing a public webhook, or a flow parked until a staging deployment): it is now driven through the tunnel, with its negative control. **(5)** From the next test point on, every slice's new or changed behaviour is also driven live by the assistant against the running playground with nothing mocked, recorded in the `Real run in playground` cell; a project with a browser surface that has no Playwright installation gets one at that touch. No new card line; the lock block is unchanged in substance (stamp-only refresh). |
 | v7.3.0 | MINOR: **Claude Code agent teams are always enabled, parallel development runs at full capacity, and reconciliation is mandatory.** **(1)** Run this reconciliation now — after every update it runs, it is never offered or skipped; only a production hotfix already under way goes first. **(2)** Standing check 1, from now on in EVERY reconciliation: wherever Claude Code is in use (the running session, or an accepted tool on the card), `.claude/settings.local.json` carries `env.CLAUDE_CODE_EXPERIMENTAL_AGENTS_TEAMS: "1"`, whatever the `Autonomy:` answer; merge it if missing (on `Autonomy: manual` the file carries that key alone), never overwrite, announce that it takes effect at the next Claude Code start. Not declinable. The committed `.claude/settings.json` is not touched. **(3)** Standing check 2, from now on in EVERY reconciliation: a card with `Parallel development: auto; max_workers: <N>` and no D-entry where the user chose N is rewritten to `auto; max_workers: max` and the user told; a number chosen in a D-entry stays as the user's ceiling. Not declinable. **(4)** From the next kickoff, resolve the effective cap to the largest number of writers the observed limits allow and record it with the limit that set it in the sprint plan. **(5)** Restamp `CLAUDE.md` + `AGENTS.md` (the lock now says the reconciliation runs, not that it is offered). No new file, no new card line. |
+| v7.3.1 | PATCH: **the session clock measures parallel development.** `slice-start` closed every other open slice, so parallel slices were charged only the minutes until the coordinator's next boundary (measured: 48.25 estimated hours recorded as 2.92). **(1)** Copy the installed skill's `scripts/keel_clock.py` to executable `scripts/keel-clock` beside `scripts/keel-time` (Python 3.9+, never installed silently; without it `keel-time` implements the same rules). **(2)** Regenerate `scripts/keel-time` against `references/project-state.md` "Session time": `slice-start` never closes another slice (exclusive mode only under `Parallel development: off` or an effective cap of 1, writing the closes explicitly), `slice-end` closes only its own slice, new `slice-record` for a worker's own interval at integration, the report shows wall-clock vs summed slice hours, max concurrency, throughput and the projection basis. **(3)** Add the `Slice h`, `Max concurrency`, `Throughput` and `Projection basis` columns to `docs/sessions.md` before `Notes`; historical cells `—` (legacy). Do not rewrite past rows or past `actual_hours`; a slice measured under the old clock during parallel work may get a note in its sprint file, never a reconstructed figure. **(4)** Update `scripts/keel-verify`: accept overlapping intervals, check the projection against its stated basis. Refresh the portability lock stamp. |
 
 ## Maintenance (part of EVERY release — no exceptions)
 
