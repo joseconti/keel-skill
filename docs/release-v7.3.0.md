@@ -1,4 +1,4 @@
-# Keel v7.3.0 — release candidate
+# Keel v7.3.0 — published
 
 Prepared on 2026-10-16 on `develop`, based on v7.2.0 (published 2026-10-13). The skill
 content is commit `113e166`.
@@ -47,7 +47,10 @@ and not run. Real writing-backend acceptance from v7.0.0 remains pending.
 
 ## Publication
 
-GitHub Actions is disabled in this repository, so a tag publishes nothing. After the
-PR from `develop` is merged into `main`: tag `v7.3.0` on that merge commit, then
-`gh release create v7.3.0` with the 7.3.0 changelog section as notes and
-`dist/keel-v7.3.0.zip` attached.
+Published on 2026-10-16. PR #25 merged `develop` into `main`; tag `v7.3.0` is on the merge
+commit `dd2fd3b`. GitHub Actions is disabled, so the release was created by hand with
+`gh release create v7.3.0`, marked Latest, with `keel-v7.3.0.zip` attached. That archive was
+rebuilt from the tag (`git archive v7.3.0 keel`, 49 entries, no errors) and the linter passed
+on the tagged tree. Its SHA-256 is
+`f3c6575d5640849f9ed38fd16ea5b8cc9816ddcd2593526dc690629942eea3a9`; the candidate SHA above
+was built from the pre-merge commit and differs only in archive timestamps.

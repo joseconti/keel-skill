@@ -4,7 +4,7 @@
 
 Use it for any new project — WordPress/WooCommerce plugins, MCP servers, web apps, components, libraries, or websites. Keel runs a complete multi-phase workflow so you never have to re-explain your standing requirements every time you start something new.
 
-- **Version:** 7.3.0
+- **Version:** 7.3.1
 - **License:** GPL-3.0-or-later
 - **Author:** [José Conti](https://plugins.joseconti.com/en)
 
@@ -103,6 +103,7 @@ keel-skill/
     ├── LICENSE            # GPL-3.0-or-later
     ├── NOTICE             # Copyright notice
     ├── scripts/
+    │   ├── keel_clock.py    # Session-clock interval arithmetic (concurrent slices, throughput)
     │   └── keel_parallel.py # Deterministic rolling scheduler and worker-state validator
     └── references/        # Phase reference files, loaded on demand
         ├── keel-maintenance.md

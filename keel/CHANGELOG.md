@@ -1603,3 +1603,28 @@ refresh the portability lock.
 **Minor update. Reconciliation (mandatory):** `MANIFEST.md` Table 3, v7.3.0. No new file, no new
 card line; the two standing checks merge the flag into `.claude/settings.local.json` and migrate an
 undecided `max_workers`; refresh the portability lock.
+
+## 7.3.1
+
+### Fixed
+
+- **The session clock measures parallel development.** `scripts/keel-time slice-start` closed every
+  other open slice before opening the new one, so with parallel writers each slice kept only the
+  minutes until the coordinator's next boundary: a real project measured 22 finished slices estimated
+  at 48.25 h as 2.92 h (−94 %) inside a 4.86 h session, and the deviation and projection followed.
+  Slice intervals now overlap; `slice-end` closes only its own slice; single-writer projects keep an
+  explicit exclusive mode that writes its closes into the log. A slice a worker built is recorded at
+  integration from the worker's own `started_at`/`finished_at`/`paused_seconds` (`slice-record`).
+- **The session report shows wall-clock and summed slice hours apart**, with maximum concurrency and
+  throughput (estimated hours finished per active wall-clock hour). The remaining-time projection uses
+  cumulative throughput when work runs in parallel and the effort pace otherwise, and states its basis.
+  `keel-verify`, `keel-close` and the stop hook accept overlapping intervals.
+
+### Added
+
+- `scripts/keel_clock.py` — the canonical, standard-library interval arithmetic, copied to projects as
+  `scripts/keel-clock`; `tests/test_session_clock.py`; release-linter check 16.
+
+**Patch update. Reconciliation:** `MANIFEST.md` Table 3, v7.3.1. One new script (`scripts/keel-clock`),
+regenerate `scripts/keel-time`, four new `docs/sessions.md` columns, no new card line; refresh the
+portability lock.
