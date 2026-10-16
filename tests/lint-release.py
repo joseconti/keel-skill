@@ -384,6 +384,31 @@ if standing_problems:
 else:
     ok("post-update reconciliation is mandatory with its standing checks")
 
+# ---- 16. The session clock measures parallel development -------------------
+# keel-time once closed every other open slice at each slice-start; under six
+# parallel writers 48.25 estimated hours were measured as 2.92. The helper owns
+# the arithmetic and its tests; these rows keep the contract from regressing.
+clock_helper = KEEL / "scripts" / "keel_clock.py"
+clock_problems = [
+    what for what, present in (
+        ("keel/scripts/keel_clock.py exists and is executable", clock_helper.is_file() and bool(clock_helper.stat().st_mode & 0o111)),
+        ("tests/test_session_clock.py exists", (ROOT / "tests" / "test_session_clock.py").is_file()),
+        ("project-state.md: slice intervals may overlap", "**Slice intervals may overlap (UNBREAKABLE).**" in project_state),
+        ("project-state.md: slice-start leaves other slices open", "Opens an interval for the slice and leaves every other open slice open." in project_state),
+        ("project-state.md: no slice-start closes the open slice first", "A slice already open in this session is closed first" not in project_state),
+        ("project-state.md: worker intervals via slice-record", "`slice-record <id> --result <worker-result.json> --status <s>`" in project_state),
+        ("project-state.md: the projection names its basis", "**The projection's basis is stated every time:**" in project_state),
+        ("project-state.md: sessions.md carries the parallel columns", "| Slice h | Max concurrency | Throughput | Projection basis | Notes |" in project_state),
+        ("project-state.md: keel-verify accepts overlap", "Overlapping slice intervals are VALID" in project_state),
+        ("parallel-development.md: worker timing fields named", "`started_at` and `finished_at`" in parallel),
+        ("MANIFEST.md: Table 1 row for scripts/keel-clock", "| `scripts/keel-clock` |" in manifest),
+    ) if not present
+]
+if clock_problems:
+    fail(f"parallel session-clock contract is incomplete: {clock_problems}")
+else:
+    ok("session clock measures overlapping slices and projects parallel work from throughput")
+
 # ---- Result ----------------------------------------------------------------
 print()
 if failures:

@@ -103,6 +103,7 @@ keel-skill/
     ├── LICENSE            # GPL-3.0-or-later
     ├── NOTICE             # Copyright notice
     ├── scripts/
+    │   ├── keel_clock.py    # Session-clock interval arithmetic (concurrent slices, throughput)
     │   └── keel_parallel.py # Deterministic rolling scheduler and worker-state validator
     └── references/        # Phase reference files, loaded on demand
         ├── keel-maintenance.md

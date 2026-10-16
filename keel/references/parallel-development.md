@@ -86,7 +86,7 @@ Each attempt commits one report at `docs/.keel/slices/<run-id>/<slice-id>/<attem
 - `code_commit`, then `outcome: ready|blocked|failed|cancelled`; a block includes `needs_user`;
 - exact `changed_paths`, tests with command/exit/result/evidence, and review findings;
 - `state_contributions` for test points, API index, decisions/questions, lessons, issues and maps;
-- timing with observed start/end, pauses, active seconds and source; available usage/cost or explicit unavailable values.
+- `timing` with `started_at` and `finished_at` (UTC `YYYY-MM-DDTHH:MM:SSZ`, observed by the worker), `paused_seconds` (the worker's own waits), `active_seconds` and `source`; available usage/cost or explicit unavailable values. The coordinator feeds `started_at`/`finished_at`/`paused_seconds` straight into the session clock (`keel-time slice-record`); a result without them cannot be measured and its slice's `actual_hours` is recorded `estimated`, said so.
 
 `code_commit` is the direct single parent of the separate report commit, because a report cannot contain its own commit hash. This applies to blocked/failed reports too; for no code change use the base commit. After the report commit, publish an atomic completion envelope containing run, attempt, report path and report commit. A native result returns the same identifiers. Old numeric-only reports are history and never complete a current attempt.
 
@@ -117,7 +117,7 @@ For each ready result:
 2. Prepare a merge in a coordinator-owned integration worktree and temporary branch, based on the current integration head. Preserve the worker branch/worktree.
 3. Apply state contributions and update the plan within the same transaction. Keep the slice `in-progress`. Resolve behavioral/contract conflicts through the coordinator and repeat affected review/tests.
 4. Commit the candidate. Run affected tests from the recorded previous integration head plus cross-module checks reached by the combination. Acquire shared resource locks. Worker results alone never pass this gate. Use `verify-integration` on the separate clean candidate worktree to execute the project's verification command and generate evidence bound to its exact commit. Include the plan ancestry and confidential-data checks in that command.
-5. When green, write `done`, residual zero, measured worker effort, evidence and the regenerated plan in a bookkeeping commit. Run `keel-verify` on the committed candidate. If product/test content changes, repeat affected verification.
+5. When green, record the worker's own interval with `keel-time slice-record <id> --result <report> --status done` (never `slice-start` at dispatch: dispatch → integration includes queueing and review), then write `done`, residual zero, that measured worker effort, evidence and the regenerated plan in a bookkeeping commit. Run `keel-verify` on the committed candidate. If product/test content changes, repeat affected verification.
 6. After the final bookkeeping commit, run `verify-integration` again so the evidence covers the exact candidate to promote. Promote only if the authoritative integration head still equals the recorded head; otherwise rebuild and reverify. Use a compare-and-swap ref update or equivalent checked coordinator operation. `record-integration --evidence <json>` checks the actual integration head, report/code/previous-head ancestry and the helper-generated passing evidence before making dependants ready. The helper never merges or promotes a branch itself. Push only under the existing authorization.
 
 Failure leaves the authoritative integration branch unchanged and preserves candidate and worker worktrees. Never weaken the plan ancestry guard for intermediate worker commits. On coordinator restart, reconcile journal state with live processes, worktree heads and integrated commits before launching. Never relaunch or merge the same attempt twice. Clean only completed, known artifacts and clean worktrees whose commits are retained.
@@ -125,6 +125,8 @@ Failure leaves the authoritative integration branch unchanged and preserves cand
 ## Timing
 
 Report wall-clock session time, summed worker effort, coordinator review/integration time and available token usage separately. Overlapping worker effort is not elapsed time; coordinator waiting is not duplicate implementation effort. Scheduling never changes residual estimates. Do not claim a real-project speedup from a synthetic fixture.
+
+The session clock is built for this (`references/project-state.md`, "Session time"): slice intervals overlap, each slice's `actual_hours` is its own worker's elapsed working time, the session report shows wall-clock and summed slice hours side by side with the maximum concurrency, and the remaining-time projection uses throughput — estimated hours finished per active wall-clock hour — whenever work runs in parallel, naming that basis. A clock that closes one slice when another opens cannot measure a parallel sprint: it charges each slice only the minutes until the coordinator's next boundary. The coordinator never `slice-start`s a dispatched slice; it records the worker's own interval at integration with `keel-time slice-record`. Coordinator-owned (serial) slices use `slice-start`/`slice-end` and may stay open while workers run.
 
 ## Helper interface
 

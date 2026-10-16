@@ -256,7 +256,8 @@ slices:
     parent_slice: null          # required for extracted; otherwise null
     owns: [AC-07, AC-08]        # requirements owned exclusively by this counted slice
     estimate_changes: []        # append-only: before/after residual, reason, date, decision/reference
-    actual_hours: 1.25          # same unit, MEASURED: the slice's intervals in the clock log minus pauses, written by
+    actual_hours: 1.25          # same unit, MEASURED: the slice's OWN intervals in the clock log minus pauses (a worker's
+                                # own elapsed working time when a worker built it; intervals of different slices may overlap), written by
                                 # scripts/keel-time — cumulative and partial while in-progress, final in the done commit;
                                 # null until the slice is first worked
     actual_source: measured     # measured | estimated — estimated only where no clock could be read (NO-EXECUTION)
@@ -375,6 +376,11 @@ So far: 4 slices done, 6 h estimated, 7.25 h actual (+1.25 h, +20.8 %)
 Projection if the observed pace continues: 11.48 h left (factor 1.2083; 4 measured slices)
 ```
 
+Under parallel development (the card says `auto` and the sprint's effective cap is above 1) the last
+line uses the throughput basis from `docs/sessions.md` and names it — e.g. `Projection if the observed
+throughput continues: 2.2 h wall-clock (basis: throughput — 3 parallel sessions)` — with the effort
+pace kept as a calibration line, per "The session report".
+
 In the conversation's language, with the unit stated on the total. If the same message also asks for
 work, this comes first in the same reply. On `Sprints: off` the answer is `docs/PROGRESS.md`'s open
 items, saying that no time figure exists because sprints are off.
@@ -385,6 +391,12 @@ At EVERY session close, and whenever remaining time is requested, show both the 
 `remaining_hours` and `projected_remaining_hours`, with the cumulative deviation used for the
 projection. These are AI working hours plus supervision, not a calendar completion date. The
 projection is labelled **"if the observed pace continues"** and never replaces or rewrites the plan.
+
+**The rules below define the effort basis (`pace`).** When work runs in parallel the elapsed-time
+projection uses the throughput basis instead — estimated hours finished per active wall-clock hour,
+from `docs/sessions.md` — and the report states which basis it used ("The session report" below).
+`plan.json` keeps `pace_factor` and `projected_remaining_hours` as effort figures in both cases; a
+summed-effort figure is never presented as the time left on the wall.
 
 Compute from the sprint sources, once per completed slice across ALL sessions:
 
@@ -455,7 +467,8 @@ one of these is mechanical:
 | `docs/PROGRESS.md` "Current position" names a slice id that exists and is neither `done` nor `dropped`, unless every slice is closed | A position that points at nothing cannot be resumed, and cannot be timed |
 | Every `actual_source` is `measured` or `estimated`; every `done` slice marked `measured` is listed in the `Done` column of at least one `docs/sessions.md` row | A "measured" figure no session ever recorded was typed, and a typed figure labelled as measured is the exact lie the clock exists to end |
 | Every `docs/sessions.md` row: `End` is not before `Start`, and `Deviation h` equals `Actual h` minus `Est. h` (±0.05) | A deviation that is not the difference of its own columns was written, not computed |
-| Every new session row records `Active h = Wall-clock h - Paused h`, and a numeric projection equals `Left after h × Pace factor` (±0.05 h); unavailable values carry the reason in `Notes` | Both remaining figures and the measured session duration must survive the close, not only appear in conversation |
+| Every new session row records `Active h` no greater than `Wall-clock h`, and equal to `Wall-clock h - Paused h` when `Max concurrency` is 1 or absent; a numeric projection equals `Left after h × Pace factor` on basis `pace`, and `Left after h ÷ (Σ Est. h ÷ Σ Active h over rows up to this one with Max concurrency above 1)` on basis `throughput` (±0.05 h); unavailable values carry the reason in `Notes` | Both remaining figures, the measured session duration and the basis must survive the close, not only appear in conversation |
+| Overlapping slice intervals are VALID: no check fails because `Actual h` or `Slice h` exceeds `Active h`, because two slices were open at once, or because a worker interval falls inside a pause; a row with `Max concurrency` above 1 and `Projection basis: pace` must say why in `Notes` | The single-open-slice assumption is the measured defect: under parallel work it turned 48.25 estimated hours into 2.92 measured ones |
 | `plan.json` carries the factor and projection computed from eligible completed slices, with nulls only under the unavailable-data rules | A guessed pace or an average of percentages is not the observed cumulative deviation |
 | `.gitignore` carries `docs/.keel/clock.jsonl` | The raw clock changes at every boundary; committed, it dirties the tree between commits and trips every clean-tree check |
 
@@ -483,17 +496,46 @@ dependencies. Every subcommand reads `date -u +%Y-%m-%dT%H:%M:%SZ` itself and ap
 {"schema":"keel.clock/1","event":"session-end","at":"2026-09-16T16:40:00Z","session":"2026-09-16T14:24:15Z"}
 ```
 
+A slice a writing worker built is recorded from the worker's OWN observed interval, at integration,
+with `source: worker`, its `attempt`, and the worker's own `paused_seconds`:
+
+```
+{"schema":"keel.clock/1","event":"slice-start","at":"2026-09-16T14:30:02Z","session":"2026-09-16T14:24:15Z","slice":"S-032","source":"worker","attempt":"S-032-a1"}
+{"schema":"keel.clock/1","event":"slice-end","at":"2026-09-16T15:41:37Z","session":"2026-09-16T14:24:15Z","slice":"S-032","source":"worker","attempt":"S-032-a1","status":"done","paused_seconds":0}
+```
+
 `event` is a closed enum: `session-start`, `slice-start`, `slice-end`, `pause`, `resume`,
 `session-end`. `status` on `slice-end` is `done`, `in-progress` or `blocked`. Timestamps are UTC in
-the file and local time in everything printed.
+the file and local time in everything printed. Lines are appended in the order they are recorded, not
+in the order of their `at`: a worker's pair arrives after the fact and is paired by slice and attempt.
+
+**Slice intervals may overlap (UNBREAKABLE).** Each slice is measured from its OWN intervals and
+nothing else: opening one slice never closes another, and `slice-end` closes only the slice it names.
+The clock once assumed one open slice per session and closed every other slice at each `slice-start`;
+under parallel development each slice then kept only the minutes until the coordinator's next
+`slice-start`, and a real project measured 22 finished slices estimated at 48.25 h as 2.92 h (−94 %)
+inside a 4.86 h session. Single-writer work keeps its behaviour explicitly, never implicitly: when the
+card says `Parallel development: off`, or the current sprint's resolved effective cap is 1 (serial
+fallback), `slice-start` runs in exclusive mode and WRITES a `slice-end … in-progress` line for every
+other open slice before opening the new one, so the log itself says what happened.
+
+**The arithmetic is a shipped, tested helper, never re-derived per project.** Generate
+`scripts/keel-clock` beside `scripts/keel-time` as an executable byte-for-byte copy of the installed
+skill's `scripts/keel_clock.py` (standard library, Python 3.9+; never install Python silently). It
+appends events (`slice-start [--exclusive]`, `slice-end`, `record-worker`) and measures them
+(`report`), emitting JSON. `keel-time` reads the clock, decides the mode from the card and the sprint,
+calls it, writes the sprint frontmatter and prints. Where Python 3 is not available, `keel-time`
+implements the same rules and must reproduce `tests/test_session_clock.py`'s scenarios by hand before it
+is called generated.
 
 | Subcommand | What it does |
 |---|---|
 | `start [--plan S-030,S-031]` | Closes any session this log left open, at its LAST recorded event, and writes that session's row marked `unterminated`. Opens the new session. `--plan` defaults to the open slices in queue order from `docs/.keel/plan.json`, up to the one in `docs/PROGRESS.md`'s position and those after it that the session names. Prints the start block. |
-| `slice-start <id>` | Opens an interval for the slice. A slice already open in this session is closed first, as `in-progress`. |
-| `slice-end <id> --status <s>` | Closes the interval and writes the slice's cumulative `actual_hours` and `actual_source: measured` into its sprint file's frontmatter, so the value lands in the commit that records the slice. Prints estimated vs measured. |
-| `pause <reason>` / `resume` | Brackets every wait on the person. Paused time is subtracted from any interval it falls inside. |
-| `end` | Closes open intervals as `in-progress`, writes their partial `actual_hours`, appends the session's row to `docs/sessions.md`, and prints the mandatory session report including baseline and projected remaining hours. |
+| `slice-start <id>` | Opens an interval for the slice and leaves every other open slice open. Starting a slice that is already open is a no-op. In exclusive (single-writer) mode, as defined above, it first writes `slice-end … in-progress` for each other open slice. |
+| `slice-end <id> --status <s>` | Closes THIS slice's interval only and writes its cumulative `actual_hours` and `actual_source: measured` into its sprint file's frontmatter, so the value lands in the commit that records the slice. Prints estimated vs measured. A slice with no open interval is an error, never a silent zero. |
+| `slice-record <id> --result <worker-result.json> --status <s>` | Used by the coordinator at integration for a slice a worker built: appends the worker's own `started_at`/`finished_at` pair with `source: worker`, its attempt and `paused_seconds` (idempotent per attempt), then writes `actual_hours` exactly as `slice-end` does. The coordinator does not also `slice-start` that slice: dispatch → integration includes queueing and review, which is not the slice's working time. |
+| `pause <reason>` / `resume` | Brackets every wait on the person. Paused time is subtracted from every coordinator interval it falls inside — all open slices, not one — and from the session's active time except where a worker kept working through it. A worker's own waits are its `paused_seconds`. |
+| `end` | Closes open intervals as `in-progress`, writes their partial `actual_hours`, appends the session's row to `docs/sessions.md`, and prints the mandatory session report including both wall-clock and summed slice hours, the throughput, and baseline and projected remaining hours with the projection's basis. |
 | `report` | Prints the report for the session so far, writing nothing. |
 
 **Cumulative across sessions.** A slice worked in three sessions carries the sum of its intervals from
@@ -523,7 +565,8 @@ slice is added first and appears in this block.
 ### The session report — printed at the end of every session, unprompted
 
 ```
-Session — 16:24 → 18:40 CEST (2 h 16 min wall-clock, 18 min paused, 1 h 58 min active)
+Session — 16:24 → 18:54 CEST (2 h 30 min wall-clock, 18 min paused, 2 h 12 min active)
+Slice hours (sum of each slice's own intervals): 2.2 h · max concurrency 1 (serial)
 Planned at start: S-030, S-031 — 3.5 h
 Done:
   S-030 <title> — estimated 1.5 h, measured 1.2 h (−0.3 h)
@@ -532,9 +575,21 @@ Not finished:
 Unplanned, added this session:
   S-034 <title> — estimated 0.5 h, measured 0.4 h (−0.1 h)
 Deviation on finished work: estimated 2 h → measured 1.6 h (−0.4 h, −20 %)
+Throughput: 2 h estimated finished in 2.2 h active (0.91 estimated h per wall-clock h)
 Left according to plan: sprint 4 — 1 slice, 2 h · total 8 h
 Cumulative measured finished work: estimated 2 h → measured 1.6 h (−20 %, factor 0.8; 2 slices)
-Projection if the observed pace continues: sprint 4 — 1.6 h · total 6.4 h (provisional sample)
+Projection if the observed pace continues (basis: pace — serial work): sprint 4 — 1.6 h · total 6.4 h (provisional sample)
+```
+
+The same session with parallel workers — the shape is identical, two figures change meaning:
+
+```
+Session — 16:24 → 18:54 CEST (2 h 30 min wall-clock, 18 min paused, 2 h 12 min active)
+Slice hours (sum of each slice's own intervals): 9.6 h · max concurrency 6 (parallel) — worker elapsed working time, overlapping
+...
+Throughput: 11 h estimated finished in 2.2 h active (5 estimated h per wall-clock h)
+Projection if the observed throughput continues (basis: throughput — 3 parallel sessions, 26 h estimated in 5.9 h active): total 1.7 h wall-clock
+Effort pace on finished work: factor 0.87 (9 slices) — calibration of each slice's estimate, not elapsed time
 ```
 
 All fields above are mandatory at every close, without waiting for the user to ask. Show the
@@ -543,6 +598,30 @@ actual hours only for the same completed scope. The cumulative deviation used fo
 is shown separately from this session's finished-work deviation. When a figure is unavailable,
 keep its line and explain the reason. Even a session with no completed slices shows active time,
 planned hours, remaining planned hours and the cumulative projection or its unavailability.
+
+**Wall-clock and slice hours are different facts and both are shown.** Wall-clock is the session's
+window, start → end; active is that window minus the person's pauses, plus any paused stretch a
+worker kept working through. Slice hours are the sum of every slice's own intervals: under parallel
+work they overlap, exceed the active time, and are labelled as worker elapsed working time — never
+presented as elapsed time. Per-slice `actual_hours` and the per-slice deviation compare each slice's
+own working time with its own estimate; that calibrates estimates whether or not work ran in parallel.
+
+**Throughput is what elapsed time depends on.** It is the estimated hours of the slices finished this
+session (a slice finished here counts its whole original estimate) divided by the session's active
+hours. **The projection's basis is stated every time:**
+
+- `throughput` — when this session's slice intervals overlapped (max concurrency above 1), or the card
+  says `Parallel development: auto` and the sprint's resolved effective cap is above 1: projected
+  remaining wall-clock = `remaining_hours ÷ cumulative throughput`, where the cumulative throughput is
+  `Σ Est. h ÷ Σ Active h` over every `docs/sessions.md` row whose `Max concurrency` is above 1,
+  including this one (a parallel session that finished nothing counts; it lowers the figure). The
+  sample is stated. With no such sample yet, fall back to `pace` and say "throughput unavailable — no
+  parallel session has finished estimated work; pace projection is effort hours, not elapsed time".
+- `pace` — serial work: `remaining_hours × pace_factor`, exactly as in "Remaining-time projection".
+- `none` — no work remains (0 h).
+
+The effort pace factor is still shown under parallel work as a calibration line; it is never
+multiplied into an elapsed-time figure there, because summed effort is not elapsed time.
 
 Every figure is AI working time plus supervision, and the report says so once. A negative deviation
 is reported as plainly as a positive one: the point is calibration, not blame. Where the deviation on
@@ -557,19 +636,26 @@ line on why, so the next estimate of that kind of slice starts from the measured
 > One row per working session, appended by `scripts/keel-time end`. Times come from the system clock,
 > never from the model. Hours are AI working time plus supervision.
 
-| Start | End | Wall-clock h | Paused h | Planned (slices, est. h) | Done | Est. h | Actual h | Deviation h | Not finished (h spent) | Left after h | Active h | Pace factor | Projected left h | Notes |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Start | End | Wall-clock h | Paused h | Planned (slices, est. h) | Done | Est. h | Actual h | Deviation h | Not finished (h spent) | Left after h | Active h | Pace factor | Projected left h | Slice h | Max concurrency | Throughput | Projection basis | Notes |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 ```
 
-`Active h` is wall-clock minus pauses; `Pace factor` is the plan-wide measured cumulative ratio;
-`Projected left h` is `Left after h × Pace factor`. Missing data is written `—` with the reason in
+`Active h` is wall-clock minus pauses, plus paused time a worker worked through; `Pace factor` is the
+plan-wide measured cumulative ratio; `Slice h` is the sum of every slice's own intervals in this
+session; `Max concurrency` is the largest number of slice intervals open at once; `Throughput` is
+this session's `Est. h ÷ Active h`; `Projection basis` is `pace`, `throughput` or `none`.
+`Projected left h` is `Left after h × Pace factor` on `pace` and `Left after h ÷ cumulative
+throughput` on `throughput` (the rule above). Missing data is written `—` with the reason in
 `Notes`, following the projection rules. On upgrade, add these columns and leave historical cells
 `—` marked `legacy — projection not recorded`; do not reconstruct a historical projection from
 current plan data. Old rows remain valid; all new rows must carry the fields or a stated reason.
+A row with no `Max concurrency` is serial by default and never enters the throughput sample.
 
 `Done` lists slice ids; `Est. h` and `Actual h` are the sums over those slices; `Notes` carries
-`unterminated` or `estimated — no clock` where either applies. Append-only. Phase 7's token
-reconciliation reads its totals for the hours half of the deviation against the estimate.
+`unterminated` or `estimated — no clock` where either applies. **Overlap is valid:** `Actual h` and
+`Slice h` may exceed `Active h` when `Max concurrency` is above 1, and no check fails a row for it.
+Append-only. Phase 7's token reconciliation reads its totals for the hours half of the deviation
+against the estimate.
 
 ## The end-to-end verification contract
 
@@ -1059,7 +1145,7 @@ The answer is not a longer rule, and it is not a checklist for the session to ti
 
 The order is the contract, and it is the order for a reason — **every commit happens before the hand-off is written, never after**:
 
-0. **`scripts/keel-time end`** — reads the clock, writes the partial `actual_hours` of every open slice and the session's row in `docs/sessions.md`, and prints the session report, so both land in step 1's commit and the report is part of what the close prints. A session that carries on past this close opens a new session with `scripts/keel-time start`.
+0. **`scripts/keel-time end`** — reads the clock, writes the partial `actual_hours` of every open slice (several may be open at once; each is closed on its own interval, none is charged another's time) and the session's row in `docs/sessions.md`, and prints the session report, so both land in step 1's commit and the report is part of what the close prints. A session that carries on past this close opens a new session with `scripts/keel-time start`.
 1. **Confidential-data scan, then commit everything outstanding.** Nothing is left uncommitted, ever (SKILL.md, "Work never lives only on this machine").
 2. **`scripts/keel-verify`**, output captured. Non-zero → stop here and report; a sprint does not close broken.
 3. **Merge to the integration branch and push** — in automatic mode without asking, per the card's `Autonomy:`. Outside it, list what stays unpushed.
@@ -1083,7 +1169,8 @@ One allow-list entry: `Bash(./scripts/keel-close:*)`.
 until it fails: **they all describe a session that DECIDES it is finished.** The close-out contract,
 the launcher, the lane and the launch receipts are each reached by a session that has concluded its
 work and is closing out. A turn that simply ENDS — no decision, no close-out, no hand-off — passes
-through none of them.
+through none of them. (The hook never reads the clock's intervals: several open slices, and worker
+intervals that overlap them, are a normal state under parallel development and never a reason to block.)
 
 **Measured, and it is a different failure from the stale hand-off in `keel-close`.** On one project
 the launch receipts recorded not a single chain fire across a seventeen-hour window in which `git

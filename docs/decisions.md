@@ -394,3 +394,28 @@
   standing checks that run in every reconciliation regardless of the versions crossed, cannot be
   declined, and block `Keel baseline:` until they pass. Alternative rejected: carrying the checks only
   in Table 3's v7.3.0 row, which a project already past v7.3.0 would never re-run.
+
+## D-040 — The session clock measures parallel development (2026-10-16)
+- Context: a downstream project on Keel 7.3.0 with `Parallel development: auto; max_workers: 6`
+  reported that `keel-time slice-start` closed every other open slice before opening the new one. With
+  six writer agents, 22 finished slices estimated at 48.25 h were measured at 2.92 h (−94 %) inside a
+  4.86 h session; the deviation and the pace projection were wrong with them.
+- Decision: slice intervals may overlap, always. `slice-start` never closes another slice and
+  `slice-end` closes only its own; single-writer behaviour stays available as an explicit exclusive
+  mode (card `Parallel development: off`, or a sprint whose effective cap is 1), which writes the
+  other slices' `slice-end` lines so the log says what happened. A worker's slice is recorded at
+  integration from the worker's own `started_at`/`finished_at`/`paused_seconds` (`slice-record`),
+  never from dispatch. The report shows wall-clock and summed slice hours apart, with maximum
+  concurrency and throughput; the projection uses cumulative throughput (Σ Est. h ÷ Σ Active h over
+  sessions with concurrency above 1) when work runs in parallel and the effort pace otherwise, naming
+  the basis. The arithmetic ships as `keel/scripts/keel_clock.py`, copied to `scripts/keel-clock`,
+  with `tests/test_session_clock.py` and release-linter check 16.
+- Alternatives considered: concurrency only under `Parallel development: auto` with the old implicit
+  close otherwise (rejected: an implicit close is the defect's mechanism; the explicit exclusive mode
+  gives the same numbers and an honest log); summing slice hours and dividing by the cap (rejected:
+  the cap is not the observed concurrency); leaving the arithmetic as prose for each project to
+  re-derive (rejected: that is how the defect reached a project).
+- Consequence: version, CHANGELOG, MANIFEST Table 2 version cells and the Table 3 migration row
+  (regenerate `scripts/keel-time`, add `scripts/keel-clock`, add the four `docs/sessions.md` columns)
+  wait for the user's explicit version instruction. `keel/scripts/keel_clock.py` is listed in Table 2
+  at the current version only so the linter's parity holds until then.
