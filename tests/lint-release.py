@@ -30,6 +30,13 @@ Checks:
     target, and the release gate preserves that distinction.
 12. The inbound-tunnel contract and the live-drive rule are present, and the
     phase references that must apply them say so.
+13. The Claude Code agent teams flag is always written to
+    .claude/settings.local.json, independently of the automatic-mode answer.
+14. Parallel development defaults to the maximum sustainable worker count,
+    never a small fixed number.
+15. The post-update reconciliation is mandatory and carries the two standing
+    checks (agent teams flag, full-capacity parallel development), and the
+    lock never merely offers it.
 """
 
 import re
@@ -326,6 +333,56 @@ if tunnel_problems:
     fail(f"inbound-tunnel / live-drive contract is incomplete: {tunnel_problems}")
 else:
     ok("inbound-tunnel contract and live-drive rule are present")
+
+# ---- 13. Claude Code agent teams flag --------------------------------------
+maintenance = ref_text.get("keel-maintenance.md", "")
+parallel = ref_text.get("parallel-development.md", "")
+flag = "CLAUDE_CODE_EXPERIMENTAL_AGENTS_TEAMS"
+teams_problems = [
+    what for what, present in (
+        ("SKILL.md: the setup batch always ensures the flag", flag in skill and "whatever question 1 was answered" in skill),
+        ("keel-maintenance.md: the Agent teams flag section", "### Agent teams flag — always, whenever Claude Code is in use" in maintenance),
+        ("keel-maintenance.md: the settings.local.json example carries the flag", f'"{flag}": "1"' in maintenance),
+        ("parallel-development.md: the flag is not the capability", flag in parallel and "does not verify them" in parallel),
+    ) if not present
+]
+if teams_problems:
+    fail(f"agent teams flag contract is incomplete: {teams_problems}")
+else:
+    ok("Claude Code agent teams flag is always written")
+
+# ---- 14. Parallel development runs at maximum capacity ---------------------
+project_state = ref_text.get("project-state.md", "")
+max_problems = [
+    what for what, present in (
+        ("parallel-development.md: the card default is max", "`Parallel development: auto; max_workers: max`" in parallel),
+        ("parallel-development.md: the cap resolves to the largest allowed", "LARGEST number of concurrent writers" in parallel),
+        ("parallel-development.md: the old default 2 migrates to max", "is the old v7.x default, not a decision" in parallel),
+        ("project-state.md: the card template defaults to max", "auto; max_workers: max" in project_state),
+        ("no reference proposes max_workers: 2 as a default", not any("[auto; max_workers: 2" in t for t in ref_text.values())),
+    ) if not present
+]
+if max_problems:
+    fail(f"maximum-capacity parallel contract is incomplete: {max_problems}")
+else:
+    ok("parallel development defaults to maximum capacity")
+
+# ---- 15. Mandatory reconciliation with standing checks ---------------------
+standing_problems = [
+    what for what, present in (
+        ("project-state.md: reconciliation is mandatory", "It is mandatory, after EVERY update — it runs, it is not offered (UNBREAKABLE)." in project_state),
+        ("project-state.md: the standing checks section", "### Standing checks — every reconciliation, from v7.3.0 on (NOT optional, NOT declinable)" in project_state),
+        ("project-state.md: standing check 1 is the agent teams flag", "1. **Claude Code agent teams flag.**" in project_state),
+        ("project-state.md: standing check 2 is full capacity", "2. **Parallel development at full capacity, never a leftover 2.**" in project_state),
+        ("project-state.md: the procedure runs the standing checks", "**Then run the standing checks (below) — every reconciliation, whatever the versions involved.**" in project_state),
+        ("project-state.md: nothing still offers the reconciliation", "offer the post-update reconciliation" not in project_state and "offer the\n   post-update reconciliation" not in project_state),
+        ("MANIFEST.md: Table 1 carries both standing rows", manifest.count("never declinable") >= 2),
+    ) if not present
+]
+if standing_problems:
+    fail(f"mandatory reconciliation contract is incomplete: {standing_problems}")
+else:
+    ok("post-update reconciliation is mandatory with its standing checks")
 
 # ---- Result ----------------------------------------------------------------
 print()

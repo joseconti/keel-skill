@@ -30,7 +30,7 @@ Keel works in long chains of tool calls, and Claude Code's default permission mo
 
 ### Preferred route — `.claude/settings.local.json` (persistent)
 
-Create or update `.claude/settings.local.json` at the repository root **when question 1 of the setup batch was answered yes** (SKILL.md, "Session start setup"). The mode is the user's call, asked once and recorded on the project card's `Autonomy:` line; writing the FILE that implements it is not a second question — Keel writes it and announces it in one line. A later session on a fresh machine finds the decision recorded and the file absent (it is gitignored, so a new checkout never carries one): it writes the file, says so, and does not re-open a question that is already answered. Answer no, and no file is written at all: the mode stays as it is, Keel asks before each action, and it pushes nothing that was not explicitly requested.
+Create or update `.claude/settings.local.json` at the repository root **when question 1 of the setup batch was answered yes** (SKILL.md, "Session start setup"). The mode is the user's call, asked once and recorded on the project card's `Autonomy:` line; writing the FILE that implements it is not a second question — Keel writes it and announces it in one line. A later session on a fresh machine finds the decision recorded and the file absent (it is gitignored, so a new checkout never carries one): it writes the file, says so, and does not re-open a question that is already answered. Answer no, and no permission is written at all: the mode stays as it is, Keel asks before each action, and it pushes nothing that was not explicitly requested. The one key Keel still merges in on a "no" is the agent teams flag below, which is not a permission.
 
 That this file may be written where a committed allow-list may not is not an inconsistency with "committed permissions are ALWAYS confirmed" (`references/assistant-config.md`) — it is the same rule read correctly: `.claude/settings.json` is committed and binds every person who opens the repo, so it needs the user's explicit OK; `.claude/settings.local.json` is machine-local, gitignored and binds nobody but this checkout, so writing it changes nothing outside the user's own machine. It is also the single exception to "Keel never creates a personal config file"; every other personal file stays the user's own.
 
@@ -65,12 +65,13 @@ The contents:
     ]
   },
   "env": {
-    "PATH": "/Users/<user>/.local/bin:/opt/local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+    "PATH": "/Users/<user>/.local/bin:/opt/local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+    "CLAUDE_CODE_EXPERIMENTAL_AGENTS_TEAMS": "1"
   }
 }
 ```
 
-**Merge, never overwrite.** If the file already exists, read it and add only what is missing: set `permissions.defaultMode` to `auto`, union the `allow`, `deny` and `ask` entries with those already present, and set `env.PATH` only if it is absent. A rule the user put there is never removed or reordered, and a `deny` the user added always survives. If the existing file is unparsable, do not rewrite it — say so and use the per-session route instead.
+**Merge, never overwrite.** If the file already exists, read it and add only what is missing: set `permissions.defaultMode` to `auto`, union the `allow`, `deny` and `ask` entries with those already present, set `env.PATH` only if it is absent, and set `env.CLAUDE_CODE_EXPERIMENTAL_AGENTS_TEAMS` to `"1"`. A rule the user put there is never removed or reordered, and a `deny` the user added always survives. If the existing file is unparsable, do not rewrite it — say so and use the per-session route instead.
 
 Three contents notes, told to the user when the file is written so none of them surprises them later:
 
@@ -85,6 +86,26 @@ Three contents notes, told to the user when the file is written so none of them 
   So: **enumerate every directory literally, and always include the system ones** — `/usr/bin`, `/bin`, `/usr/sbin`, `/sbin` — even when the interesting entries are the ones in front. The value above is the verified macOS/MacPorts+Homebrew case. On a machine whose layout differs, or where a version manager's directory must lead, resolve the real path first (`echo $PATH` in the user's login shell) and write the RESULT, never the expression that produced it. Before writing the key at all, check whether an existing `env.PATH` — in this file or in the user-level `~/.claude/settings.json` — already carries an unexpanded variable, and fix it in the same breath: a broken PATH inherited from user-level config poisons every project on the machine, not just this one.
 
   **Always include the user's own per-user installer directory, expanded to its literal absolute value — never the system-package-manager list alone.** Claude Code's native (non-npm) installer places its binary at `~/.local/share/claude/versions/<version>`, symlinked from `~/.local/bin/claude` — a per-user location the MacPorts/Homebrew/system list above does not, and structurally cannot, contain, because it targets package managers rather than per-user installers. Missing it does not merely leave `claude` unresolved for arbitrary commands: `scripts/keel-continue`'s own live re-check (its contract, point 5a) runs `command -v claude` against exactly this `env.PATH`, so on a machine where Claude Code was installed natively, that check reports "not on PATH" while Claude Code is actively running — the single most misleading shape this failure can take. Resolve the real value (`echo $HOME` in the user's login shell, e.g. `/Users/jconti`) and prepend `<that>/.local/bin` the same way every other entry here is written literally; never write the string `$HOME` itself into the file (that is exactly the unexpanded-variable failure two paragraphs up). More generally, before reporting any `command -v <bin>` failure as "not installed," consider whether a per-user installer path (`~/.local/bin`, `~/.local/share/*/bin`) is missing from the list rather than the binary being genuinely absent.
+
+### Agent teams flag — always, whenever Claude Code is in use
+
+Claude Code's agent teams — several Claude Code sessions coordinated as one team, the native orchestration `references/parallel-development.md` can use for writing workers — are experimental and stay off until `CLAUDE_CODE_EXPERIMENTAL_AGENTS_TEAMS` is `"1"` in the environment Claude Code starts with. So whenever Claude Code is in use — the session running Keel is Claude Code, or Claude Code is an accepted tool on the project card — Keel ensures this in `.claude/settings.local.json` at the repository root:
+
+```json
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENTS_TEAMS": "1"
+  }
+}
+```
+
+- **Independent of question 1.** On "yes" it is part of the file above. On "no" Keel still creates or merges the file with this one key and nothing else — no `permissions`, no `env.PATH` — because the flag grants no tool, changes no mode and publishes nothing; it only makes a capability available. It is not a question, it is announced in one line, and a fresh checkout (the file is gitignored) gets it back the same way at the next session start.
+- **Merge, never overwrite**, exactly as above: every other key in the file survives untouched. An unparsable file is not rewritten — say so and tell the user the one line to add.
+- **The key takes effect at the NEXT Claude Code start.** The environment is read when the session launches, so the session that writes it does not yet have agent teams. Say so in the same announcement, and never record agent teams as available in the session that only just enabled them.
+- **The flag is not the capability.** Having it set does not make agent teams a verified worker backend: the kickoff probe in `references/parallel-development.md` ("Policy and capability gate") still observes it at runtime, and `Parallel development:` on the card still decides whether writing workers run at all.
+- **Committed `.claude/settings.json` is not touched for this.** If the team wants it in the committed file too, that goes through the normal confirmed path in `references/assistant-config.md`.
+- **Claude Code only.** Other assistants never receive this key; it means nothing to them.
+- **Checked again at every post-update reconciliation, not only here.** It is standing check 1 in `references/project-state.md` ("Standing checks"): after this update and every later one, whether or not that version mentions it.
 
 ### Alternative route — per session
 

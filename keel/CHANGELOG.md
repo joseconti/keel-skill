@@ -1570,3 +1570,36 @@ refresh the portability lock.
 
 **Minor update. Reconciliation:** `MANIFEST.md` Table 3, v7.2.0. One conditional project artifact
 (`scripts/playground-tunnel`), no new card line; refresh the portability lock.
+
+## 7.3.0
+
+### Added
+
+- **Claude Code agent teams are always enabled.** Whenever Claude Code is in use, the session-start
+  setup merges `env.CLAUDE_CODE_EXPERIMENTAL_AGENTS_TEAMS: "1"` into `.claude/settings.local.json`,
+  whatever the automatic-mode answer: the key grants no permission and only makes the native
+  orchestration available to parallel development. It takes effect at the next Claude Code start,
+  and the kickoff probe still verifies the capability before any worker relies on it.
+
+### Changed
+
+- **Parallel development runs as many workers as the session can sustain.** The project card
+  default becomes `Parallel development: auto; max_workers: max`. At every kickoff the effective
+  cap resolves to the largest number of concurrent writers the observed limits allow (session agent
+  budget, backend limit, an explicit user ceiling, shared resources), and the sprint plan names the
+  limit that set it. A `max_workers: 2` left by v7.x without a decision choosing it migrates to `max`.
+- **The post-update reconciliation is mandatory.** After every Keel update it runs immediately,
+  before any other work; it is never offered, skipped or left for a later session. Only a production
+  hotfix already under way goes first, and the reconciliation runs right after it. The portability
+  lock now says the reconciliation runs rather than that it is offered.
+- **Two standing checks run in every reconciliation, from this version on**, whether or not the
+  versions crossed mention them, and neither can be declined: the Claude Code agent teams flag is
+  present in `.claude/settings.local.json` wherever Claude Code is in use, and the card's
+  `Parallel development:` is at `max_workers: max` unless the user chose a ceiling in a D-entry.
+  A failing check is fixed on the spot, and `Keel baseline:` does not advance until both pass.
+- The release linter checks all three contracts (checks 13, 14 and 15); eval scenarios E28, E29
+  and E30.
+
+**Minor update. Reconciliation (mandatory):** `MANIFEST.md` Table 3, v7.3.0. No new file, no new
+card line; the two standing checks merge the flag into `.claude/settings.local.json` and migrate an
+undecided `max_workers`; refresh the portability lock.

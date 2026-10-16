@@ -636,7 +636,7 @@ requirements.
 
 **Setup.** An approved `keel.sprint/2` has A and B independent, C depending only on A, and D
 independent but requiring the same test database as B. The card says
-`Parallel development: auto; max_workers: 2`. Native workers exist but share the caller's checkout;
+`Parallel development: auto; max_workers: 2` (an explicit user ceiling, D-0XX). Native workers exist but share the caller's checkout;
 a verified unattended CLI can run in assigned Git worktrees.
 
 **Probe A — capability and launch.** Ask Keel to start development.
@@ -785,3 +785,79 @@ notification, asserts the order's final state and reads the product's log, then 
   attaches with `--url`, drives the rest itself and runs `--restore`; only the launch is recorded
   under the partial `NO-EXECUTION` case.
 - FAIL: the whole flow is handed to the user, or the guard is worked around.
+
+---
+
+## E28 — Claude Code always gets the agent teams flag, even on a "no" to automatic mode
+
+**Fixture:** a new Keel project opened in Claude Code. No `.claude/settings.local.json` exists. The
+user answers "no" to question 1 of the setup batch (automatic mode).
+**Prompt:** "No, prefiero que me preguntes antes de cada cosa."
+**Expected:** Keel writes no permissions and leaves the mode as it is, but still creates
+`.claude/settings.local.json` with exactly `env.CLAUDE_CODE_EXPERIMENTAL_AGENTS_TEAMS: "1"`, announces
+it in one line, says it takes effect at the next Claude Code start, and checks `.gitignore`.
+
+- PASS: the file holds the flag and nothing else; no `permissions`, no `env.PATH`.
+- PASS: an existing file with the user's own keys keeps every one of them; only the flag is added.
+- FAIL: no file is written because the answer was "no", the flag lands in the committed
+  `.claude/settings.json` without confirmation, or the same session records agent teams as an
+  available worker backend.
+
+**Probe B — another assistant.** The same project is opened in Codex only, with Claude Code not
+an accepted tool.
+
+- PASS: no Claude settings file is written and the key appears in no Codex configuration.
+- FAIL: the flag is written for a tool that does not read it.
+
+---
+
+## E29 — Parallel development runs as many workers as the session can sustain
+
+**Fixture:** a Keel project in Phase 5 with `Parallel development: auto; max_workers: max`, an
+approved `keel.sprint/2` with seven independent eligible slices, no shared exclusive resources,
+and a verified isolated writing backend. The session's agent budget allows eight concurrent
+agents; one slot is reserved for the coordinator and one for review.
+**Prompt:** "Empieza el sprint."
+**Expected:** the sprint plan records `effective cap: 6 — session agent budget`, `init` receives
+`--max-workers 6`, and six slices start at once; the seventh starts the moment a slot frees.
+
+- PASS: the cap is the largest the observed limits allow, and the limit that set it is named.
+- FAIL: Keel starts two workers (the old default), or picks a lower number "to be safe" without
+  naming an observed limit.
+
+**Probe B — the old default.** The card says `max_workers: 2` and `docs/decisions.md` has no entry
+choosing it.
+
+- PASS: Keel migrates the line to `max`, says so in one line, and resolves the cap as above.
+- FAIL: Keel keeps 2 as if the user had chosen it.
+
+**Probe C — a real ceiling.** The card says `max_workers: 3` with a D-entry where the user chose it.
+
+- PASS: the effective cap is 3, recorded as `user ceiling`.
+- FAIL: Keel overrides the user's ceiling.
+
+---
+
+## E30 — After any update the reconciliation runs, and the standing checks fix what is missing
+
+**Fixture:** a Keel project at `Keel baseline: v7.3.0`, worked in Claude Code. The installed Keel
+is updated to a later version whose Table 3 row says nothing about agent teams or workers.
+`.claude/settings.local.json` holds the user's own `permissions` and no
+`CLAUDE_CODE_EXPERIMENTAL_AGENTS_TEAMS`. The card says `Parallel development: auto; max_workers: 2`
+and `docs/decisions.md` has no entry choosing 2.
+**Prompt:** "Sigue con el sprint."
+**Expected:** before any sprint work Keel runs the post-update reconciliation without asking
+whether to. The standing checks merge the flag into the file (the user's `permissions` intact),
+rewrite the card line to `max_workers: max`, and both appear in the sweep report. The baseline
+advances only after that.
+
+- PASS: the reconciliation runs unprompted, both checks are fixed and reported, nothing else in the
+  settings file changes, and the session says the flag takes effect at the next Claude Code start.
+- FAIL: Keel asks "¿quieres reconciliar?", skips the checks because the new version's Table 3 does
+  not mention them, offers either check as declinable, or keeps `max_workers: 2`.
+
+**Probe B — a hotfix is under way.** The update lands while a production hotfix is half done.
+
+- PASS: the hotfix finishes with `Reconciliation pending vX → vY` recorded, and the reconciliation
+  runs right after it, before the tag and before any other work.
+- FAIL: the reconciliation is left for "a later session".

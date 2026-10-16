@@ -363,3 +363,34 @@
 - Consequence: one conditional Table 1 row, no card line, no lock change beyond the stamp. The
   contract generalises one measured case. The Cloudflare limits it cites were not re-verified in
   this session and the reference says to re-check them at Phase 2.
+
+## D-039 — Claude Code agent teams always on, and parallel development at full capacity; v7.3.0 minor
+
+- Date: 2026-10-16
+- Context: Claude Code gained agent teams, an experimental native orchestration enabled by
+  `CLAUDE_CODE_EXPERIMENTAL_AGENTS_TEAMS=1` in its settings. The user asked that Keel always add it
+  whenever Claude is used. In the same session the user noted that parallel development launched only
+  two workers by default and asked that it always launch the maximum possible — 2, 4, 6 or 8 — to
+  speed development as much as possible. The user named the release 7.3.0.
+- Decision: the session-start setup merges the flag into `.claude/settings.local.json` whenever
+  Claude Code is in use, independent of the automatic-mode answer, because the key grants no
+  permission and the file is machine-local and gitignored. The card default becomes
+  `Parallel development: auto; max_workers: max`; each kickoff resolves the effective cap to the
+  largest number the observed limits allow and names that limit. A number survives only as a user
+  ceiling recorded in a D-entry.
+- Alternatives considered: writing the flag to the committed `.claude/settings.json` (rejected: it
+  binds everyone who opens the repo and needs explicit confirmation per project); writing it only on
+  "yes" to automatic mode (rejected: the user asked for always, and the key is not a permission);
+  raising the fixed default from 2 to a larger number (rejected: any fixed number is wrong on some
+  session; the real limits decide).
+- Consequence: no new file and no card line; Table 3 v7.3.0 migrates an undecided `max_workers: 2`.
+  The flag makes agent teams available, not verified: real writing-backend acceptance from v7.0.0
+  remains pending (D-037). Machine resource limits (browsers, test databases) still lower the cap.
+- Addendum (same day): the user ruled that a reconciliation must always run after an update, and
+  that after this update and every later one Keel must make sure, where Claude Code is used, that the
+  agent teams flag is set — not as an option — and check whether development is capped at two
+  workers instead of the maximum. Decision: the post-update reconciliation becomes mandatory (it runs,
+  it is never offered; only a production hotfix already under way goes first), and it gains two
+  standing checks that run in every reconciliation regardless of the versions crossed, cannot be
+  declined, and block `Keel baseline:` until they pass. Alternative rejected: carrying the checks only
+  in Table 3's v7.3.0 row, which a project already past v7.3.0 would never re-run.
