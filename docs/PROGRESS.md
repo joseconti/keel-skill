@@ -16,7 +16,7 @@
 - Keel portability: lock only — this repo is the SOURCE of the skill; it does not embed a copy of itself.
 - Assistant config: none (tools: claude) — no `.claude/` package generated for this repo.
 - Models: runtime-selected — no backend is assumed from a product name; real writing backends remain unverified in this repository.
-- Keel baseline: v7.3.0 — this repository authors the version it is on, so the baseline always equals the version being written.
+- Keel baseline: v7.3.1 — this repository authors the version it is on, so the baseline always equals the version being written.
 - Website intent: no
 - Client budget: no — the skill is the user's own product, not client work.
 - User guide: n/a — `README.md` and `INSTALL.md` serve that role for a skill.
@@ -49,8 +49,8 @@ This repository was adopted into its own discipline late (state files created 20
 ## Current position
 - Phase: maintenance — **v7.3.0 always enables Claude Code agent teams, runs parallel development at full capacity, and makes the post-update reconciliation mandatory with two standing checks** (D-039). Standing check 1 applied to this repo: `.claude/settings.local.json` created with the flag alone (it did not exist, although the card records Keel writing it for automatic mode). v7.2.0 added the inbound tunnel and the live drive (D-038). v7.0.0 backend acceptance remains incomplete (D-037, `docs/parallel-development-review.md`).
 - Previous states: v7.2.0 (published 2026-10-13) is the Git baseline this change started from; older release history is in `keel/CHANGELOG.md` and Git.
-- Unreleased on `develop`: the session clock measures parallel development (D-040, sprint 7 S-012) — overlapping slice intervals, `slice-record` for worker intervals, wall-clock vs summed slice hours, throughput-based projection with its basis, `keel/scripts/keel_clock.py` + `tests/test_session_clock.py` + linter check 16. Version/CHANGELOG/Table 3 row await the user's instruction.
-- Next action: the user decides the version for D-040 (then CHANGELOG, MANIFEST Table 2 cells for the touched files, Table 3 migration row). Still open from v7.0.0: the isolated backend and generated-hook acceptance described in `docs/parallel-development-review.md`.
+- v7.3.1 (patch, D-040) release candidate on `develop`: the session clock measures parallel development — evidence in `docs/release-v7.3.1.md`.
+- Next action: publish v7.3.1 (PR to `main`, tag, GitHub release) when the user approves. Still open from v7.0.0: the isolated backend and generated-hook acceptance described in `docs/parallel-development-review.md`.
 
 ## Open items
 - Unresolved user questions: none
