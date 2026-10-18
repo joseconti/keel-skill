@@ -16,7 +16,7 @@
 - Keel portability: lock only — this repo is the SOURCE of the skill; it does not embed a copy of itself.
 - Assistant config: none (tools: claude) — no `.claude/` package generated for this repo.
 - Models: runtime-selected — no backend is assumed from a product name; real writing backends remain unverified in this repository.
-- Keel baseline: v7.3.1 — this repository authors the version it is on, so the baseline always equals the version being written.
+- Keel baseline: v7.3.2 — this repository authors the version it is on, so the baseline always equals the version being written.
 - Website intent: no
 - Client budget: no — the skill is the user's own product, not client work.
 - User guide: n/a — `README.md` and `INSTALL.md` serve that role for a skill.

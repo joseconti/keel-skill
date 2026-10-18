@@ -29,6 +29,7 @@ PLAN_SCHEMAS = {"keel.plan/1", "keel.plan/2", None}
 RUN_SCHEMA = "keel.parallel-run/1"
 ASSIGNMENT_SCHEMA = "keel.worker-assignment/1"
 RESULT_SCHEMA = "keel.worker-result/1"
+BATCH_SCHEMA = "keel.batch-evidence/1"
 ACTIVE = {"claimed", "launching", "running", "stuck", "awaiting-result", "awaiting-review", "ready-to-integrate"}
 TERMINAL = {"integrated", "blocked", "failed", "cancelled"}
 AGGREGATE_PREFIXES = (
@@ -472,6 +473,50 @@ def run_lock(run_path: Path):
             fcntl.flock(handle, fcntl.LOCK_UN)
 
 
+@contextmanager
+def test_lane(run: dict):
+    """One coordinator check command at a time per repository, across runs and worktrees."""
+    if fcntl is None:
+        raise ParallelError("parallel writing requires POSIX flock; use serial development on this platform")
+    repo = Path(run["coordinator_repo_id"]).resolve()
+    digest = hashlib.sha256(str(repo).encode("utf-8")).hexdigest()[:24]
+    lock_dir = repo / "keel-parallel"
+    lock_dir.mkdir(parents=True, exist_ok=True)
+    with (lock_dir / f"{digest}.tests.lock").open("a+") as handle:
+        try:
+            fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError as exc:
+            raise ParallelError("test lane busy: another coordinator check is running; never run two suites at once") from exc
+        try:
+            yield
+        finally:
+            fcntl.flock(handle, fcntl.LOCK_UN)
+
+
+def batch_state(run: dict) -> dict:
+    """Whether the integrated work has passed one full verification at the current head."""
+    integrated = sorted(run.get("integrated", {}))
+    batches = run.get("batches", [])
+    last = batches[-1] if batches else None
+    head = None
+    if run.get("coordinator_repo_id") and Path(run["coordinator_repo_id"]).is_dir():
+        try:
+            head = git_output(Path(run["coordinator_repo_id"]), "rev-parse", "refs/heads/" + run["integration_ref"])
+        except ParallelError:
+            head = None
+    covered = set(last["covers"]) if last and last.get("passed") else set()
+    unverified = [slice_id for slice_id in integrated if slice_id not in covered]
+    if not integrated:
+        state = "nothing-integrated"
+    elif last and last.get("passed") and not unverified and last.get("commit") == head:
+        state = "verified"
+    elif last and not last.get("passed") and last.get("commit") == head:
+        state = "failed"
+    else:
+        state = "pending"
+    return {"state": state, "head": head, "unverified": unverified, "last": last}
+
+
 def registered_attempt(run: dict, assignment: dict) -> dict:
     attempt = run.get("attempts", {}).get(assignment["attempt_id"])
     if not attempt or attempt.get("assignment_snapshot") != assignment:
@@ -723,7 +768,8 @@ def command_status(args: argparse.Namespace) -> dict:
     states: dict[str, int] = {}
     for attempt in run.get("attempts", {}).values():
         states[attempt["state"]] = states.get(attempt["state"], 0) + 1
-    return {"run_id": run["run_id"], "states": states, "integrated": run.get("integrated", {}), "events": len(run.get("events", []))}
+    return {"run_id": run["run_id"], "states": states, "integrated": run.get("integrated", {}),
+            "batch": batch_state(run), "events": len(run.get("events", []))}
 
 
 def command_record_result(args: argparse.Namespace) -> dict:
@@ -881,10 +927,10 @@ def command_verify_integration(args: argparse.Namespace) -> dict:
     log = Path(args.evidence).with_suffix(".log").resolve()
     log.parent.mkdir(parents=True, exist_ok=True)
     try:
-        with log.open("wb") as stream:
+        with test_lane(run), log.open("wb") as stream:
             completed = subprocess.run(args.check_command, cwd=root, stdout=stream, stderr=subprocess.STDOUT,
                                        timeout=args.timeout)
-    except (OSError, subprocess.TimeoutExpired):
+    except (OSError, subprocess.TimeoutExpired, ParallelError):
         with run_lock(path):
             run = load_run(path)
             run["attempts"][args.attempt].pop("candidate_in_flight", None)
@@ -915,6 +961,63 @@ def command_verify_integration(args: argparse.Namespace) -> dict:
     return evidence
 
 
+def command_verify_batch(args: argparse.Namespace) -> dict:
+    """Run the full suite once, on the integration head, after the workers have finished."""
+    path = Path(args.run)
+    with run_lock(path):
+        run = load_run(path)
+        running = sorted(a["slice_id"] for a in run.get("attempts", {}).values() if a.get("state") in ACTIVE)
+        if running:
+            raise ParallelError("batch verification waits until no worker is in flight: " + ", ".join(running))
+        if not run.get("integrated"):
+            raise ParallelError("nothing integrated to verify")
+        if run.get("batch_in_flight"):
+            raise ParallelError("batch verification already in flight; reconcile before retry")
+        candidate = worktree_identity(args.candidate)
+        root = Path(candidate["worktree"])
+        if candidate["repo_id"] != run["coordinator_repo_id"]:
+            raise ParallelError("batch candidate must be a checkout of the coordinator repository")
+        head = git_output(root, "rev-parse", "refs/heads/" + run["integration_ref"])
+        if candidate["head"] != head:
+            raise ParallelError("batch candidate must be checked out at the integration head")
+        if git_output(root, "status", "--porcelain"):
+            raise ParallelError("batch candidate must be clean")
+        if not args.check_command:
+            raise ParallelError("a full verification command is required")
+        run["batch_in_flight"] = {"commit": head, "pid": os.getpid(), "process_start": process_start_identity(os.getpid())}
+        write_json_atomic(path, run)
+    # The full suite may take long; the scheduler mutex stays free while it runs.
+    log = Path(args.evidence).with_suffix(".log").resolve()
+    log.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        with test_lane(run), log.open("wb") as stream:
+            completed = subprocess.run(args.check_command, cwd=root, stdout=stream, stderr=subprocess.STDOUT,
+                                       timeout=args.timeout)
+    except (OSError, subprocess.TimeoutExpired, ParallelError):
+        with run_lock(path):
+            run = load_run(path)
+            run.pop("batch_in_flight", None)
+            write_json_atomic(path, run)
+        raise
+    with run_lock(path):
+        run = load_run(path)
+        run.pop("batch_in_flight", None)
+        moved = (git_output(root, "rev-parse", "HEAD") != head or git_output(root, "status", "--porcelain")
+                 or git_output(root, "rev-parse", "refs/heads/" + run["integration_ref"]) != head)
+        record = {"schema": BATCH_SCHEMA, "run_id": run["run_id"], "commit": head,
+                  "covers": sorted(run.get("integrated", {})), "passed": not moved and completed.returncode == 0,
+                  "command": args.check_command, "exit_code": completed.returncode, "evidence": str(log)}
+        run.setdefault("batches", []).append(record)
+        append_event(run, "batch-verified", commit=head, passed=record["passed"])
+        write_json_atomic(path, run)
+        write_json_atomic(args.evidence, record)
+    if moved:
+        raise ParallelError("candidate or integration branch changed during the batch; verify again")
+    if completed.returncode:
+        raise ParallelError(f"batch checks failed ({completed.returncode}); fix on the integration branch and verify again")
+    return record
+
+
 def command_reconcile(args: argparse.Namespace) -> dict:
     run_path = Path(args.run)
     with run_lock(run_path):
@@ -933,10 +1036,14 @@ def command_reconcile(args: argparse.Namespace) -> dict:
                                         "awaiting-result" if report.is_file() else "failed")
                     attempt["failure"] = "supervisor interrupted; recover committed report or resolve failed attempt"
                     changes.append({"attempt_id": attempt_id, "state": attempt["state"]})
+        batch = run.get("batch_in_flight")
+        if batch and not process_alive(int(batch["pid"]), batch.get("process_start")):
+            run.pop("batch_in_flight")
+            changes.append({"batch": batch["commit"], "problem": "batch verification interrupted; verify again"})
         if changes:
             append_event(run, "reconciled", changes=changes)
             write_json_atomic(run_path, run)
-    return {"changes": changes, "ready": ready_slices(plan, run)}
+    return {"changes": changes, "ready": ready_slices(plan, run), "batch": batch_state(run)}
 
 
 def command_run_worker(args: argparse.Namespace) -> dict:
@@ -1130,6 +1237,13 @@ def build_parser() -> argparse.ArgumentParser:
     verify.add_argument("--timeout", type=int, default=1800)
     verify.add_argument("check_command", nargs=argparse.REMAINDER)
     verify.set_defaults(func=command_verify_integration)
+    batch = sub.add_parser("verify-batch")
+    batch.add_argument("--run", required=True)
+    batch.add_argument("--candidate", required=True)
+    batch.add_argument("--evidence", required=True)
+    batch.add_argument("--timeout", type=int, default=3600)
+    batch.add_argument("check_command", nargs=argparse.REMAINDER)
+    batch.set_defaults(func=command_verify_batch)
     reconcile = sub.add_parser("reconcile")
     reconcile.add_argument("--plan", required=True)
     reconcile.add_argument("--run", required=True)
