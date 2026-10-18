@@ -1,4 +1,4 @@
-# Keel v7.3.2 — release candidate
+# Keel v7.3.2 — published
 
 Prepared on 2026-10-18 on `develop`, based on v7.3.1 (published 2026-10-17). Patch release:
 it fixes a defect (D-041). The skill content is commit `72417ba`.
@@ -36,5 +36,9 @@ projects apply the contract at their next dispatch through the reconciliation.
 
 ## Publication
 
-Pending: PR `develop` → `main` (merged by the user), then tag `v7.3.2` on the merge commit and
-`gh release create v7.3.2` by hand with the archive rebuilt from the tag (Actions is disabled).
+Published on 2026-10-18. PR #27 merged `develop` into `main`; tag `v7.3.2` is on the merge
+commit `af06f1c`, and the linter passed on that tree. GitHub Actions is disabled, so the release
+was created by hand with `gh release create v7.3.2`, marked Latest, with `keel-v7.3.2.zip`
+attached. That archive was rebuilt from the tag (`git archive v7.3.2 keel`, 50 entries, no
+errors); its SHA-256 is `8b1f52ac9694db58eafbf860bf634dd8980c6657586611ba54333d4bec29da71`. The
+candidate SHA above was built from the pre-merge commit and differs only in archive timestamps.
