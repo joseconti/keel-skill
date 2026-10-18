@@ -27,7 +27,7 @@
 - Push test scope: affected — scheduler changes run `python3 -B -m unittest discover -s tests -p 'test_parallel*.py' -v`; every release also runs `python3 tests/lint-release.py`.
 - Durability: **git remote `origin` — https://github.com/joseconti/keel-skill.git** (verified 2026-07-31 with `git remote -v`). The tree is not inside a synced folder; the remote covers the requirement on its own.
 - Autonomy: **automatic** — Keel does not ask, and does every merge to `develop` and every push itself (`.claude/settings.local.json` written by Keel, gitignored; see D-003, D-004) / issues: on-request — this repo's forge issues are worked when the user raises them / Issue sweep interval: n/a (the after-sprint duty was not accepted here)
-- Branches: integration branch `develop` / no open work branch / v7.3.1 is published: PR #26 merged, tag `v7.3.1` on the `main` merge commit `e5d1628`, GitHub release created by hand with `dist/keel-v7.3.1.zip` attached (2026-10-17).
+- Branches: integration branch `develop` / no open work branch / v7.3.2 prepared on `develop` (D-041); awaiting the PR `develop` → `main`, then tag and hand-made release. v7.3.1 published 2026-10-17.
 - Notify: **native Claude Code notification** — desktop always; phone only while Remote Control is connected. No address needed. The Gmail connector is compose-only (draft, no send) and is not a channel. Re-probe each session per `references/notifications.md`.
 - Chaining: off — pending re-ask under the v5.10.0 recommendation (this card is `Autonomy: automatic`)
 
