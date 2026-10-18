@@ -1628,3 +1628,29 @@ undecided `max_workers`; refresh the portability lock.
 **Patch update. Reconciliation:** `MANIFEST.md` Table 3, v7.3.1. One new script (`scripts/keel-clock`),
 regenerate `scripts/keel-time`, four new `docs/sessions.md` columns, no new card line; refresh the
 portability lock.
+
+## 7.3.2
+
+### Fixed
+
+- **Parallel workers no longer run test suites.** Each writing worker ran its tests — browser suites
+  included — and the coordinator re-ran affected tests at every integration, so a sprint with many
+  workers ran many suites at once: memory and CPU saturated, everything slowed down and sessions
+  failed or stalled, making parallel development slower than serial. Workers now develop and run only
+  cheap static checks over their own paths (lint, syntax, types); they still write the tests their
+  criteria need. Integration checks run the cheap checks over the combination.
+- **The full suite runs once per batch.** When no worker is in flight, the coordinator runs the
+  project's full verification once on a clean checkout at the integration head. A failure is fixed by
+  the coordinator when that is faster, or by relaunching only the necessary workers as fix slices,
+  and the batch runs again. A sprint closes only on a verified batch.
+
+### Added
+
+- `scripts/keel-parallel verify-batch` — runs the full verification once, refuses while any worker is
+  in flight, and records `keel.batch-evidence/1` (commit, covered slices, pass or fail, log) in the run.
+- A per-repository test lane: `verify-integration` and `verify-batch` never run two suites at once.
+- `scripts/keel-parallel status` and `reconcile` report `batch.state` (`verified`, `pending`, `failed`,
+  `nothing-integrated`); `reconcile` clears an interrupted batch.
+
+**Patch update. Reconciliation:** `MANIFEST.md` Table 3, v7.3.2. Copy the new helper over
+`scripts/keel-parallel`; no new file, no new card line; refresh the portability lock.
