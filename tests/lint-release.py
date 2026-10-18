@@ -409,6 +409,27 @@ if clock_problems:
 else:
     ok("session clock measures overlapping slices and projects parallel work from throughput")
 
+# ---- 17. Parallel workers never run test suites -----------------------------
+# Every worker once ran its own suite, browsers included: N workers ran N suites
+# at once, saturated the machine and made parallel sprints slower than serial.
+parallel_helper_text = (KEEL / "scripts" / "keel_parallel.py").read_text(encoding="utf-8")
+batch_problems = [
+    what for what, present in (
+        ("parallel-development.md: testing section", "## Testing: one full verification per batch" in parallel),
+        ("parallel-development.md: workers never run suites", "**Workers develop; they never run test suites.**" in parallel),
+        ("parallel-development.md: one test lane", "**One test lane per machine.**" in parallel),
+        ("parallel-development.md: verify-batch documented", "`verify-batch --run <run.json>" in parallel),
+        ("parallel-development.md: no per-slice affected tests at integration", "Run affected tests from the recorded previous integration head" not in parallel),
+        ("phase-5-development.md: worker controls name no affected tests", "scope validation and affected tests still run" not in phase5),
+        ("keel_parallel.py: verify-batch command", 'sub.add_parser("verify-batch")' in parallel_helper_text),
+        ("keel_parallel.py: test lane lock", "def test_lane(" in parallel_helper_text),
+    ) if not present
+]
+if batch_problems:
+    fail(f"parallel test-batching contract is incomplete: {batch_problems}")
+else:
+    ok("parallel workers run no suites; the full suite runs once per batch in one test lane")
+
 # ---- Result ----------------------------------------------------------------
 print()
 if failures:

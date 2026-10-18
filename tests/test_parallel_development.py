@@ -265,6 +265,79 @@ class ParallelSchedulerTests(unittest.TestCase):
         with self.assertRaisesRegex(kp.ParallelError, "actual integration branch head"):
             kp.command_record_integration(args)
 
+    def integrated_slices(self, ids):
+        items = [slice_(i, [i.lower() + "/"]) for i in ids]
+        plan = self.plan(items); self.make_run(plan, max_workers=len(ids))
+        claimed = [self.claim(plan, item, item["id"] + "-1") for item in items]
+        for assignment, path in claimed:
+            code = self.report(assignment, path)
+            kp.command_record_review(Args(run=str(self.run_path), attempt=assignment["attempt_id"],
+                                          code_commit=code, verdict="pass", evidence="review"))
+            kp.command_record_integration(self.integrate(assignment))
+        return claimed
+
+    def batch(self, command, candidate=None):
+        return kp.command_verify_batch(Args(run=str(self.run_path), candidate=str(candidate or self.repo),
+            evidence=str(self.root / "batch.json"), timeout=5, check_command=command))
+
+    def test_full_suite_runs_once_after_the_workers_are_integrated(self):
+        self.integrated_slices(["A", "B"])
+        self.assertEqual(kp.command_status(Args(run=str(self.run_path)))["batch"]["state"], "pending")
+        record = self.batch([sys.executable, "-c", "pass"])
+        self.assertTrue(record["passed"])
+        self.assertEqual(record["covers"], ["A", "B"])
+        self.assertEqual(kp.command_status(Args(run=str(self.run_path)))["batch"]["state"], "verified")
+
+    def test_batch_waits_for_workers_in_flight(self):
+        a, b = slice_("A", ["a/"]), slice_("B", ["b/"])
+        plan = self.plan([a, b]); self.make_run(plan)
+        assignment, path = self.claim(plan, a, "A-1"); code = self.report(assignment, path)
+        kp.command_record_review(Args(run=str(self.run_path), attempt="A-1", code_commit=code, verdict="pass", evidence="r"))
+        kp.command_record_integration(self.integrate(assignment))
+        self.claim(plan, b, "B-1")
+        with self.assertRaisesRegex(kp.ParallelError, "no worker is in flight: B"):
+            self.batch([sys.executable, "-c", "pass"])
+
+    def test_failed_batch_stays_failed_until_a_fix_is_verified(self):
+        self.integrated_slices(["A"])
+        with self.assertRaisesRegex(kp.ParallelError, "batch checks failed"):
+            self.batch([sys.executable, "-c", "raise SystemExit(3)"])
+        self.assertEqual(kp.command_status(Args(run=str(self.run_path)))["batch"]["state"], "failed")
+        kp.git_output(self.repo, "commit", "--allow-empty", "-m", "coordinator fix")
+        self.assertEqual(kp.command_status(Args(run=str(self.run_path)))["batch"]["state"], "pending")
+        self.assertTrue(self.batch([sys.executable, "-c", "pass"])["passed"])
+        self.assertEqual(kp.command_status(Args(run=str(self.run_path)))["batch"]["state"], "verified")
+
+    def test_batch_requires_a_clean_checkout_at_the_integration_head(self):
+        self.integrated_slices(["A"])
+        stale = self.root / "stale"
+        kp.git_output(self.repo, "worktree", "add", "-b", "stale", str(stale), self.base_commit)
+        with self.assertRaisesRegex(kp.ParallelError, "integration head"):
+            self.batch([sys.executable, "-c", "pass"], stale)
+        (self.repo / "dirty.txt").write_text("x")
+        with self.assertRaisesRegex(kp.ParallelError, "clean"):
+            self.batch([sys.executable, "-c", "pass"])
+
+    def test_test_lane_never_runs_two_suites_at_once(self):
+        self.integrated_slices(["A"])
+        marker = self.root / "suite-started"
+        slow = ("import time, pathlib; pathlib.Path(%r).write_text('x'); time.sleep(2)" % str(marker))
+        command = [sys.executable, "-B", str(HELPER), "verify-batch", "--run", str(self.run_path),
+                   "--candidate", str(self.repo), "--evidence", str(self.root / "first.json"),
+                   "--", sys.executable, "-c", slow]
+        first = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        deadline = time.monotonic() + 8
+        while not marker.exists() and time.monotonic() < deadline:
+            time.sleep(0.05)
+        self.assertTrue(marker.exists())
+        with kp.run_lock(self.run_path):
+            run = kp.load_run(self.run_path)
+        with self.assertRaisesRegex(kp.ParallelError, "test lane busy"):
+            with kp.test_lane(run):
+                pass
+        first.communicate(timeout=10)
+        self.assertEqual(first.returncode, 0)
+
     def test_worker_role_checks_real_cwd_and_registration(self):
         item = slice_("A", ["a/"]); plan = self.plan([item]); self.make_run(plan)
         assignment, path = self.claim(plan, item, "A-1")

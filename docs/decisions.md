@@ -419,3 +419,22 @@
   (regenerate `scripts/keel-time`, add `scripts/keel-clock`, add the four `docs/sessions.md` columns)
   wait for the user's explicit version instruction. `keel/scripts/keel_clock.py` is listed in Table 2
   at the current version only so the linter's parity holds until then.
+
+## D-041 — Parallel workers develop; the full suite runs once per batch (2026-10-18)
+- Context: the user reported that with parallel development every worker ran its tests — Playwright
+  suites included — and the coordinator re-ran affected tests at every integration. Ten workers meant
+  ten suites at once: RAM and CPU saturated, everything slowed down, sessions failed or stopped, and
+  the sprint ended later than serial work would have.
+- Decision: workers develop and run only cheap static checks over their own paths (lint, syntax,
+  types); they still write the tests their criteria need. Integration runs the cheap checks over the
+  combination and unlocks dependants. When no worker is in flight, the coordinator runs the full
+  verification ONCE on the integration head (`keel-parallel verify-batch`, refusing while workers are
+  in flight), through a per-repository test lane that never runs two suites at once. A failure is
+  fixed by the coordinator when faster, or by fix slices in a new run, then the batch runs again. A
+  sprint closes only on `batch.state: verified`.
+- Alternatives considered: keep per-slice suites but lower `max_workers` (rejected: it trades the
+  speed parallel development exists for, and the suites still overlap); per-slice suites serialized
+  through the lane (rejected: N full runs instead of one, and workers would wait on the lane).
+- Consequence: a slice built on an integrated but not yet verified dependency can inherit its
+  defect; the batch catches it and an intermediate batch is allowed for a doubtful slice with many
+  dependants. Released as v7.3.2 on the user's instruction ("lo lanzas como versión de arreglo menor").
