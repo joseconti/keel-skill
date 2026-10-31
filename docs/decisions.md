@@ -438,3 +438,21 @@
 - Consequence: a slice built on an integrated but not yet verified dependency can inherit its
   defect; the batch catches it and an intermediate batch is allowed for a doubtful slice with many
   dependants. Released as v7.3.2 on the user's instruction ("lo lanzas como versión de arreglo menor").
+
+## D-042 — Parallels is the playground host where available; worktrees are retired (2026-10-31)
+- Context: the user's disk filled up with per-project VMs and Docker stacks. Measured on that Mac:
+  695 GB used, of which 191 GB were 222 worktrees left by parallel development, 96 GB a Go build
+  cache, 131 GB VMs (87 GB in one) and 63 GB Docker. `keel-parallel` had no retirement command.
+- Decision: where `prlctl` works, a project that passes the hosting test gets a site on one shared
+  `keel-development` VM; the rest get linked clones. Reconciliation (standing check 3) proposes the
+  migration per project; Docker resources are deleted only after verification, only the project's
+  own, never with a global prune. New `keel-parallel reap-worktrees`, dry by default. Docker stays
+  the full path without Parallels.
+- Alternatives considered: one VM per project (rejected: repeats the stack); migration inside the
+  reconciliation (rejected: it would block all work on a long task); a machine-level preference file
+  (rejected: detection is enough, and each project gets its own OK).
+- Consequence: `scripts/keel-site` is a contract, like `scripts/keel-doctor`, and the recipe is
+  UNPROVEN: no VM has been built. Do not release until a pilot on `woo-redsys-gateway-light` passes
+  (PHPUnit, Playwright, payment tunnel, read-only shared folder, `prlctl clone --linked` on this
+  edition); adjust the reference with what it finds. Version, CHANGELOG, MANIFEST Table 2 version
+  cells and the Table 3 row wait for the user's explicit version instruction, as in D-040.

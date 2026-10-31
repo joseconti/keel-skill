@@ -53,6 +53,7 @@ Verification is phase-aware and condition-aware: read the project card and phase
 | `docs/playground.md` | Playground access + try-it instructions + seed/reset commands + `last verified:` stamp | Phase 5 scaffold — or the first maintenance/adoption touch on a project that never had one | If the project can be run |
 | `scripts/keel-verify` | The project's own release linter (`references/phase-5-development.md`) | Phase 5 scaffold — or the first maintenance/adoption touch on a project that never had one | If the project can be run |
 | `scripts/playground-tunnel` | Opens a public HTTPS tunnel to the playground (Cloudflare quick tunnel by default), points the playground's public base URL at it and restores `localhost` on every exit path; three modes — open and wait, `--url <https>` to attach to a tunnel already open, `--restore`; exit 0 done / 2 could not run; never in the distributable (`references/inbound-tunnel.md`) | Phase 5 scaffold — or the first maintenance/adoption touch on a project that never had one | Only if an external system calls the project (payment notifications, webhooks, a URL a third party fetches, a remote client connecting to a local server) |
+| `scripts/keel-site` | Non-interactive control of the project's site on the shared `keel-development` VM: provision, create, start/stop, url, wp/sql, test, reset, retire, list, doctor (`references/parallels-development.md`) | Phase 5 scaffold | The card's `Playground host:` is `parallels-shared` |
 | `scripts/keel-affected-tests` | The push-time test selection derived from the diff (`references/test-automation.md` "Which tests run when"): the changed files' tests, their reverse dependencies, the changed tests, the plan's always-run set, and the closed widening list; `--base`, `--run`; an empty selection for a source diff fails; prints one `scope:` line for the evidence | Phase 5 scaffold | If the project has an automated test suite |
 | `.githooks/pre-push` + `core.hooksPath` set | Runs `scripts/keel-affected-tests --run` over every branch being pushed and refuses the push on a red selection or a failed selector; skips tag pushes (the release's evidence is the Phase 7 full-suite run) | Phase 5 scaffold | If the project has an automated test suite |
 | `scripts/keel-doctor` | The environment doctor compiled from the technical plan's `## Environment requirements`: `--check` / `--plan` / `--fix` / `--json`, four states, nothing global installed without the user's OK on an itemized list (`references/test-automation.md`) | Phase 5 scaffold — or the first maintenance/adoption touch on a project that never had one | If the project can be run |
@@ -110,6 +111,7 @@ After an update, re-read `SKILL.md`, the current phase's reference, and THIS fil
 | `scripts/keel_parallel.py` | v7.3.2 |
 | `references/keel-maintenance.md` | v7.3.0 |
 | `references/notifications.md` | v5.14.0 |
+| `references/parallels-development.md` | v7.3.2 |
 | `references/playground-recipes.md` | v7.2.0 |
 | `references/inbound-tunnel.md` | v7.2.0 |
 | `references/test-automation.md` | v7.3.2 |

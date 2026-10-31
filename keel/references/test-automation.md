@@ -293,6 +293,10 @@ Generated at the Phase 5 scaffold from the technical plan's environment requirem
 | Browser MCP scope | `playwright` in `~/.claude.json` `mcpServers` | project `.mcp.json` only | MISSING | advisory | `claude mcp remove -s user playwright`; register it in the project's `.mcp.json` |
 | Browser MCP flags | `.mcp.json` args without `--headless` | `--headless` + `--isolated`, or `--cdp-endpoint` | MISSING | advisory | add the flags to the `playwright` entry's `args` |
 | Orphaned Playwright browsers | 3 (PPID 1) | 0 | MISSING | advisory | `kill <the listed PIDs>` |
+| Parallels | 27.1.0, `prlctl list` OK | usable | OK | blocking on a `parallels-*` host, advisory otherwise | — (never installed by Keel) |
+| `keel-development` VM | absent | exists, disk under its cap | MISSING | blocking on `parallels-shared` | `scripts/keel-site provision` |
+| Retirable worktrees | 41 (38 GB) | 0 | MISSING | advisory | `scripts/keel-parallel reap-worktrees --integration-ref <ref> --apply` |
+| Build caches | go-build 96 GB | under 20 GB | MISSING | advisory | `go clean -cache` |
 
 The four states matter more than they look. Collapsing `NOT OPERATIONAL` into `MISSING` is the single most common doctor bug: it makes the assistant propose reinstalling Docker when all that was needed was to start it. Severity is its own column, not a footnote: **blocking** means no work is possible without it, **optional** means quality of life, **advisory** means the work will complete but under friction the user should know about. Neither an optional nor an advisory row that is missing fails the run, and neither gates a release.
 
