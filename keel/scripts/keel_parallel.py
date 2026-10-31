@@ -3,6 +3,7 @@
 
 This helper validates and records work. It never calls a model service, grants
 permission, merges branches, pushes, installs software, or chooses product scope.
+Its one destructive command, ``reap-worktrees``, only reports unless given ``--apply``.
 Projects copy it to ``scripts/keel-parallel`` when parallel development is on.
 """
 
@@ -1183,6 +1184,112 @@ def command_worker_check(args: argparse.Namespace) -> dict:
     return {"valid": True, "role": "worker", "attempt_id": assignment["attempt_id"], "changed_paths": sorted(changed)}
 
 
+def protected_worktrees(main_worktree: Path, run_paths: list[str]) -> set[str]:
+    """Worktrees a run still owns. An unreadable journal stops the reap: it fails closed."""
+    paths = {Path(path) for path in run_paths}
+    journal = main_worktree / "docs" / ".keel" / "parallel" / "runs"
+    if journal.is_dir():
+        paths.update(journal.rglob("*.json"))
+    protected: set[str] = set()
+    for path in sorted(paths):
+        value = read_json(path)
+        if value.get("schema") != RUN_SCHEMA:
+            continue
+        for attempt in active_attempts(value):
+            worktree = attempt.get("assignment_snapshot", {}).get("worktree")
+            if worktree:
+                protected.add(str(Path(worktree).resolve()))
+    return protected
+
+
+def list_worktrees(repo: Path) -> list[dict]:
+    entries: list[dict] = []
+    for line in git_output(repo, "worktree", "list", "--porcelain").splitlines():
+        key, _, value = line.partition(" ")
+        if key == "worktree":
+            entries.append({"path": value})
+        elif entries and key in {"HEAD", "branch", "locked", "prunable", "bare"}:
+            entries[-1][key] = value or True
+    return entries
+
+
+def worktree_idle_hours(path: Path) -> float:
+    git_dir = Path(git_output(path, "rev-parse", "--absolute-git-dir"))
+    stamps = [item.stat().st_mtime for item in (git_dir / "index", git_dir / "HEAD", path) if item.exists()]
+    return (time.time() - max(stamps)) / 3600
+
+
+def disk_kilobytes(path: Path) -> int:
+    completed = subprocess.run(["du", "-sk", str(path)], check=False, text=True, capture_output=True)
+    return int(completed.stdout.split()[0]) if completed.stdout.strip() else 0
+
+
+def keep_reason(entry: dict, integration_head: str, protected: set[str], here: Path, min_idle_hours: float) -> str | None:
+    path = Path(entry["path"]).resolve()
+    if "locked" in entry:
+        return "locked"
+    if "prunable" in entry or not path.is_dir():
+        return "missing on disk"
+    if here == path or path in here.parents:
+        return "current directory"
+    if str(path) in protected:
+        return "owned by an unresolved attempt"
+    merged = subprocess.run(
+        ["git", "-C", str(path), "merge-base", "--is-ancestor", "HEAD", integration_head],
+        check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+    )
+    if merged.returncode != 0:
+        return "commits not in the integration ref"
+    if git_output(path, "status", "--porcelain"):
+        return "uncommitted changes"
+    if worktree_idle_hours(path) < min_idle_hours:
+        return "used recently"
+    return None
+
+
+def command_reap_worktrees(args: argparse.Namespace) -> dict:
+    if args.min_idle_hours < 0:
+        raise ParallelError("--min-idle-hours cannot be negative")
+    repo = Path(args.repo).resolve()
+    integration_head = git_output(repo, "rev-parse", "--verify", f"refs/heads/{args.integration_ref}^{{commit}}")
+    entries = list_worktrees(repo)
+    main_worktree = Path(entries[0]["path"]).resolve()
+    protected = protected_worktrees(main_worktree, args.run or [])
+    here = Path.cwd().resolve()
+    retire: list[dict] = []
+    kept: list[dict] = []
+    for entry in entries[1:]:
+        reason = keep_reason(entry, integration_head, protected, here, args.min_idle_hours)
+        if reason:
+            kept.append({"path": entry["path"], "reason": reason})
+        else:
+            branch = entry.get("branch")
+            short = branch.removeprefix("refs/heads/") if isinstance(branch, str) else None
+            retire.append({"path": entry["path"], "branch": short, "kilobytes": disk_kilobytes(Path(entry["path"]))})
+    failed: list[dict] = []
+    removed: list[dict] = []
+    if args.apply:
+        for item in retire:
+            done = subprocess.run(["git", "-C", str(main_worktree), "worktree", "remove", item["path"]],
+                                  check=False, text=True, capture_output=True)
+            if done.returncode != 0:
+                failed.append({"path": item["path"], "reason": done.stderr.strip()})
+                continue
+            removed.append(item)
+            if item["branch"] and item["branch"] != args.integration_ref:
+                subprocess.run(["git", "-C", str(main_worktree), "branch", "-d", item["branch"]],
+                               check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    affected = removed if args.apply else retire
+    return {
+        "applied": bool(args.apply),
+        "integration_ref": args.integration_ref,
+        "retirable" if not args.apply else "removed": affected,
+        "kept": kept,
+        "failed": failed,
+        "reclaimed_kilobytes" if args.apply else "reclaimable_kilobytes": sum(item["kilobytes"] for item in affected),
+    }
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
@@ -1264,6 +1371,13 @@ def build_parser() -> argparse.ArgumentParser:
     resolve.add_argument("--attempt", required=True)
     resolve.add_argument("--evidence", required=True)
     resolve.set_defaults(func=command_resolve)
+    reap = sub.add_parser("reap-worktrees")
+    reap.add_argument("--repo", default=".")
+    reap.add_argument("--integration-ref", required=True)
+    reap.add_argument("--run", action="append", help="extra run file; docs/.keel/parallel/runs is always read")
+    reap.add_argument("--min-idle-hours", type=float, default=24.0)
+    reap.add_argument("--apply", action="store_true", help="remove; without it the command only reports")
+    reap.set_defaults(func=command_reap_worktrees)
     return parser
 
 
