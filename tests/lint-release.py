@@ -334,6 +334,24 @@ if tunnel_problems:
 else:
     ok("inbound-tunnel contract and live-drive rule are present")
 
+# ---- 12b. Parallels host and dead traces ------------------------------------
+host = ref_text.get("parallels-development.md", "")
+host_problems = [
+    what for what, present in (
+        ("SKILL.md: the dead-traces rule", "Leave no dead traces (UNBREAKABLE)" in skill),
+        ("parallels-development.md: Docker stays the path without Parallels", "Docker stays a complete, supported path" in host),
+        ("parallels-development.md: default sharing closed", "--shared-cloud off" in host),
+        ("parallels-development.md: never a global prune", "Never `docker system prune`" in host),
+        ("parallels-development.md: connected sites", "## Sites that talk to each other" in host),
+        ("parallel-development.md: reap-worktrees documented", "reap-worktrees" in ref_text.get("parallel-development.md", "")),
+        ("project-state.md: standing check 3", "**Playground host and disk.**" in project_state),
+    ) if not present
+]
+if host_problems:
+    fail(f"Parallels host contract is incomplete: {host_problems}")
+else:
+    ok("Parallels host contract and the dead-traces rule are present")
+
 # ---- 13. Claude Code agent teams flag --------------------------------------
 maintenance = ref_text.get("keel-maintenance.md", "")
 parallel = ref_text.get("parallel-development.md", "")

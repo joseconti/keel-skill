@@ -455,7 +455,8 @@
   on `woo-redsys-gateway-light`, two sites on `keel-development`, same tree on Docker for comparison:
   floor 41 unit, 410 integration, 67/67 e2e; ceiling 41, 410, 63/67, the same 4 a11y failures on
   Docker. API + licence manager + client updated through the real updater with isolation intact,
-  after the user warned that isolation must not cut sites off. Still unmeasured before a release:
-  the public payment tunnel (blocked by the session's permission classifier, the user decides) and
-  host-browser access to named sites. Linked clones are evidenced only by SupportAI's script. Version, CHANGELOG, MANIFEST Table 2 version
-  cells and the Table 3 row wait for the user's explicit version instruction, as in D-040.
+  after the user warned that isolation must not cut sites off. The public tunnel was then measured with the
+  user's OK: forged notification refused, URL restored, tunnel closed. Host-browser access to named
+  sites stays unmeasured and the reference says so. Linked clones are evidenced only by SupportAI's script. The user then ordered v7.4.0 ("publicamos a un
+  7.4") and asked that no dead traces be left, which became a SKILL.md rule after 253 worktrees were
+  retired for 113 GB.

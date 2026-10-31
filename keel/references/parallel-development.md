@@ -138,9 +138,9 @@ Failure leaves the authoritative integration branch unchanged and preserves cand
 
 ## Retiring worktrees
 
-A worktree is a full checkout, usually with its own `node_modules` and `vendor`, so a project that never removes them pays for every slice it has ever built. Measured: 222 worktrees left behind across two projects, 191 GB. Preserving a worktree is a rule for failure and recovery, not a reason to keep it for ever.
+A worktree is a full checkout, usually with its own `node_modules` and `vendor`, so a project that never removes them pays for every slice it has ever built. Measured: 253 worktrees retired across three repositories gave back 113 GB. `du` over-reported the gain, because cloned files share disk, so judge the result by the volume's free space. Preserving a worktree is a rule for failure and recovery, not a reason to keep it for ever. This is SKILL.md's "Leave no dead traces" applied to workers.
 
-**Reap at every `batch.state: verified` and at sprint close:** run `scripts/keel-parallel reap-worktrees --integration-ref <ref>`, read the report, then run it again with `--apply`. It also runs at reconciliation (`references/project-state.md`, standing check 3).
+**Reap at every `batch.state: verified` and at sprint close:** run `scripts/keel-parallel reap-worktrees --integration-ref <ref>`, read the report, then run it again with `--apply`. It also runs at reconciliation (`references/project-state.md`, standing check 3). It covers one repository: a project that spans several runs it once per repository, each with its own integration ref. Before removing anything on a machine where other sessions may be working, read the report first.
 
 Without `--apply` it changes nothing. It removes a worktree only when all of these hold: its `HEAD` is contained in the integration ref, it has no uncommitted or untracked changes, it is not locked, no attempt in `docs/.keel/parallel/runs/` still owns it, it is not the current directory, and it has been idle for `--min-idle-hours` (24 by default). Everything else is listed under `kept` with its reason. It never forces: a squash-merged branch is not an ancestor, so it is reported for a person to judge. An unreadable run file stops the command, and merged branches are deleted with `git branch -d`, never `-D`.
 
