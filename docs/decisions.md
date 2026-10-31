@@ -451,8 +451,11 @@
 - Alternatives considered: one VM per project (rejected: repeats the stack); migration inside the
   reconciliation (rejected: it would block all work on a long task); a machine-level preference file
   (rejected: detection is enough, and each project gets its own OK).
-- Consequence: `scripts/keel-site` is a contract, like `scripts/keel-doctor`, and the recipe is
-  UNPROVEN: no VM has been built. Do not release until a pilot on `woo-redsys-gateway-light` passes
-  (PHPUnit, Playwright, payment tunnel, read-only shared folder, `prlctl clone --linked` on this
-  edition); adjust the reference with what it finds. Version, CHANGELOG, MANIFEST Table 2 version
+- Consequence: `scripts/keel-site` is a contract, like `scripts/keel-doctor`. Pilot run 2026-10-31
+  on `woo-redsys-gateway-light`, two sites on `keel-development`, same tree on Docker for comparison:
+  floor 41 unit, 410 integration, 67/67 e2e; ceiling 41, 410, 63/67, the same 4 a11y failures on
+  Docker. API + licence manager + client updated through the real updater with isolation intact,
+  after the user warned that isolation must not cut sites off. Still unmeasured before a release:
+  the public payment tunnel (blocked by the session's permission classifier, the user decides) and
+  host-browser access to named sites. Linked clones are evidenced only by SupportAI's script. Version, CHANGELOG, MANIFEST Table 2 version
   cells and the Table 3 row wait for the user's explicit version instruction, as in D-040.
