@@ -38,6 +38,8 @@ Parallels is paid software and Keel is used on machines without it, so Docker st
 ## The VM — `keel-development`
 
 - **OS:** Ubuntu Server LTS, in the host's native architecture, the current LTS whose PHP packages are confirmed available. Hosting is mostly Linux with Apache-compatible rules, and PrestaShop and FacturaScripts rely on `.htaccess`.
+- **Parallels Tools are installed in the guest** (`prlctl installtools`, then the unattended installer). Shared folders need them, and they need `build-essential` and the kernel headers first.
+- **Close the default sharing before anything runs on it (UNBREAKABLE).** Out of the box Parallels exposes the user's iCloud and Dropbox inside the guest, writable, under `/media/psf`. Run `prlctl set keel-development --shared-cloud off --smart-mount off --shf-host-defined off`, then `sudo systemctl restart prltoolsd` in the guest, because a sharing change does not reach the guest until that restart and the share can look empty. Verify with `ls /media/psf`: only the shares Keel added may appear.
 - **Software:** Apache with PHP-FPM, several PHP versions side by side (the versions the Keel projects' support matrices promise, from a maintained packaging source), MariaDB, Redis, Composer, Node LTS, WP-CLI, Xdebug (off by default), Mailpit to capture outgoing mail, and `cloudflared` for `references/inbound-tunnel.md`.
 - **Size:** 4 vCPU and 8 GB of RAM to start, raised when evidence says so. **Expanding disk with a declared maximum of 120 GB.** A cap is what makes growth a visible event instead of a surprise.
 - **Provisioning is a script, never a sequence of hand-typed commands:** `keel-site provision` is idempotent, so a lost VM is rebuilt, not mourned. After it passes, take a snapshot named `baseline`.
@@ -48,26 +50,35 @@ Parallels is paid software and Keel is used on machines without it, so Docker st
 
 Each site gets its own vhost, document root, database and database user, PHP-FPM pool running as its own Unix user with the PHP version of its support matrix, Redis key prefix, and `open_basedir`. Isolation between sites protects test results and contains mistakes; it is not a security boundary against hostile code, which is why audits go elsewhere (below).
 
-**Source reaches the VM through a read-only Parallels shared folder scoped to that repository**, mapped into the site (`wp-content/plugins/<slug>`, `modules/<slug>`, `Plugins/<slug>`). Share one repository at a time, never the whole projects directory. Build and install dependencies on the host, where it is fast; the VM reads the result.
+**Source reaches the VM through a read-only Parallels shared folder scoped to that repository**, bind-mounted read-only into the site (`wp-content/plugins/<slug>`, `modules/<slug>`, `Plugins/<slug>`). Share one repository at a time, never the whole projects directory. Build and install dependencies on the host, where it is fast; the VM reads the result.
+
+- **A bind mount, never a symlink.** With a symlink WordPress resolves the plugin to its real path, so `plugin_basename()` returns `media/psf/...` and anything that depends on the plugin's identity breaks. Measured: 7 integration failures that disappeared with the bind mount.
+- **Bind mounts do not survive a reboot.** A systemd oneshot ordered after `prltoolsd` restores them and waits for the share to have content. Without it the site still answers 200, with the plugin silently missing.
+- **Tools that write into the source need redirecting.** PHPUnit runs with `--do-not-cache-result`, because the source is read-only.
 
 **Parallel workers do not each get a site.** Workers develop and run only cheap static checks (`references/parallel-development.md`), and the full suite runs once per batch, so one project site plus one test site cover normal work. A slice that needs its own live drive at the same time as another gets a temporary `<slug>-<slice>` site, retired when the slice integrates.
 
 ## `scripts/keel-site` — the contract
 
-Generated at the scaffold, in the same way as `scripts/keel-doctor`, only for projects on `parallels-shared`. Every command is non-interactive, reports what it did, returns nonzero on failure and reaches the VM through `prlctl exec`.
+Generated at the scaffold, in the same way as `scripts/keel-doctor`, only for projects on `parallels-shared`. Every command is non-interactive, reports what it did, returns nonzero on failure and reaches the VM over SSH with a dedicated key (`prlctl exec` also works once Parallels Tools are installed).
 
 | Command | Does |
 |---|---|
 | `provision` | Creates or converges the VM; idempotent; never run implicitly by another command |
-| `create <site>` | Creates the tenant, installs the platform at the pinned version, maps the plugin, seeds |
+| `create <site>` | Creates the tenant, installs the platform at the pinned version, maps the plugin, removes the default content a bare install adds, warms the tests database, seeds |
 | `start` / `stop` | Starts or suspends the VM. Suspending is refused while another project's work is using it |
 | `url <site>` | Prints the site's address |
 | `wp <site> <args>`, `sql <site> <args>` | Runs WP-CLI or SQL as that site's user |
-| `test <site> <args>` | Runs PHPUnit against a real load of the platform |
+| `test <site> <args>` | Runs PHPUnit from the site's plugin path, against a real load of the platform |
 | `reset <site>` | Clean plus seed: the known state. Touches that site only |
-| `retire <site>` | Removes the vhost, pool, user, database, cache keys and shared folder, and reports the space |
+| `retire <site>` | Removes the vhost, pool, mount, database and its user, cache keys, Unix user AND its group (the web server belongs to it, so `userdel` alone leaves it behind and the next `create` fails), and reports the space |
 | `list` | Every site: project, last use, disk |
 | `doctor` | VM state, versions, disk against the cap, sites unused for 30 days |
+
+Two traps `create` must absorb, both measured:
+
+- **`wp core install` on WordPress 7.0 and later adds a `wp_navigation` post.** Specs and seeds that rely on hard-coded IDs shift by one. Delete it and reset `AUTO_INCREMENT` before any plugin activates.
+- **The first PHPUnit run on an empty tests database is not representative.** WooCommerce installs itself during that run, and two tests failed on it and passed on every later run, on both PHP versions. `create` runs a warm-up, and a result counts from the second run on.
 
 `reset` is per site, deliberately. A VM snapshot restores every project's state at once, so **restoring `baseline` is a maintenance act, never a test step.**
 
@@ -83,7 +94,30 @@ Generated at the scaffold, in the same way as `scripts/keel-doctor`, only for pr
 | Playwright `webServer` starting wp-env | `baseURL` from `keel-site url`; Playwright stays on the host, headless, recorded as always |
 | Debug log inside the container | The site's own `debug.log`, read back at each test point |
 
-`scripts/playground-tunnel` runs unchanged in shape: it forwards to the site's address and points that site's public URL at the tunnel. Every other site is untouched. The driver does not take over the user's screen: the VM runs headless.
+`scripts/playground-tunnel` keeps its contract: it forwards to the site's address and points that site's public URL at the tunnel, and every other site is untouched. **Not yet measured on this host:** record the first real run as evidence, and treat it as `⚠ unverified` until then. The driver does not take over the user's screen: the VM runs headless.
+
+A project's own scripts and specs that call `npx wp-env run` must move to `keel-site` as part of the migration. Tests that shell out to it are easy to miss, so search for them.
+
+## Sites that talk to each other
+
+Isolation separates files, databases and Unix users. **It must never separate the network.** Real systems span several sites: an API, a licence manager and a client that asks both questions and updates itself from one of them. They stay on the shared VM as separate tenants, and they must reach each other exactly as they would in production.
+
+**`IP:port` does not work for this.** WordPress refuses, in `wp_safe_remote_*`, private addresses and every port except 80, 443 and 8080, and `download_url()`, which the updater uses, goes through it. So a test of an update or a licence call on that scheme fails for a reason production does not have. Measured: `A valid URL was not provided.`
+
+**Connected sites use real names and real HTTPS:**
+
+- **`<site>.keel.test` on ports 80 and 443**, name-based vhosts on the same Apache. `.test` is reserved and can never collide with a real domain.
+- **Names resolve inside the VM** through its `/etc/hosts`.
+- **A local certificate authority** signs a `*.keel.test` wildcard and is installed in the guest's trust store. It exists only in this VM and is never trusted on the host by default.
+- **A development-only must-use plugin in each connected WordPress site** does two things for `*.keel.test` hosts and nothing else: returns true from `http_request_host_is_external`, and points `sslcertificates` at a copy of the system bundle inside the site's root, because WordPress ships its own bundle and `open_basedir` would hide the system one. It lives only on the VM, never in the repository's shipped code. **The product's own code stays unmodified**, so what is exercised is what ships.
+
+Non-WordPress clients need only the names and the CA.
+
+**A site stands alone on `IP:port` unless it declares partners.** That scheme needs no change on the host and is enough for a plugin that calls nothing else on the VM. The technical plan lists a project's partner sites beside its inbound calls, and those sites are created with names.
+
+**The evidence for connected sites is a real exchange in both directions of the contract:** the call made through the same HTTP functions the product uses, from `php-fpm` as well as from the CLI because `open_basedir` applies only to the former, a negative case (an invalid licence gets no package), and the update applied through the platform's real updater. Then confirm isolation still holds: the client's PHP, its Unix user and its database user each fail to read the other tenant.
+
+Reaching a named site from a browser on the host needs host-side name resolution, which needs the user's OK because it requires `sudo`: an `/etc/hosts` line, or a resolver for `keel.test`. Keel asks; it never edits host resolution silently. This route has not been measured yet.
 
 ## Dedicated VMs — linked clones first
 
@@ -124,6 +158,20 @@ Do not start while a parallel run or an open sprint batch is in flight. A runnin
 7. **Report** the space freed and record the migration, with its evidence, in `docs/05-test-points.md` and `docs/decisions.md`.
 
 **A migration that fails verification leaves Docker intact.** The row stays open with the reason, the project keeps working where it was, and the failure becomes an L-entry. Destroying the working environment before the new one is proven is the one mistake this procedure exists to prevent.
+
+## What the first real project proved
+
+Pilot on an existing WooCommerce plugin, as two sites on one VM, with Docker running the same tree as the comparison:
+
+| Check | Result |
+|---|---|
+| Floor site (PHP 7.4, WordPress 7.0, WooCommerce 7.4): unit, integration, browser | 41, 410 and 67 of 67 passed |
+| Ceiling site (PHP 8.4, WordPress 7.1, WooCommerce 11.2): unit, integration, browser | 41 and 410 passed; browser 63 of 67, the same 4 failures on Docker |
+| VM disk with both sites and the suites run | 8.6 GB |
+| Reboot | Services, share and mounts return |
+| API, licence manager and client as three tenants | Update applied through the real updater; isolation held |
+
+**The comparison is what made these numbers mean something.** Run the same tree on the old host before calling a failure new or old. Twice here the plausible explanation was wrong, and only the comparison and a repeated run found the real cause.
 
 ## The disk — what actually fills it
 
