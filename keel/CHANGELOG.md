@@ -1654,3 +1654,36 @@ portability lock.
 
 **Patch update. Reconciliation:** `MANIFEST.md` Table 3, v7.3.2. Copy the new helper over
 `scripts/keel-parallel`; no new file, no new card line; refresh the portability lock.
+
+## 7.4.0
+
+### Added
+
+- **Parallels as the playground host.** Where `prlctl` works, a project that would run on an ordinary
+  hosting account gets an isolated site on one shared `keel-development` VM instead of its own
+  machine. Several PHP versions run side by side. A project that needs its own server gets a linked
+  clone. Docker stays the complete path without Parallels (`references/parallels-development.md`).
+- **`scripts/keel-site` contract**, generated for projects on the shared VM: provision, create,
+  start/stop, url, wp/sql, test, reset, retire, list, doctor.
+- **Connected sites.** Isolation separates files, databases and users, never the network. An API, a
+  licence manager and a client reach each other through `*.keel.test` names over HTTPS with a local
+  certificate authority, because WordPress refuses private addresses and other ports in the requests
+  its updater uses.
+- **`scripts/keel-parallel reap-worktrees`.** Reports the worktrees safe to retire and removes them
+  only with `--apply`: merged, clean, unlocked, unowned and idle. It never forces.
+- **Docker migration through the reconciliation**, per project, with the user's OK. Docker resources
+  are deleted only after verification on the new host, and only that project's.
+- **Project card line `Playground host:`**, a playground-host row in Phase 2 §4, and `keel-doctor`
+  rows for Parallels, the VM, retirable worktrees and build caches.
+
+### Changed
+
+- **New rule: leave no dead traces.** What a session or worker creates and no longer needs is removed
+  when that work ends, verified and never forced.
+- **Worktrees are retired** at every verified batch, at sprint close and at reconciliation. Nothing
+  retired them before.
+- **Reconciliation gains standing check 3**: playground host, migration proposal and worktree retirement.
+- **Security audits that execute code run in a throwaway clone**, never on the shared VM.
+- **Parallels' default sharing of iCloud and Dropbox is closed** before anything runs on the VM.
+
+**Minor update. Reconciliation:** `MANIFEST.md` Table 3, v7.4.0.

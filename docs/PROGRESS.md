@@ -16,7 +16,7 @@
 - Keel portability: lock only — this repo is the SOURCE of the skill; it does not embed a copy of itself.
 - Assistant config: none (tools: claude) — no `.claude/` package generated for this repo.
 - Models: runtime-selected — no backend is assumed from a product name; real writing backends remain unverified in this repository.
-- Keel baseline: v7.3.2 — this repository authors the version it is on, so the baseline always equals the version being written.
+- Keel baseline: v7.4.0 — this repository authors the version it is on, so the baseline always equals the version being written.
 - Website intent: no
 - Client budget: no — the skill is the user's own product, not client work.
 - User guide: n/a — `README.md` and `INSTALL.md` serve that role for a skill.
@@ -50,13 +50,13 @@ This repository was adopted into its own discipline late (state files created 20
 - Phase: maintenance — **v7.3.0 always enables Claude Code agent teams, runs parallel development at full capacity, and makes the post-update reconciliation mandatory with two standing checks** (D-039). Standing check 1 applied to this repo: `.claude/settings.local.json` created with the flag alone (it did not exist, although the card records Keel writing it for automatic mode). v7.2.0 added the inbound tunnel and the live drive (D-038). v7.0.0 backend acceptance remains incomplete (D-037, `docs/parallel-development-review.md`).
 - Previous states: v7.2.0 (published 2026-10-13) is the Git baseline this change started from; older release history is in `keel/CHANGELOG.md` and Git.
 - v7.3.1 (patch, D-040) published 2026-10-17: the session clock measures parallel development — evidence in `docs/release-v7.3.1.md`.
-- Unreleased on `develop` (D-042): Parallels playground host, `references/parallels-development.md`, standing check 3 and `keel-parallel reap-worktrees`. The pilot on `woo-redsys-gateway-light` passed except the public tunnel and host-browser access to named sites, which are unmeasured. Next action: measure those two, then get the user's version instruction.
+- v7.4.0 (minor, D-042): Parallels playground host, connected sites, `reap-worktrees`, the dead-traces rule. Evidence in `docs/release-v7.4.0.md`.
 - Previous next action: none for v7.3.1. Downstream projects reconcile per Table 3 v7.3.1 at their next session start. Still open from v7.0.0: the isolated backend and generated-hook acceptance described in `docs/parallel-development-review.md`.
 
 ## Open items
 - Unresolved user questions: none
 - Open Design Requests: none
-- Unverified external steps/assets: `keel-development` public tunnel and host-browser access to named sites (D-042); real writing-backend smoke run in a disposable repository (native or CLI); deterministic scheduling is verified separately and does not prove this.
+- Unverified external steps/assets: host-browser access to named sites on `keel-development` (D-042); real writing-backend smoke run in a disposable repository (native or CLI); deterministic scheduling is verified separately and does not prove this.
 - Forge issues in progress: none
 - **Published:** v7.3.0 — evidence in `docs/release-v7.3.0.md`. Instructions only: no agent team launched and no project run at `max_workers: max`; evals E28–E30 written, not run.
 - **Reconciliation pending on other projects:** v7.3.0's agent teams flag and `max_workers: max` migration at the next session start; apply the v7.0.0 Table 3 delta only when each project chooses parallel development; v7.1.0's evidence rule at the next static-analysis test point; v7.2.0's inbound-call inventory and live drive at the next test point.

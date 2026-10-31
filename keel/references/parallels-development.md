@@ -94,7 +94,7 @@ Two traps `create` must absorb, both measured:
 | Playwright `webServer` starting wp-env | `baseURL` from `keel-site url`; Playwright stays on the host, headless, recorded as always |
 | Debug log inside the container | The site's own `debug.log`, read back at each test point |
 
-`scripts/playground-tunnel` keeps its contract: it forwards to the site's address and points that site's public URL at the tunnel, and every other site is untouched. **Not yet measured on this host:** record the first real run as evidence, and treat it as `⚠ unverified` until then. The driver does not take over the user's screen: the VM runs headless.
+`scripts/playground-tunnel` keeps its contract: it forwards to the site's address and points that site's public URL at the tunnel, and every other site is untouched. `cloudflared` runs inside the VM. Measured: a forged payment notification arrived from the public URL and was refused, the site's URL was restored, and the public address stopped answering. The driver does not take over the user's screen: the VM runs headless.
 
 A project's own scripts and specs that call `npx wp-env run` must move to `keel-site` as part of the migration. Tests that shell out to it are easy to miss, so search for them.
 
@@ -169,6 +169,7 @@ Pilot on an existing WooCommerce plugin, as two sites on one VM, with Docker run
 | Ceiling site (PHP 8.4, WordPress 7.1, WooCommerce 11.2): unit, integration, browser | 41 and 410 passed; browser 63 of 67, the same 4 failures on Docker |
 | VM disk with both sites and the suites run | 8.6 GB |
 | Reboot | Services, share and mounts return |
+| Public tunnel into one site | Reached from outside, forged notification refused, URL restored, tunnel closed |
 | API, licence manager and client as three tenants | Update applied through the real updater; isolation held |
 
 **The comparison is what made these numbers mean something.** Run the same tree on the old host before calling a failure new or old. Twice here the plausible explanation was wrong, and only the comparison and a repeated run found the real cause.
@@ -179,13 +180,14 @@ Measured on a real development machine with 695 GB in use, the virtual machines 
 
 | Source | Size |
 |---|---|
-| Parallel-development worktrees left behind (222) | 191 GB |
+| Parallel-development worktrees left behind (253 retired, 113 GB of real free space gained) | 208 GB by `du` |
 | Language build cache | 96 GB |
 | Virtual machines | 131 GB |
 | Docker | 63 GB |
 
 So every rule below ships together with the shared VM, and none of them depends on Parallels.
 
+- **No dead traces.** SKILL.md's rule applies to every item below: what no longer serves is removed when its work ends, verified and never forced.
 - **Worktrees are retired, not accumulated.** `keel-parallel reap-worktrees` at each batch verification and sprint close (`references/parallel-development.md`, "Retiring worktrees"). Each one carries its own `node_modules` and `vendor`.
 - **Sites and VMs are retired.** When a project goes idle, or `keel-site doctor` lists a site unused for 30 days, propose `retire`. A rebuild costs minutes; a forgotten site costs disk for ever.
 - **Expanding disks do not give space back by themselves.** Deleting files inside a VM frees it there, not on the host. With the VM stopped, compact it: `prl_disk_tool compact --hdd <path>.hdd`.
