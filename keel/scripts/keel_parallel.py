@@ -1618,7 +1618,8 @@ def main(argv: list[str] | None = None) -> int:
     if getattr(args, "check_command", None) and args.check_command[0] == "--":
         args.check_command = args.check_command[1:]
     try:
-        return output(args.func(args))
+        result = args.func(args)
+        return 0 if result is None else output(result)
     except (ParallelError, OSError, ValueError, TypeError, KeyError, subprocess.TimeoutExpired) as exc:
         return output({"error": str(exc)}, 1)
 

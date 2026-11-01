@@ -741,6 +741,13 @@ class ParallelSchedulerTests(unittest.TestCase):
                          {item["name"]: item["reason"] for item in found})
         self.assertEqual({"prlctl list", "docker ps"}, {" ".join(c[:2]) for c in calls if c[0] != "du"})
 
+    def test_the_session_hook_prints_only_the_summary(self):
+        report = self.root / "report.json"
+        report.write_text(json.dumps({"swept_at": int(time.time()), "repositories": [], "machine_candidates": []}), encoding="utf-8")
+        done = subprocess.run([sys.executable, str(HELPER), "sweep-hook", "--root", str(self.root), "--report", str(report)],
+                              check=True, text=True, capture_output=True)
+        self.assertEqual("", done.stdout)
+
     def test_a_stopped_docker_daemon_reports_nothing(self):
         with patch.object(kp.shutil, "which", return_value="found"), \
                 patch.object(kp.subprocess, "run", return_value=Args(returncode=1, stdout="")):
