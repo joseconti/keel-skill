@@ -460,3 +460,11 @@
   sites stays unmeasured and the reference says so. Linked clones are evidenced only by SupportAI's script. The user then ordered v7.4.0 ("publicamos a un
   7.4") and asked that no dead traces be left, which became a SKILL.md rule after 253 worktrees were
   retired for 113 GB.
+
+## D-043 — Cleanup is a contract clause; a machine-wide sweep is only the safety net (2026-11-01)
+
+- Decision: whoever creates a worktree, machine, clone, site or tunnel removes it as soon as its use ends, in the same session. The clause lives in the lock block, SKILL.md, the integration transaction and the machines contract, which covers Parallels and Docker alike. `keel-parallel sweep` covers sessions that die first.
+- Why: the user found 40 abandoned worktrees in one project after the dead-traces rule existed, and that session called its answer "a permanent rule" although nothing outside its chat changed. The rule fired at sprint close, which a dead session never reaches.
+- Sweep limits: removes only clean, idle worktrees with no live process and commits held by a branch, because the commits survive. Machines are never deleted by a script: every machine without a valid lease is reported until the user decides.
+- Alternatives considered: an idle threshold for VMs (rejected: on this machine it flagged none, and it lets test machines accumulate); launchd (rejected: session-start runs where sessions run, and can tell the session what it found).
+- Consequence: the lock block changed, so projects refresh it through lock freshness. No version bump or changelog entry: none was ordered. Docker reporting is tested with fakes only; the daemon was stopped.

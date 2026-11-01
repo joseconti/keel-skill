@@ -643,6 +643,126 @@ class ParallelSchedulerTests(unittest.TestCase):
         return subprocess.run(["git", "branch", "--format=%(refname:short)"], cwd=self.repo,
                               check=True, text=True, capture_output=True).stdout.split()
 
+    def worktree(self, name, branch):
+        path = self.root / name
+        subprocess.run(["git", "worktree", "add", "-q", "-b", branch, str(path)], cwd=self.repo, check=True)
+        return path
+
+    def sweep(self, apply=False, stale=0.0, busy=frozenset()):
+        return kp.sweep_repository(self.repo.resolve(), stale, apply, set(busy))
+
+    def commit_in(self, path):
+        (path / "work.txt").write_text("work\n", encoding="utf-8")
+        subprocess.run(["git", "add", "."], cwd=path, check=True)
+        subprocess.run(["git", "commit", "-qm", "work"], cwd=path, check=True)
+
+    def test_sweep_removes_a_clean_unmerged_worktree_and_keeps_its_branch(self):
+        path = self.worktree("agent", "wip/agent")
+        self.commit_in(path)
+        report = self.sweep(apply=True)
+        self.assertEqual(1, len(report["removed"]))
+        self.assertFalse(path.exists())
+        self.assertIn("wip/agent", self.branches())
+
+    def test_sweep_only_reports_without_apply(self):
+        path = self.worktree("agent", "wip/agent")
+        self.assertEqual(1, len(self.sweep()["retirable"]))
+        self.assertTrue(path.exists())
+
+    def test_sweep_keeps_dirty_recent_and_busy_worktrees(self):
+        dirty = self.worktree("dirty", "wip/dirty")
+        (dirty / "new.txt").write_text("x\n", encoding="utf-8")
+        recent = self.worktree("recent", "wip/recent")
+        self.assertEqual({str(dirty.resolve()): "uncommitted changes",
+                          str(recent.resolve()): "used recently"},
+                         {str(Path(i["path"]).resolve()): i["reason"] for i in self.sweep(apply=True, stale=24.0)["kept"]})
+        busy = self.worktree("busy", "wip/busy")
+        report = self.sweep(apply=True, busy={busy.resolve() / "sub"})
+        self.assertIn("a process is working in it", [i["reason"] for i in report["kept"]])
+
+    def test_sweep_keeps_a_person_lock_and_removes_a_dead_process_lock(self):
+        held = self.worktree("held", "wip/held")
+        subprocess.run(["git", "worktree", "lock", "--reason", "mine", str(held)], cwd=self.repo, check=True)
+        dead = self.worktree("dead", "wip/dead")
+        spent = subprocess.Popen(["true"]); spent.wait()
+        subprocess.run(["git", "worktree", "lock", "--reason", f"claude agent x (pid {spent.pid} start y)", str(dead)],
+                       cwd=self.repo, check=True)
+        report = self.sweep(apply=True)
+        self.assertFalse(dead.exists())
+        self.assertTrue(held.exists())
+        self.assertEqual(["locked"], [i["reason"] for i in report["kept"]])
+
+    def test_sweep_keeps_detached_commits_no_branch_holds(self):
+        path = self.worktree("loose", "wip/loose")
+        subprocess.run(["git", "checkout", "-q", "--detach"], cwd=path, check=True)
+        self.commit_in(path)
+        self.assertEqual(["detached commits no branch holds"], [i["reason"] for i in self.sweep(apply=True)["kept"]])
+
+    def test_sweep_never_deletes_a_long_lived_branch(self):
+        subprocess.run(["git", "branch", "main"], cwd=self.repo, check=True)
+        path = self.root / "stable"
+        subprocess.run(["git", "worktree", "add", "-q", str(path), "main"], cwd=self.repo, check=True)
+        self.assertEqual(1, len(self.sweep(apply=True)["removed"]))
+        self.assertIn("main", self.branches())
+
+    def test_sweep_does_not_restart_the_idle_clock_it_measures(self):
+        path = self.worktree("agent", "wip/agent")
+        git_dir = Path(subprocess.run(["git", "rev-parse", "--absolute-git-dir"], cwd=path, check=True,
+                                      text=True, capture_output=True).stdout.strip())
+        old = time.time() - 7200
+        (path / "README.md").touch()
+        for item in (git_dir / "index", git_dir / "HEAD", path):
+            kp.os.utime(item, (old, old))
+        self.assertEqual(1, len(self.sweep(stale=1.0)["retirable"]))
+        self.assertEqual(1, len(self.sweep(stale=1.0)["retirable"]))
+
+    def test_sweep_reports_machines_of_both_kinds_and_never_deletes_them(self):
+        machines = [
+            {"Name": "old", "State": "stopped", "Description": "", "Home": str(self.root)},
+            {"Name": "base", "State": "running", "Description": "keel-lease: owner=x until=never", "Home": str(self.root)},
+            {"Name": "audit", "State": "stopped", "Description": "keel-lease: owner=x until=2020-01-01", "Home": str(self.root)},
+        ]
+        containers = [
+            {"Names": "a", "State": "exited", "Labels": "com.docker.compose.project=shop"},
+            {"Names": "b", "State": "exited", "Labels": "com.docker.compose.project=shop,keel.lease.until=2020-01-01"},
+            {"Names": "c", "State": "running", "Labels": "keel.lease.until=never"},
+        ]
+        calls = []
+        def run(argv, **kwargs):
+            calls.append(argv)
+            if argv[0] == "prlctl":
+                return Args(returncode=0, stdout=json.dumps(machines))
+            if argv[0] == "docker":
+                return Args(returncode=0, stdout="\n".join(json.dumps(item) for item in containers))
+            return Args(returncode=0, stdout="1\tx\n")
+        with patch.object(kp.shutil, "which", return_value="found"), patch.object(kp.subprocess, "run", run):
+            found = kp.sweep_virtual_machines() + kp.sweep_containers()
+        self.assertEqual({"old": "no lease", "audit": "lease expired", "shop": "no lease"},
+                         {item["name"]: item["reason"] for item in found})
+        self.assertEqual({"prlctl list", "docker ps"}, {" ".join(c[:2]) for c in calls if c[0] != "du"})
+
+    def test_the_session_hook_prints_only_the_summary(self):
+        report = self.root / "report.json"
+        report.write_text(json.dumps({"swept_at": int(time.time()), "repositories": [], "machine_candidates": []}), encoding="utf-8")
+        done = subprocess.run([sys.executable, str(HELPER), "sweep-hook", "--root", str(self.root), "--report", str(report)],
+                              check=True, text=True, capture_output=True)
+        self.assertEqual("", done.stdout)
+
+    def test_a_stopped_docker_daemon_reports_nothing(self):
+        with patch.object(kp.shutil, "which", return_value="found"), \
+                patch.object(kp.subprocess, "run", return_value=Args(returncode=1, stdout="")):
+            self.assertEqual([], kp.sweep_containers())
+
+    def test_sweep_reaches_every_repository_past_a_broken_one(self):
+        (self.repo / "docs" / ".keel" / "parallel" / "runs").mkdir(parents=True)
+        (self.repo / "docs" / ".keel" / "parallel" / "runs" / "bad.json").write_text("{", encoding="utf-8")
+        self.worktree("agent", "wip/agent")
+        with patch.object(kp, "process_directories", return_value=set()):
+            report = kp.command_sweep(Args(root=[str(self.root)], stale_hours=0.0, apply=True,
+                                           report=None))
+        self.assertIn("error", report["repositories"][0])
+        self.assertTrue((self.root / "agent").exists())
+
     def test_reap_only_reports_without_apply(self):
         done = self.add_worktree("done")
         report = self.reap()

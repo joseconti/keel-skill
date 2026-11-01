@@ -1565,7 +1565,7 @@ The project root carries the Keel block below in TWO files, always: `CLAUDE.md` 
 One tool needs a third step: **Gemini CLI reads `GEMINI.md`, not `AGENTS.md`, by default.** If the user works with Gemini CLI, ask once and record the pick: mirror the same block in `GEMINI.md` (a third copy of the lock, refreshed with the others), or commit a `.gemini/settings.json` whose `context.fileName` includes `AGENTS.md` (no third copy to maintain). Either satisfies the lock.
 
 ```
-<!-- KEEL:BEGIN — v7.4.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
+<!-- KEEL:BEGIN — v7.5.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
 # Keel protocol (mandatory for ANY assistant working in this repository)
 
 This project is governed by the Keel workflow. Before reading code or changing ANYTHING:
@@ -1578,6 +1578,14 @@ maintenance, resume, reconciliation, global timing/close, push or chaining. The
 worker may write only its assigned paths and per-attempt report. A bare environment
 variable or prompt cannot select this role. Invalid worker identity fails closed.
 With no valid assignment, follow every normal step below unchanged.
+
+**Cleanup contract (UNBREAKABLE, every session and agent):** whoever creates
+something removes it as soon as its use ends, in the same session, and never
+leaves it for later: a worktree as soon as its work is integrated; a Parallels or
+Docker machine, clone, site or tunnel as soon as it is no longer needed. Machines
+for specific tests are never accumulated. Verified, never forced;
+anything holding unintegrated work stays and is reported. Saying a rule in a chat
+does not make it permanent: this contract does.
 
 1. Read the FULL Keel `SKILL.md` FIRST, before anything else in this repository —
    from the installed `keel` skill if present, otherwise from the embedded copy

@@ -3,7 +3,7 @@
 
 This helper validates and records work. It never calls a model service, grants
 permission, merges branches, pushes, installs software, or chooses product scope.
-Its one destructive command, ``reap-worktrees``, only reports unless given ``--apply``.
+Its destructive commands, ``reap-worktrees`` and ``sweep``, only report unless given ``--apply``.
 Projects copy it to ``scripts/keel-parallel`` when parallel development is on.
 """
 
@@ -19,6 +19,7 @@ import json
 import os
 import signal
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -1290,6 +1291,221 @@ def command_reap_worktrees(args: argparse.Namespace) -> dict:
     }
 
 
+SWEEP_REFS = ("develop", "main", "master", "trunk")
+SWEEP_BRANCH_PREFIXES = ("worktree-", "wip/", "worker/", "feature/", "fix/")
+SWEEP_HOME = Path.home() / ".keel"
+LOCK_PID = re.compile(r"\bpid (\d+)\b")
+VM_LEASE = re.compile(r"keel-lease:\s*owner=(\S+)\s+until=(\S+)")
+DOCKER_LEASE = re.compile(r"keel\.lease\.until=([^,]+)")
+
+
+def lock_is_stale(lock: object) -> bool:
+    """Only a lock naming a dead process is stale. A lock without a pid is a person's."""
+    match = LOCK_PID.search(lock) if isinstance(lock, str) else None
+    if not match:
+        return False
+    try:
+        os.kill(int(match.group(1)), 0)
+    except ProcessLookupError:
+        return True
+    except OSError:
+        return False
+    return False
+
+
+def process_directories() -> set[Path]:
+    """Every working directory a process holds. Failing to read them stops the sweep."""
+    completed = subprocess.run(["lsof", "-a", "-d", "cwd", "-Fn"], check=False, text=True, capture_output=True)
+    paths = {Path(line[1:]) for line in completed.stdout.splitlines() if line.startswith("n/")}
+    if not paths:
+        raise ParallelError("cannot read process working directories; sweep stopped")
+    return paths
+
+
+def sweep_keep_reason(entry: dict, refs: list[str], protected: set[str], here: Path,
+                      stale_hours: float, busy: set[Path]) -> str | None:
+    path = Path(entry["path"]).resolve()
+    if "locked" in entry and not lock_is_stale(entry["locked"]):
+        return "locked"
+    if "prunable" in entry or not path.is_dir():
+        return "missing on disk"
+    if here == path or path in here.parents:
+        return "current directory"
+    if any(item == path or path in item.parents for item in busy):
+        return "a process is working in it"
+    if str(path) in protected:
+        return "owned by an unresolved attempt"
+    # Idle first, and no optional locks: a plain status refreshes the index and would restart the clock.
+    idle = worktree_idle_hours(path)
+    if git_output(path, "--no-optional-locks", "status", "--porcelain"):
+        return "uncommitted changes"
+    if idle < stale_hours:
+        return "used recently"
+    if not isinstance(entry.get("branch"), str) and not any(
+            subprocess.run(["git", "-C", str(path), "merge-base", "--is-ancestor", "HEAD", ref],
+                           check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0
+            for ref in refs):
+        return "detached commits no branch holds"
+    return None
+
+
+def sweep_repository(repo: Path, stale_hours: float, apply: bool, busy: set[Path]) -> dict:
+    """A clean worktree on a branch costs nothing to remove: its commits stay in the branch."""
+    entries = list_worktrees(repo)
+    main_worktree = Path(entries[0]["path"]).resolve()
+    protected = protected_worktrees(main_worktree, [])
+    refs = [ref for ref in SWEEP_REFS if subprocess.run(
+        ["git", "-C", str(repo), "rev-parse", "-q", "--verify", f"refs/heads/{ref}"],
+        check=False, stdout=subprocess.DEVNULL).returncode == 0]
+    here = Path.cwd().resolve()
+    report: dict = {"repo": str(repo), "removed": [], "retirable": [], "kept": [], "failed": []}
+    for entry in entries[1:]:
+        reason = sweep_keep_reason(entry, refs, protected, here, stale_hours, busy)
+        if reason:
+            report["kept"].append({"path": entry["path"], "reason": reason})
+            continue
+        branch = entry.get("branch")
+        short = branch.removeprefix("refs/heads/") if isinstance(branch, str) else None
+        item = {"path": entry["path"], "branch": short, "kilobytes": disk_kilobytes(Path(entry["path"]))}
+        if not apply:
+            report["retirable"].append(item)
+            continue
+        if "locked" in entry:
+            subprocess.run(["git", "-C", str(main_worktree), "worktree", "unlock", entry["path"]],
+                           check=False, capture_output=True)
+        done = subprocess.run(["git", "-C", str(main_worktree), "worktree", "remove", entry["path"]],
+                              check=False, text=True, capture_output=True)
+        if done.returncode:
+            report["failed"].append({"path": entry["path"], "reason": done.stderr.strip()})
+            continue
+        report["removed"].append(item)
+        if short and short.startswith(SWEEP_BRANCH_PREFIXES):
+            subprocess.run(["git", "-C", str(main_worktree), "branch", "-d", short],
+                           check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    return report
+
+
+def lease_verdict(until: str | None) -> str | None:
+    if until is None:
+        return "no lease"
+    if until != "never" and until < time.strftime("%Y-%m-%d"):
+        return "lease expired"
+    return None
+
+
+def sweep_virtual_machines() -> list[dict]:
+    """Report only. Whether a VM is still wanted is never decided by a script."""
+    if not shutil.which("prlctl"):
+        return []
+    completed = subprocess.run(["prlctl", "list", "-a", "-i", "--json"], check=False, text=True, capture_output=True)
+    if completed.returncode:
+        return []
+    candidates: list[dict] = []
+    for machine in json.loads(completed.stdout or "[]"):
+        lease = VM_LEASE.search(machine.get("Description") or "")
+        reason = lease_verdict(lease.group(2) if lease else None)
+        if reason:
+            candidates.append({"kind": "parallels", "name": machine.get("Name"), "state": machine.get("State"),
+                               "reason": reason, "kilobytes": disk_kilobytes(Path(machine.get("Home") or ""))})
+    return candidates
+
+
+def sweep_containers() -> list[dict]:
+    """Report only, grouped by Compose project. A stopped daemon reports nothing."""
+    if not shutil.which("docker"):
+        return []
+    try:
+        completed = subprocess.run(["docker", "ps", "-a", "--format", "{{json .}}"],
+                                   check=False, text=True, capture_output=True, timeout=20)
+    except subprocess.TimeoutExpired:
+        return []
+    if completed.returncode:
+        return []
+    groups: dict[str, dict] = {}
+    for line in completed.stdout.splitlines():
+        container = json.loads(line)
+        labels = container.get("Labels") or ""
+        project = re.search(r"com\.docker\.compose\.project=([^,]+)", labels)
+        lease = DOCKER_LEASE.search(labels)
+        reason = lease_verdict(lease.group(1) if lease else None)
+        if reason:
+            name = project.group(1) if project else container.get("Names")
+            groups.setdefault(name, {"kind": "docker", "name": name, "state": container.get("State"),
+                                     "reason": reason, "kilobytes": 0})
+    return list(groups.values())
+
+
+def command_sweep(args: argparse.Namespace) -> dict:
+    if args.stale_hours < 0:
+        raise ParallelError("--stale-hours cannot be negative")
+    busy = process_directories()
+    repositories: list[dict] = []
+    for root in args.root:
+        for repo in sorted(item for item in Path(root).expanduser().iterdir() if (item / ".git").is_dir()):
+            try:
+                repositories.append(sweep_repository(repo.resolve(), args.stale_hours, args.apply, busy))
+            except (ParallelError, OSError) as exc:
+                repositories.append({"repo": str(repo), "error": str(exc), "removed": [], "retirable": [],
+                                     "kept": [], "failed": []})
+    report = {
+        "applied": bool(args.apply),
+        "swept_at": int(time.time()),
+        "repositories": [item for item in repositories if any(
+            item.get(key) for key in ("removed", "retirable", "kept", "failed", "error"))],
+        "machine_candidates": sweep_virtual_machines() + sweep_containers(),
+    }
+    report["reclaimed_kilobytes"] = sum(item["kilobytes"] for repo in repositories for item in repo["removed"])
+    if args.report:
+        write_json_atomic(Path(args.report).expanduser(), report)
+    return report
+
+
+def sweep_summary(report: dict) -> str:
+    removed = sum(len(repo["removed"]) for repo in report["repositories"])
+    held = [item for repo in report["repositories"] for item in repo["kept"]
+            if item["reason"] in {"uncommitted changes", "detached commits no branch holds"}]
+    lines = []
+    if removed:
+        lines.append(f"Keel sweep removed {removed} abandoned worktrees "
+                     f"({report['reclaimed_kilobytes'] // 1024} MB).")
+    if held:
+        lines.append(f"{len(held)} worktrees hold unintegrated work and were kept: "
+                     + ", ".join(item["path"] for item in held[:5]))
+    machines = [item["name"] for item in report.get("machine_candidates", [])]
+    if machines:
+        lines.append(f"Machines without a valid lease: {', '.join(machines)}. Each belongs to its project: "
+                     "act only on this project's own, and leave the rest alone.")
+    return "\n".join(lines)
+
+
+def command_sweep_hook(args: argparse.Namespace) -> dict | None:
+    """SessionStart entry: say what the last sweep found, then sweep in the background at most daily."""
+    report_path = Path(args.report).expanduser()
+    last = read_json(report_path) if report_path.is_file() else None
+    if last:
+        text = sweep_summary(last)
+        if text:
+            print(text)
+    if not last or time.time() - last.get("swept_at", 0) >= 86400:
+        argv = [sys.executable, str(Path(__file__).resolve()), "sweep", "--apply", "--report", str(report_path)]
+        for root in args.root:
+            argv += ["--root", root]
+        subprocess.Popen(argv, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                         stderr=subprocess.DEVNULL, start_new_session=True)
+    return None
+
+
+def command_sweep_install(args: argparse.Namespace) -> dict:
+    """Copy this helper to a stable path. Editing the assistant's settings stays with the session."""
+    SWEEP_HOME.mkdir(parents=True, exist_ok=True)
+    target = SWEEP_HOME / "keel_parallel.py"
+    if Path(__file__).resolve() != target:
+        shutil.copy2(__file__, target)
+    roots = " ".join(f'--root "{root}"' for root in args.root)
+    return {"installed": str(target),
+            "session_start_command": f'python3 "{target}" sweep-hook {roots}'}
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
@@ -1378,6 +1594,19 @@ def build_parser() -> argparse.ArgumentParser:
     reap.add_argument("--min-idle-hours", type=float, default=24.0)
     reap.add_argument("--apply", action="store_true", help="remove; without it the command only reports")
     reap.set_defaults(func=command_reap_worktrees)
+    sweep = sub.add_parser("sweep")
+    sweep.add_argument("--root", action="append", required=True, help="directory whose child repositories are swept")
+    sweep.add_argument("--stale-hours", type=float, default=72.0)
+    sweep.add_argument("--report", help="also write the report to this file")
+    sweep.add_argument("--apply", action="store_true", help="remove; without it the command only reports")
+    sweep.set_defaults(func=command_sweep)
+    hook = sub.add_parser("sweep-hook")
+    hook.add_argument("--root", action="append", required=True)
+    hook.add_argument("--report", default=str(SWEEP_HOME / "sweep-report.json"))
+    hook.set_defaults(func=command_sweep_hook)
+    install = sub.add_parser("sweep-install")
+    install.add_argument("--root", action="append", required=True)
+    install.set_defaults(func=command_sweep_install)
     return parser
 
 
@@ -1389,7 +1618,8 @@ def main(argv: list[str] | None = None) -> int:
     if getattr(args, "check_command", None) and args.check_command[0] == "--":
         args.check_command = args.check_command[1:]
     try:
-        return output(args.func(args))
+        result = args.func(args)
+        return 0 if result is None else output(result)
     except (ParallelError, OSError, ValueError, TypeError, KeyError, subprocess.TimeoutExpired) as exc:
         return output({"error": str(exc)}, 1)
 
