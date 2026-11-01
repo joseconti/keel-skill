@@ -23,3 +23,11 @@ die before cleaning up. Existing projects apply `MANIFEST.md` Table 3, v7.5.0.
 Docker reporting is tested with fakes only, because the daemon was stopped. The hook has not yet
 started in a real session. Parallels leases were read from a real `prlctl`. By the user's decision, no
 machine was deleted: each project decides on its own.
+
+## Publication
+
+Published on 2026-11-01. PR #29 merged `develop` into `main`; tag `v7.5.0` is on the merge commit
+`8edd216`. GitHub Actions is disabled, so the release was created by hand with `gh release create
+v7.5.0`, marked Latest, with `keel-v7.5.0.zip` attached, built from the tag (`git archive v7.5.0 keel`,
+51 entries, no errors). SHA-256:
+`96faa6426d8eec8c857d814b6a1973c782399a7004ff243430a14e52c5b5a419`.
