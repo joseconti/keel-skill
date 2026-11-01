@@ -1687,3 +1687,27 @@ portability lock.
 - **Parallels' default sharing of iCloud and Dropbox is closed** before anything runs on the VM.
 
 **Minor update. Reconciliation:** `MANIFEST.md` Table 3, v7.4.0.
+
+## 7.5.0
+
+### Added
+
+- **Cleanup contract in the lock block.** Whoever creates something removes it as soon as its use
+  ends, in the same session: a worktree as soon as its work is integrated, a machine as soon as it is
+  no longer needed. Every project's assistants read it, not only sessions that loaded the skill.
+- **Machines contract, for Parallels and Docker alike.** Machines for specific tests are never
+  accumulated. Each declares a `keel-lease` when created, the session that created one for a job
+  deletes it when the job ends, and each project decides on its own machines.
+- **`scripts/keel-parallel sweep`.** A machine-wide safety net for sessions that die before cleaning
+  up. It removes clean, idle worktrees whose commits a branch holds, releases locks left by dead
+  processes, and only reports machines.
+- **`sweep-hook` and `sweep-install`.** A session-start entry that reports the last sweep and runs a
+  new one in the background at most every 24 hours.
+
+### Changed
+
+- **Integration retires its worktrees.** Removing them is now part of the integration transaction,
+  no longer something left for the sprint close.
+- **The dead-traces rule fires when the use ends**, and binds every session and isolated agent.
+
+**Minor update. Reconciliation:** `MANIFEST.md` Table 3, v7.5.0.
