@@ -1471,10 +1471,10 @@ def sweep_summary(report: dict) -> str:
     if held:
         lines.append(f"{len(held)} worktrees hold unintegrated work and were kept: "
                      + ", ".join(item["path"] for item in held[:5]))
-    for machine in report.get("machine_candidates", []):
-        size = f", {machine['kilobytes'] // 1048576} GB" if machine["kilobytes"] else ""
-        lines.append(f"{machine['kind']} machine {machine['name']}: {machine['reason']}{size}. "
-                     "Ask the user whether it is still needed: delete it, or record its lease.")
+    machines = [item["name"] for item in report.get("machine_candidates", [])]
+    if machines:
+        lines.append(f"Machines without a valid lease: {', '.join(machines)}. Each belongs to its project: "
+                     "act only on this project's own, and leave the rest alone.")
     return "\n".join(lines)
 
 
