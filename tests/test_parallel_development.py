@@ -623,6 +623,77 @@ class ParallelSchedulerTests(unittest.TestCase):
         self.assertEqual(completed.returncode, 0, completed.stderr + completed.stdout)
         self.assertTrue(json.loads(completed.stdout)["valid"])
 
+    def add_worktree(self, name, commit=False):
+        path = self.root / name
+        subprocess.run(["git", "worktree", "add", "-b", name, str(path), "develop"],
+                       cwd=self.repo, check=True, capture_output=True)
+        if commit:
+            (path / f"{name}.txt").write_text("work\n", encoding="utf-8")
+            subprocess.run(["git", "add", "."], cwd=path, check=True)
+            subprocess.run(["git", "commit", "-m", name], cwd=path, check=True, capture_output=True)
+        return path
+
+    def reap(self, apply=False, min_idle_hours=0.0, run=None):
+        return kp.command_reap_worktrees(Args(
+            repo=str(self.repo), integration_ref="develop", run=run,
+            min_idle_hours=min_idle_hours, apply=apply,
+        ))
+
+    def branches(self):
+        return subprocess.run(["git", "branch", "--format=%(refname:short)"], cwd=self.repo,
+                              check=True, text=True, capture_output=True).stdout.split()
+
+    def test_reap_only_reports_without_apply(self):
+        done = self.add_worktree("done")
+        report = self.reap()
+        self.assertFalse(report["applied"])
+        self.assertEqual([done.resolve()], [Path(item["path"]).resolve() for item in report["retirable"]])
+        self.assertTrue(done.is_dir())
+
+    def test_reap_applies_to_merged_clean_worktree_and_branch(self):
+        done = self.add_worktree("done", commit=True)
+        subprocess.run(["git", "merge", "--ff-only", "done"], cwd=self.repo, check=True, capture_output=True)
+        report = self.reap(apply=True)
+        self.assertEqual(1, len(report["removed"]))
+        self.assertFalse(done.exists())
+        self.assertNotIn("done", self.branches())
+
+    def test_reap_keeps_unmerged_dirty_recent_locked_and_active(self):
+        self.add_worktree("unmerged", commit=True)
+        dirty = self.add_worktree("dirty")
+        (dirty / "new.txt").write_text("unsaved\n", encoding="utf-8")
+        locked = self.add_worktree("locked")
+        subprocess.run(["git", "worktree", "lock", str(locked)], cwd=self.repo, check=True)
+        active = self.add_worktree("active")
+        self.write(self.run_path, {"schema": kp.RUN_SCHEMA, "attempts": {
+            "A-1": {"state": "running", "assignment_snapshot": {"worktree": str(active)}},
+        }})
+        report = self.reap(apply=True, run=[str(self.run_path)])
+        reasons = {Path(item["path"]).name: item["reason"] for item in report["kept"]}
+        self.assertEqual({
+            "unmerged": "commits not in the integration ref",
+            "dirty": "uncommitted changes",
+            "locked": "locked",
+            "active": "owned by an unresolved attempt",
+        }, reasons)
+        self.assertEqual([], report["removed"])
+        for path in (dirty, locked, active):
+            self.assertTrue(path.is_dir())
+
+    def test_reap_keeps_a_fresh_worktree_by_default(self):
+        self.add_worktree("fresh")
+        report = self.reap(apply=True, min_idle_hours=24.0)
+        self.assertEqual("used recently", report["kept"][0]["reason"])
+
+    def test_reap_reads_the_repository_run_journal_without_being_told(self):
+        active = self.add_worktree("active")
+        journal = self.repo / "docs" / ".keel" / "parallel" / "runs" / "R-1"
+        journal.mkdir(parents=True)
+        self.write(journal / "run.json", {"schema": kp.RUN_SCHEMA, "attempts": {
+            "A-1": {"state": "failed", "assignment_snapshot": {"worktree": str(active)}},
+        }})
+        self.assertEqual([], self.reap()["retirable"])
+
     def test_init_binds_run_to_repository_and_ref(self):
         self.plan([slice_("A", ["src/a.py"])])
         initialized = self.root / "initialized-run.json"

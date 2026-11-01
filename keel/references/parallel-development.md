@@ -136,6 +136,14 @@ For each ready result:
 
 Failure leaves the authoritative integration branch unchanged and preserves candidate and worker worktrees. Never weaken the plan ancestry guard for intermediate worker commits. On coordinator restart, reconcile journal state with live processes, worktree heads and integrated commits before launching. Never relaunch or merge the same attempt twice. Clean only completed, known artifacts and clean worktrees whose commits are retained.
 
+## Retiring worktrees
+
+A worktree is a full checkout, usually with its own `node_modules` and `vendor`, so a project that never removes them pays for every slice it has ever built. Measured: 253 worktrees retired across three repositories gave back 113 GB. `du` over-reported the gain, because cloned files share disk, so judge the result by the volume's free space. Preserving a worktree is a rule for failure and recovery, not a reason to keep it for ever. This is SKILL.md's "Leave no dead traces" applied to workers.
+
+**Reap at every `batch.state: verified` and at sprint close:** run `scripts/keel-parallel reap-worktrees --integration-ref <ref>`, read the report, then run it again with `--apply`. It also runs at reconciliation (`references/project-state.md`, standing check 3). It covers one repository: a project that spans several runs it once per repository, each with its own integration ref. Before removing anything on a machine where other sessions may be working, read the report first.
+
+Without `--apply` it changes nothing. It removes a worktree only when all of these hold: its `HEAD` is contained in the integration ref, it has no uncommitted or untracked changes, it is not locked, no attempt in `docs/.keel/parallel/runs/` still owns it, it is not the current directory, and it has been idle for `--min-idle-hours` (24 by default). Everything else is listed under `kept` with its reason. It never forces: a squash-merged branch is not an ancestor, so it is reported for a person to judge. An unreadable run file stops the command, and merged branches are deleted with `git branch -d`, never `-D`.
+
 ## Timing
 
 Report wall-clock session time, summed worker effort, coordinator review/integration time and available token usage separately. Overlapping worker effort is not elapsed time; coordinator waiting is not duplicate implementation effort. Scheduling never changes residual estimates. Do not claim a real-project speedup from a synthetic fixture.
@@ -162,6 +170,7 @@ All commands emit JSON and return nonzero on invalid input:
 - `run-worker --plan <plan.json> --run <run.json> --assignment <json> --envelope <json> -- <argv...>`: registered-attempt, explicit-cwd bounded process adapter. It calls no model itself.
 - `worker-check --run <run.json> --assignment <json>`: read-only role/identity/scope guard, invoked inside the actual worker checkout by generated controls.
 - `resolve --run <run.json> --attempt <id> --evidence <text>`: explicitly releases a stopped failed/blocked/cancelled attempt's claims for bounded retry; refuses possible live workers/groups.
+- `reap-worktrees --integration-ref <ref> [--repo <path>] [--run <run.json>] [--min-idle-hours <n>] [--apply]`: reports the worktrees safe to retire and what they would free; removes them only with `--apply` ("Retiring worktrees").
 
 The coordinator creates `keel.parallel-run/1` with a unique run ID, plan path, integration ref, cap, empty attempts/integrated maps and events. Mutation commands lock and atomically replace the run file. This helper validates/records; it does not authorize, plan product scope, merge, push, install or call agent services.
 
