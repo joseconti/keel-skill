@@ -344,6 +344,10 @@ host_problems = [
         ("parallels-development.md: never a global prune", "Never `docker system prune`" in host),
         ("parallels-development.md: connected sites", "## Sites that talk to each other" in host),
         ("parallel-development.md: reap-worktrees documented", "reap-worktrees" in ref_text.get("parallel-development.md", "")),
+        ("parallel-development.md: integration retires the worktree", "An integrated worktree that is still on disk means the integration is not finished" in ref_text.get("parallel-development.md", "")),
+        ("parallel-development.md: sweep documented", "`sweep --root <dir>" in ref_text.get("parallel-development.md", "")),
+        ("parallels-development.md: machine contract and lease", "**A machine is deleted as soon as it is no longer needed." in ref_text.get("parallels-development.md", "") and "keel-lease:" in ref_text.get("parallels-development.md", "")),
+        ("project-state.md: cleanup contract in the lock block", "**Cleanup contract (UNBREAKABLE, every session and agent):**" in ref_text.get("project-state.md", "")),
         ("project-state.md: standing check 3", "**Playground host and disk.**" in project_state),
     ) if not present
 ]

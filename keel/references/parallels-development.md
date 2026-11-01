@@ -119,6 +119,14 @@ Non-WordPress clients need only the names and the CA.
 
 Reaching a named site from a browser on the host needs host-side name resolution, which needs the user's OK because it requires `sudo`: an `/etc/hosts` line, or a resolver for `keel.test`. Keel asks; it never edits host resolution silently. This route has not been measured yet.
 
+## Machines: contract
+
+**A machine is deleted as soon as it is no longer needed. Machines are never accumulated for specific tests and left there.** It applies equally to a Parallels VM or clone and to a Docker container, Compose stack, volume or image built for a project: the host does not change the rule. It has three parts:
+
+- **Every machine declares its lease when created.** Parallels: `prlctl set <vm> --description "keel-lease: owner=<project> until=<YYYY-MM-DD|never>"`. Docker: `--label keel.lease.until=<YYYY-MM-DD|never>`, or the same label on each Compose service. A machine for a specific test takes the date that test ends. `never` is only for a machine with a named, ongoing use, such as `keel-development`.
+- **The session that created a machine for a job deletes it when the job ends,** in that session. Parallels, after checking `keel-site list` shows no dependants: `prlctl stop <vm> --kill`, then `prlctl delete <vm>`. Docker: `docker compose down -v --rmi local`, or `docker rm -f` with that test's volumes and images, by name and never with a global prune. An audit, matrix or load-test machine never outlives its check, and reusing one for a later test needs a lease that says so.
+- **A machine the session did not create is never deleted by it.** The session proposes it to the user, with its size and why, and acts on the answer: delete it, or record its lease. `sweep` lists every machine with an expired lease or none at all, on both hosts, until that is resolved. It never deletes one, because a script cannot know whether it is still wanted. With the Docker daemon stopped it cannot see containers.
+
 ## Dedicated VMs — linked clones first
 
 A project that fails the hosting test starts from a **linked clone**, which stores only what differs from its parent:
@@ -189,7 +197,7 @@ So every rule below ships together with the shared VM, and none of them depends 
 
 - **No dead traces.** SKILL.md's rule applies to every item below: what no longer serves is removed when its work ends, verified and never forced.
 - **Worktrees are retired, not accumulated.** `keel-parallel reap-worktrees` at each batch verification and sprint close (`references/parallel-development.md`, "Retiring worktrees"). Each one carries its own `node_modules` and `vendor`.
-- **Sites and VMs are retired.** When a project goes idle, or `keel-site doctor` lists a site unused for 30 days, propose `retire`. A rebuild costs minutes; a forgotten site costs disk for ever.
+- **Sites and VMs are retired.** A site or VM goes when its use ends ("Machines: contract"). When a project goes idle, or `keel-site doctor` lists a site unused for 30 days, propose `retire`. A rebuild costs minutes; a forgotten site costs disk for ever.
 - **Expanding disks do not give space back by themselves.** Deleting files inside a VM frees it there, not on the host. With the VM stopped, compact it: `prl_disk_tool compact --hdd <path>.hdd`.
 - **Snapshots hold deleted data alive.** Keep `baseline` and `clone-base`; delete the rest once they have served.
 - **Build caches are capped by review, not left to grow.** `go clean -cache`, `brew cleanup`, and the equivalents regenerate everything they delete. Above 20 GB, the doctor reports the size and the command; it runs under `--fix`, with the user's OK, because the next build pays the time.
