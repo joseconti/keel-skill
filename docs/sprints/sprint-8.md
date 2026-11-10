@@ -2,7 +2,7 @@
 schema: keel.sprint/2
 sprint: 8
 goal: Chaining rests on an idle queue; every machine has a rebuild recipe
-status: in-progress
+status: done
 slices:
   - id: S-013
     title: Idle-queue REST verdict and idle-link breaker (issue #30); mandatory docs/machines/recipe.md with standing check 4
@@ -37,4 +37,4 @@ slices:
   keel-verify drift check, scaffold step, standing check 4, Table 1 row; anti-patterns 12aa/12ab;
   linter checks 18–19.
 - Actual hours are estimated: the clock was not read at this session's start.
-- Not done: version, CHANGELOG and Table 2/3 rows wait for the user's explicit version instruction.
+- Released as v7.6.0 (2026-11-10).

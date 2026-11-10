@@ -1711,3 +1711,32 @@ portability lock.
 - **The dead-traces rule fires when the use ends**, and binds every session and isolated agent.
 
 **Minor update. Reconciliation:** `MANIFEST.md` Table 3, v7.5.0.
+
+## 7.6.0
+
+### Added
+
+- **REST, a third launcher verdict: chaining no longer loops on empty sessions** (issue #30). Before
+  claiming any brake, `scripts/keel-continue` reads `queue.workable` from `docs/.keel/plan.json`. With
+  nothing workable it opens nothing: it prints the prompt, notifies once what the queue waits on, and
+  releases the lane. Slices gain `waiting_on`; the hand-off gains `Handover: idle: waiting on …`,
+  which decides only where no plan exists. A `blocked`/`idle` label over a workable queue still fires.
+- **Idle-link breaker.** Two consecutive fires from sessions that committed nothing outside the
+  bookkeeping files rest the chain, whatever the labels said; one productive session resets it.
+- **`docs/machines/` in every repository that uses a machine** — a shared-VM site, a dedicated VM or
+  clone, Docker, `wp-env`. It holds `recipe.md` and the files and scripts it uses: enough for an
+  assistant with no memory to rebuild the machine from a fresh clone. On the shared VM each repository
+  carries the VM's documents, never the VM, tied to the VM's `keel-base-rev`. Kept current in the same
+  session as any change; `scripts/keel-verify` fails a machine-definition commit the recipe does not
+  contain. Each recipe says whether a rebuild has proven it.
+- **Nothing a machine depends on lives in a temporary directory or only beside the VM.**
+- Reconciliation standing check 4, `keel-chain-check` row 7c, anti-patterns 12aa and 12ab, self-audit
+  17q and 17r, release-linter checks 18 and 19.
+
+### Changed
+
+- **The closed list of reasons a chain may refuse has five entries**, the idle queue and the
+  idle-link breaker among them.
+- **The launch command `exec`s `claude`**, so leaving a chained chat with `/exit` ends its shell too.
+
+**Minor update. Reconciliation:** `MANIFEST.md` Table 3, v7.6.0.

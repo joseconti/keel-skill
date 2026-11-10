@@ -16,7 +16,7 @@
 - Keel portability: lock only — this repo is the SOURCE of the skill; it does not embed a copy of itself.
 - Assistant config: none (tools: claude) — no `.claude/` package generated for this repo.
 - Models: runtime-selected — no backend is assumed from a product name; real writing backends remain unverified in this repository.
-- Keel baseline: v7.5.0 — this repository authors the version it is on, so the baseline always equals the version being written.
+- Keel baseline: v7.6.0 — this repository authors the version it is on, so the baseline always equals the version being written.
 - Website intent: no
 - Client budget: no — the skill is the user's own product, not client work.
 - User guide: n/a — `README.md` and `INSTALL.md` serve that role for a skill.
@@ -51,7 +51,7 @@ This repository was adopted into its own discipline late (state files created 20
 - Previous states: v7.2.0 (published 2026-10-13) is the Git baseline this change started from; older release history is in `keel/CHANGELOG.md` and Git.
 - v7.3.1 (patch, D-040) published 2026-10-17: the session clock measures parallel development — evidence in `docs/release-v7.3.1.md`.
 - v7.5.0 (minor, D-043): cleanup contract, machines contract, `sweep`. Evidence in `docs/release-v7.5.0.md`.
-- On `develop`, unreleased (D-044, sprint 8 S-013): idle-queue REST and idle-link breaker for chaining (issue #30), mandatory `docs/machines/recipe.md` with standing check 4. **Waiting on the user's version instruction** (proposed v7.6.0, minor).
+- v7.6.0 (minor, D-044, sprint 8 S-013): idle-queue REST and idle-link breaker (issue #30), mandatory `docs/machines/` with standing check 4. Ordered 2026-11-10. Evidence in `docs/release-v7.6.0.md`. **Ready for `main`:** PR develop → main, then tag and release by hand.
 - v7.4.0 (minor, D-042): Parallels playground host, connected sites, `reap-worktrees`, the dead-traces rule. Evidence in `docs/release-v7.4.0.md`.
 - Previous next action: none for v7.3.1. Downstream projects reconcile per Table 3 v7.3.1 at their next session start. Still open from v7.0.0: the isolated backend and generated-hook acceptance described in `docs/parallel-development-review.md`.
 
