@@ -51,6 +51,7 @@ This repository was adopted into its own discipline late (state files created 20
 - Previous states: v7.2.0 (published 2026-10-13) is the Git baseline this change started from; older release history is in `keel/CHANGELOG.md` and Git.
 - v7.3.1 (patch, D-040) published 2026-10-17: the session clock measures parallel development — evidence in `docs/release-v7.3.1.md`.
 - v7.5.0 (minor, D-043): cleanup contract, machines contract, `sweep`. Evidence in `docs/release-v7.5.0.md`.
+- On `develop`, unreleased (D-044, sprint 8 S-013): idle-queue REST and idle-link breaker for chaining (issue #30), mandatory `docs/machine-recipe.md` with standing check 4. **Waiting on the user's version instruction** (proposed v7.6.0, minor).
 - v7.4.0 (minor, D-042): Parallels playground host, connected sites, `reap-worktrees`, the dead-traces rule. Evidence in `docs/release-v7.4.0.md`.
 - Previous next action: none for v7.3.1. Downstream projects reconcile per Table 3 v7.3.1 at their next session start. Still open from v7.0.0: the isolated backend and generated-hook acceptance described in `docs/parallel-development-review.md`.
 
@@ -58,7 +59,7 @@ This repository was adopted into its own discipline late (state files created 20
 - Unresolved user questions: none
 - Open Design Requests: none
 - Unverified external steps/assets: host-browser access to named sites on `keel-development` (D-042); real writing-backend smoke run in a disposable repository (native or CLI); deterministic scheduling is verified separately and does not prove this.
-- Forge issues in progress: none
+- Forge issues in progress: #30 — fixed on `develop` (D-044), awaiting release
 - **Published:** v7.3.0 — evidence in `docs/release-v7.3.0.md`. Instructions only: no agent team launched and no project run at `max_workers: max`; evals E28–E30 written, not run.
 - **Reconciliation pending on other projects:** v7.3.0's agent teams flag and `max_workers: max` migration at the next session start; apply the v7.0.0 Table 3 delta only when each project chooses parallel development; v7.1.0's evidence rule at the next static-analysis test point; v7.2.0's inbound-call inventory and live drive at the next test point.
 
@@ -68,4 +69,4 @@ This repository was adopted into its own discipline late (state files created 20
 - **Notification reach is desktop-only unless Remote Control is connected** — severity: low — review trigger: the first time a real absence goes unnoticed, or if the user wants alerts while away from the building. The native channel covers "walked away from the desk"; an SMTP sender or messaging MCP would be the escalation, and is not built.
 - **This repo has no project-generated `scripts/keel-verify`, `keel-doctor` or `keel-handoff-verify`** — severity: low — review trigger: if this source repository gains a deployed runtime. `tests/lint-release.py` plus the scheduler suite are its mechanical gates; the packaged `keel/scripts/keel_parallel.py` is a skill resource, not this repo's generated project helper.
 
-Last updated: 2026-10-16 — v7.3.0 (agent teams flag, full-capacity parallel development, mandatory reconciliation) merged to main, tagged and published as the latest GitHub release
+Last updated: 2026-11-10 — idle-queue REST and machine recipe on develop (D-044); previously 2026-10-16 — v7.3.0 (agent teams flag, full-capacity parallel development, mandatory reconciliation) merged to main, tagged and published as the latest GitHub release
