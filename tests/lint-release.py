@@ -490,7 +490,7 @@ recipe_problems = [
     what for what, present in (
         ("parallels-development.md: the machine recipe section", "## The machine recipe — `docs/machines/` in every repository (UNBREAKABLE)" in host),
         ("parallels-development.md: nothing in temporary directories", "**Where things live — persistent, never temporary (UNBREAKABLE).**" in host),
-        ("parallels-development.md: the shared VM travels in every repository", "keel-base-rev=" in host and "docs/machines/keel-development/" in host),
+        ("parallels-development.md: shared VM documents, never the VM, in every repository", "never the VM.**" in host and "keel-base-rev=" in host and "docs/machines/keel-development/" in host),
         ("parallels-development.md: Docker is not exempt", "Docker is not exempt" in host),
         ("parallels-development.md: kept current, checked by keel-verify", "**Kept current in the same session as the change (UNBREAKABLE).**" in host and "`scripts/keel-verify` fails when the newest commit touching a machine definition" in host),
         ("parallels-development.md: proven by rebuilding", "`never — unproven`" in host),
