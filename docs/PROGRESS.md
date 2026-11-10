@@ -51,7 +51,7 @@ This repository was adopted into its own discipline late (state files created 20
 - Previous states: v7.2.0 (published 2026-10-13) is the Git baseline this change started from; older release history is in `keel/CHANGELOG.md` and Git.
 - v7.3.1 (patch, D-040) published 2026-10-17: the session clock measures parallel development — evidence in `docs/release-v7.3.1.md`.
 - v7.5.0 (minor, D-043): cleanup contract, machines contract, `sweep`. Evidence in `docs/release-v7.5.0.md`.
-- v7.6.0 (minor, D-044, sprint 8 S-013): idle-queue REST and idle-link breaker (issue #30), mandatory `docs/machines/` with standing check 4. Ordered 2026-11-10. Evidence in `docs/release-v7.6.0.md`. **Ready for `main`:** PR develop → main, then tag and release by hand.
+- v7.6.0 (minor, D-044, sprint 8 S-013): idle-queue REST and idle-link breaker (issue #30), mandatory `docs/machines/` with standing check 4. Ordered 2026-11-10. Published 2026-11-10: PR #31, tag `v7.6.0` on `c2e8be6`, release by hand with the zip. Evidence in `docs/release-v7.6.0.md`.
 - v7.4.0 (minor, D-042): Parallels playground host, connected sites, `reap-worktrees`, the dead-traces rule. Evidence in `docs/release-v7.4.0.md`.
 - Previous next action: none for v7.3.1. Downstream projects reconcile per Table 3 v7.3.1 at their next session start. Still open from v7.0.0: the isolated backend and generated-hook acceptance described in `docs/parallel-development-review.md`.
 
@@ -59,7 +59,7 @@ This repository was adopted into its own discipline late (state files created 20
 - Unresolved user questions: none
 - Open Design Requests: none
 - Unverified external steps/assets: host-browser access to named sites on `keel-development` (D-042); real writing-backend smoke run in a disposable repository (native or CLI); deterministic scheduling is verified separately and does not prove this.
-- Forge issues in progress: #30 — fixed on `develop` (D-044), awaiting release
+- Forge issues in progress: none (#30 shipped in v7.6.0)
 - **Published:** v7.3.0 — evidence in `docs/release-v7.3.0.md`. Instructions only: no agent team launched and no project run at `max_workers: max`; evals E28–E30 written, not run.
 - **Reconciliation pending on other projects:** v7.3.0's agent teams flag and `max_workers: max` migration at the next session start; apply the v7.0.0 Table 3 delta only when each project chooses parallel development; v7.1.0's evidence rule at the next static-analysis test point; v7.2.0's inbound-call inventory and live drive at the next test point.
 

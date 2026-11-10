@@ -33,3 +33,12 @@ The REST path and the breaker are specified and linted; no real chain has run th
 been proven by a rebuild: each says `never — unproven`. The six other repositories using the shared
 VM had live sessions, so they were not written to; their recipes come with their v7.6.0
 reconciliation.
+
+## Publication
+
+Published on 2026-11-10. PR #31 merged `develop` into `main`; tag `v7.6.0` is on the merge commit
+`c2e8be6`, whose tree equals `develop`'s. GitHub Actions is disabled, so the release was created by
+hand with `gh release create v7.6.0`, marked Latest, with `keel-v7.6.0.zip` attached, built from the
+tag (`git archive v7.6.0 keel`, 51 entries, no errors). SHA-256:
+`b187c4ba257261af4325db30473902d0df581adb92f2560fdaa97d58140e540e`.
+
