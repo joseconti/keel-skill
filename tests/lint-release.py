@@ -36,7 +36,13 @@ Checks:
     never a small fixed number.
 15. The post-update reconciliation is mandatory and carries the two standing
     checks (agent teams flag, full-capacity parallel development), and the
-    lock never merely offers it.
+    lock never merely offers it. Standing checks 3 and 4 are checked by 12b and 19.
+16. The session clock measures overlapping slices (see the check itself).
+17. Parallel workers never run test suites; one full run per batch.
+18. An idle queue RESTS: the launcher reads plan.json's workable count and
+    keeps an idle-link breaker, so chaining never loops on empty sessions.
+19. Every project that uses a machine keeps docs/machine-recipe.md, current
+    and checked, and the reconciliation writes it where it is missing.
 """
 
 import re
@@ -451,6 +457,52 @@ if batch_problems:
     fail(f"parallel test-batching contract is incomplete: {batch_problems}")
 else:
     ok("parallel workers run no suites; the full suite runs once per batch in one test lane")
+
+# ---- 18. An idle queue rests instead of chaining empty sessions ------------
+# A project whose every slice waited on a person chained ten sessions in three
+# and a half hours, nine of them finishing nothing (issue #30).
+anti = ref_text.get("anti-patterns.md", "")
+notif = ref_text.get("notifications.md", "")
+idle_problems = [
+    what for what, present in (
+        ("project-state.md: the idle-queue section", "#### When the queue is idle — REST, never a loop of empty chats (UNBREAKABLE)" in project_state),
+        ("project-state.md: the slice schema carries waiting_on", "    waiting_on: null" in project_state),
+        ("project-state.md: plan.json carries the queue", '"queue": {"workable": N' in project_state),
+        ("project-state.md: the hand-off has an idle value", "`idle: waiting on <one line>`" in project_state),
+        ("project-state.md: REST rows in the closed table", "| Queue idle:" in project_state and "| Idle-link breaker:" in project_state),
+        ("project-state.md: the launcher reads the queue (point 3a)", "3a. **Then read the queue, before claiming either brake**" in project_state),
+        ("project-state.md: the idle-link breaker file", "idle-links-<repo-key>" in project_state),
+        ("project-state.md: chain-check row 7c", "7c. **The launcher rests on an idle queue.**" in project_state),
+        ("project-state.md: the launch execs claude", "exec claude --model" in project_state),
+        ("SKILL.md: the closed list has five reasons", "CLOSED list of five" in skill and "CLOSED list of four" not in skill),
+        ("notifications.md: an idle rest is notified", "RESTED on an idle queue" in notif),
+        ("anti-patterns.md: entry 12aa", "### 12aa. The continuation with nothing to continue" in anti),
+    ) if not present
+]
+if idle_problems:
+    fail(f"idle-queue chaining contract is incomplete: {idle_problems}")
+else:
+    ok("an idle queue rests instead of chaining empty sessions")
+
+# ---- 19. Every machine has a rebuild recipe --------------------------------
+# A reinstalled system must cost minutes of rebuilding, not days of remembering.
+recipe_problems = [
+    what for what, present in (
+        ("parallels-development.md: the machine recipe section", "## The machine recipe — `docs/machine-recipe.md` (UNBREAKABLE)" in host),
+        ("parallels-development.md: Docker is not exempt", "Docker is not exempt" in host),
+        ("parallels-development.md: kept current, checked by keel-verify", "**Kept current in the same session as the change (UNBREAKABLE).**" in host and "`scripts/keel-verify` fails when the newest commit touching a machine definition" in host),
+        ("parallels-development.md: proven by rebuilding", "`never — unproven`" in host),
+        ("parallels-development.md: the shared VM kit survives the machine", "A kit that sits only in `~/Parallels/`" in host),
+        ("project-state.md: standing check 4", "4. **The machine recipe.**" in project_state),
+        ("phase-5-development.md: written at the scaffold", "**Write `docs/machine-recipe.md` in the same step**" in phase5),
+        ("MANIFEST.md: Table 1 row", "| `docs/machine-recipe.md` |" in manifest),
+        ("anti-patterns.md: entry 12ab", "### 12ab. The machine that exists only as itself" in anti),
+    ) if not present
+]
+if recipe_problems:
+    fail(f"machine-recipe contract is incomplete: {recipe_problems}")
+else:
+    ok("every machine a project uses has a rebuild recipe, kept current")
 
 # ---- Result ----------------------------------------------------------------
 print()
