@@ -5,7 +5,7 @@ goal: Chaining rests on an idle queue; every machine has a rebuild recipe
 status: in-progress
 slices:
   - id: S-013
-    title: Idle-queue REST verdict and idle-link breaker (issue #30); mandatory docs/machine-recipe.md with standing check 4
+    title: Idle-queue REST verdict and idle-link breaker (issue #30); mandatory docs/machines/recipe.md with standing check 4
     status: done
     original_hours: 1
     residual_hours: 0
@@ -33,7 +33,7 @@ slices:
 - Origin: forge issue #30 (chaining loops on empty sessions when every slice waits on a person) and the
   user's request of 2026-11-10 that every machine be rebuildable from a recipe after a system reinstall.
 - Scope: `Handover: idle`, slice `waiting_on`, `plan.json` queue counts, REST as a third verdict, the
-  idle-link breaker, `exec claude` in the launch, chain-check row 7c; `docs/machine-recipe.md`, its
+  idle-link breaker, `exec claude` in the launch, chain-check row 7c; `docs/machines/recipe.md`, its
   keel-verify drift check, scaffold step, standing check 4, Table 1 row; anti-patterns 12aa/12ab;
   linter checks 18–19.
 - Actual hours are estimated: the clock was not read at this session's start.

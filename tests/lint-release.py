@@ -41,7 +41,7 @@ Checks:
 17. Parallel workers never run test suites; one full run per batch.
 18. An idle queue RESTS: the launcher reads plan.json's workable count and
     keeps an idle-link breaker, so chaining never loops on empty sessions.
-19. Every project that uses a machine keeps docs/machine-recipe.md, current
+19. Every project that uses a machine keeps docs/machines/ (recipe, files, scripts), current
     and checked, and the reconciliation writes it where it is missing.
 """
 
@@ -488,14 +488,15 @@ else:
 # A reinstalled system must cost minutes of rebuilding, not days of remembering.
 recipe_problems = [
     what for what, present in (
-        ("parallels-development.md: the machine recipe section", "## The machine recipe — `docs/machine-recipe.md` (UNBREAKABLE)" in host),
+        ("parallels-development.md: the machine recipe section", "## The machine recipe — `docs/machines/` in every repository (UNBREAKABLE)" in host),
+        ("parallels-development.md: nothing in temporary directories", "**Where things live — persistent, never temporary (UNBREAKABLE).**" in host),
+        ("parallels-development.md: the shared VM travels in every repository", "keel-base-rev=" in host and "docs/machines/keel-development/" in host),
         ("parallels-development.md: Docker is not exempt", "Docker is not exempt" in host),
         ("parallels-development.md: kept current, checked by keel-verify", "**Kept current in the same session as the change (UNBREAKABLE).**" in host and "`scripts/keel-verify` fails when the newest commit touching a machine definition" in host),
         ("parallels-development.md: proven by rebuilding", "`never — unproven`" in host),
-        ("parallels-development.md: the shared VM kit survives the machine", "A kit that sits only in `~/Parallels/`" in host),
         ("project-state.md: standing check 4", "4. **The machine recipe.**" in project_state),
-        ("phase-5-development.md: written at the scaffold", "**Write `docs/machine-recipe.md` in the same step**" in phase5),
-        ("MANIFEST.md: Table 1 row", "| `docs/machine-recipe.md` |" in manifest),
+        ("phase-5-development.md: written at the scaffold", "**Write `docs/machines/recipe.md` in the same step**" in phase5),
+        ("MANIFEST.md: Table 1 row", "| `docs/machines/` (" in manifest),
         ("anti-patterns.md: entry 12ab", "### 12ab. The machine that exists only as itself" in anti),
     ) if not present
 ]
