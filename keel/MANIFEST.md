@@ -1,4 +1,4 @@
-# Keel Manifest — v7.5.0
+# Keel Manifest — v7.6.0
 
 One file, three tables, one purpose: looking ONLY at this file, a session can tell (1) whether a project contains everything Keel requires at its current phase, (2) which skill files changed in which Keel version — so after an update it knows exactly what to re-read, without interpreting the changelog — and (3) what concrete actions each version asks of an existing project (the reconciliation delta).
 
@@ -54,6 +54,7 @@ Verification is phase-aware and condition-aware: read the project card and phase
 | `scripts/keel-verify` | The project's own release linter (`references/phase-5-development.md`) | Phase 5 scaffold — or the first maintenance/adoption touch on a project that never had one | If the project can be run |
 | `scripts/playground-tunnel` | Opens a public HTTPS tunnel to the playground (Cloudflare quick tunnel by default), points the playground's public base URL at it and restores `localhost` on every exit path; three modes — open and wait, `--url <https>` to attach to a tunnel already open, `--restore`; exit 0 done / 2 could not run; never in the distributable (`references/inbound-tunnel.md`) | Phase 5 scaffold — or the first maintenance/adoption touch on a project that never had one | Only if an external system calls the project (payment notifications, webhooks, a URL a third party fetches, a remote client connecting to a local server) |
 | `scripts/keel-site` | Non-interactive control of the project's site on the shared `keel-development` VM: provision, create, start/stop, url, wp/sql, test, reset, retire, list, doctor (`references/parallels-development.md`) | Phase 5 scaffold | The card's `Playground host:` is `parallels-shared` |
+| `docs/machines/` (`recipe.md` + `files/`, `scripts/`, and `keel-development/` on the shared VM) | Everything needed to rebuild every machine the project uses from a fresh clone, nothing in temporary directories or only beside the VM. The recipe covers: host prerequisites, base and size, packages with versions, every changed configuration (content or committed path), isolation and mounts, network and tunnel, data and seed (credentials as placeholders), the ordered rebuild commands, the verification, and `Last updated:` / `Last rebuilt from this recipe:` (`references/parallels-development.md`, "The machine recipe"). Updated in the same session as any change to a machine; `scripts/keel-verify` fails a machine-definition commit the recipe does not contain; written at reconciliation from the running machine where missing (standing check 4) | Phase 5 scaffold — or the next reconciliation on an existing project | The project uses any machine: a shared-VM site, a dedicated VM or clone, a Docker or Compose stack, `wp-env` |
 | `scripts/keel-affected-tests` | The push-time test selection derived from the diff (`references/test-automation.md` "Which tests run when"): the changed files' tests, their reverse dependencies, the changed tests, the plan's always-run set, and the closed widening list; `--base`, `--run`; an empty selection for a source diff fails; prints one `scope:` line for the evidence | Phase 5 scaffold | If the project has an automated test suite |
 | `.githooks/pre-push` + `core.hooksPath` set | Runs `scripts/keel-affected-tests --run` over every branch being pushed and refuses the push on a red selection or a failed selector; skips tag pushes (the release's evidence is the Phase 7 full-suite run) | Phase 5 scaffold | If the project has an automated test suite |
 | `scripts/keel-doctor` | The environment doctor compiled from the technical plan's `## Environment requirements`: `--check` / `--plan` / `--fix` / `--json`, four states, nothing global installed without the user's OK on an itemized list (`references/test-automation.md`) | Phase 5 scaffold — or the first maintenance/adoption touch on a project that never had one | If the project can be run |
@@ -104,23 +105,23 @@ After an update, re-read `SKILL.md`, the current phase's reference, and THIS fil
 
 | Skill file | Last changed in |
 |---|---|
-| `SKILL.md` | v7.5.0 |
-| `MANIFEST.md` | v7.5.0 |
-| `CHANGELOG.md` | v7.5.0 |
+| `SKILL.md` | v7.6.0 |
+| `MANIFEST.md` | v7.6.0 |
+| `CHANGELOG.md` | v7.6.0 |
 | `scripts/keel_clock.py` | v7.3.1 |
 | `scripts/keel_parallel.py` | v7.5.0 |
 | `references/keel-maintenance.md` | v7.3.0 |
-| `references/notifications.md` | v5.14.0 |
-| `references/parallels-development.md` | v7.5.0 |
+| `references/notifications.md` | v7.6.0 |
+| `references/parallels-development.md` | v7.6.0 |
 | `references/playground-recipes.md` | v7.4.0 |
 | `references/inbound-tunnel.md` | v7.2.0 |
 | `references/test-automation.md` | v7.4.0 |
 | `references/maintenance.md` | v7.3.0 |
 | `references/guide-theme.md` | v3.2.1 |
 | `references/assistant-config.md` | v7.3.0 |
-| `references/phase-5-development.md` | v7.4.0 |
+| `references/phase-5-development.md` | v7.6.0 |
 | `references/phase-7-release.md` | v7.1.0 |
-| `references/project-state.md` | v7.5.0 |
+| `references/project-state.md` | v7.6.0 |
 | `references/phase-1-discovery.md` | v7.4.0 |
 | `references/phase-2-functional-spec.md` | v7.4.0 |
 | `references/adoption.md` | v7.0.0 |
@@ -142,7 +143,7 @@ After an update, re-read `SKILL.md`, the current phase's reference, and THIS fil
 | `references/phase-8-launch-checklist.md` | v5.12.0 |
 | `references/phase-8-technical-seo.md` | v2.0.0 |
 | `references/accessibility.md` | v5.2.0 |
-| `references/anti-patterns.md` | v7.3.1 |
+| `references/anti-patterns.md` | v7.6.0 |
 | `references/security/wordpress.md` | v4.0.0 |
 | `references/security/web-app.md` | v4.0.0 |
 | `references/security/mcp-server.md` | v4.0.0 |
@@ -223,6 +224,7 @@ What the reconciliation APPLIES, version by version, for every version newer tha
 | v7.3.1 | PATCH: **the session clock measures parallel development.** `slice-start` closed every other open slice, so parallel slices were charged only the minutes until the coordinator's next boundary (measured: 48.25 estimated hours recorded as 2.92). **(1)** Copy the installed skill's `scripts/keel_clock.py` to executable `scripts/keel-clock` beside `scripts/keel-time` (Python 3.9+, never installed silently; without it `keel-time` implements the same rules). **(2)** Regenerate `scripts/keel-time` against `references/project-state.md` "Session time": `slice-start` never closes another slice (exclusive mode only under `Parallel development: off` or an effective cap of 1, writing the closes explicitly), `slice-end` closes only its own slice, new `slice-record` for a worker's own interval at integration, the report shows wall-clock vs summed slice hours, max concurrency, throughput and the projection basis. **(3)** Add the `Slice h`, `Max concurrency`, `Throughput` and `Projection basis` columns to `docs/sessions.md` before `Notes`; historical cells `—` (legacy). Do not rewrite past rows or past `actual_hours`; a slice measured under the old clock during parallel work may get a note in its sprint file, never a reconstructed figure. **(4)** Update `scripts/keel-verify`: accept overlapping intervals, check the projection against its stated basis. Refresh the portability lock stamp. |
 | v7.3.2 | PATCH: **parallel workers develop; the full suite runs once per batch.** Every worker ran its tests — browser suites included — so N workers ran N suites at once, saturated memory and CPU and made parallel sprints slower than serial ones, or stalled them. **(1)** Copy the installed skill's `scripts/keel_parallel.py` over `scripts/keel-parallel` (new `verify-batch` command, per-repository test lane, `status` reports `batch.state`). **(2)** From the next dispatch, a worker assignment's `test_commands` holds only cheap static checks over its own paths (lint, syntax, types); no suite, browser, simulator, shared database or server. **(3)** Integration checks (`verify-integration`) run the cheap checks over the combination, never the full suite. **(4)** When no worker is in flight, run the full verification once with `verify-batch` on a clean checkout at the integration head; a failure is fixed by the coordinator, or by fix slices in a new run when the fixes are independent and substantial, then the batch runs again. A sprint closes, and the integration branch merges onward, only on `batch.state: verified`. **(5)** Update the worker-role branch of `scripts/keel-stop-hook`/generated worker controls if they name scoped tests. No new file, no new card line; refresh the portability lock stamp. |
 | v7.5.0 | MINOR: **Whoever creates something removes it when its use ends.** **(1)** Refresh the lock block: it gains the cleanup contract. **(2)** Copy the installed skill's `scripts/keel_parallel.py` over `scripts/keel-parallel` (new `sweep`, `sweep-hook`, `sweep-install`). **(3)** Declare a lease on each of this project's own Parallels or Docker machines (`references/parallels-development.md`, "Machines: contract"), or propose deleting those no longer needed; never touch another project's. **(4)** Once per machine, with the user's OK, run `sweep-install` and register the printed session-start command. |
+| v7.6.0 | MINOR: **An idle queue rests; every machine has a rebuild recipe.** **(1)** Refresh the lock block (stamp only). **(2)** Regenerate `scripts/keel-continue` per `references/project-state.md` (point 3a: read `queue.workable` from `docs/.keel/plan.json` before claiming a brake, REST on an idle queue, the `idle-links-<repo-key>` breaker; the launch `exec`s `claude`), `scripts/keel-chain-check` (row 7c), and the plan generator so `plan.json` carries `queue`; add `waiting_on` to every slice parked on a person or an event. Then `scripts/keel-chain-check --smoke`, since the launcher changed. **(3)** Standing check 4, NOT declinable: where the project uses any machine, write `docs/machines/` (`recipe.md`, the files and scripts it uses, and on `parallels-shared` the shared VM's documents in `docs/machines/keel-development/` at the VM's `keel-base-rev`) from the running machine; move anything a machine depends on out of temporary directories and out of folders beside the VM; add the `docs/machines/` drift check to `scripts/keel-verify`. **(4)** Link the recipe from `docs/PROGRESS.md`. |
 | v7.4.0 | MINOR: **Parallels hosts the playground where it works, and nothing dead stays behind.** **(1)** Copy the installed skill's `scripts/keel_parallel.py` over `scripts/keel-parallel` (new `reap-worktrees`). **(2)** Add the card line `Playground host:`, filled from detection (`references/parallels-development.md`, "Choosing the host"). **(3)** Where `prlctl` works and the playground is on Docker, classify the project with the hosting test and add ONE migration row to the batched plan: an accepted row is recorded as `Playground migration pending` and runs at the start of the next work on the project, deleting this project's Docker resources only after verification, never with a global prune. A refusal is a D-entry. Without Parallels: `n/a`. **(4)** Standing check 3 from now on: card line, migration row, and `reap-worktrees` once per repository when no run is in flight. **(5)** A project on `parallels-shared` generates `scripts/keel-site`, and one with partner sites lists them in the technical plan. |
 
 ## Maintenance (part of EVERY release — no exceptions)

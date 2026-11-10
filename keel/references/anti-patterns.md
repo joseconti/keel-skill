@@ -982,6 +982,61 @@ any tool's path, since a check that hardcodes one is the same trap inside the de
 
 ---
 
+### 12aa. The continuation with nothing to continue
+
+**The trap.** A mechanism that hands work on is given a closed list of reasons to refuse, and every
+reason on the list is a failure: a missing capability, a wrong place, a second window. "There is
+nothing to hand on" is not a failure, so it is not on the list, so it resolves to the default, and
+the default is to hand on.
+
+**Why it happens.** The list was written to stop a session from talking itself out of continuing,
+which was the real and measured problem. Every row added since then answered "what can go wrong",
+and an empty queue is not something going wrong. The stop rule and the launch rule also live in
+different places: the stop hook correctly lets a session stop when nothing independent remains, and
+the launcher never asks that question at all.
+
+**What it costs.** Measured on a project under `Chaining: start`: ten chained sessions in three and
+a half hours, nine finishing nothing, then a chat that lived twenty-seven seconds and fired the
+next. Windows piled up overnight until the user could not tell which session was live, and the fire
+ledger filled with entries from dead sessions.
+
+**The rule.** A mechanism that repeats work needs a verdict for "nothing to do", and it reads that
+from a fact, not a label: the plan's workable count (`queue.workable` in `docs/.keel/plan.json`),
+with the hand-off's own `idle`/`blocked` only where no plan exists. Behind it, a breaker that does
+not trust any of those: two consecutive links that produced nothing outside bookkeeping stop the
+loop whatever they claimed (`references/project-state.md`, "When the queue is idle"). The check is
+`scripts/keel-chain-check` row 7c. The general tell: for any loop, ask what it does when the queue
+is empty, and if the answer is "the same as when it is full", it will spin.
+
+---
+
+### 12ab. The machine that exists only as itself
+
+**The trap.** A VM, a container stack or a site is built by hand over a few sessions: a package
+here, a config line there, a PHP version added for one test. It works, so nothing about it is
+written down except the machine itself. The repository holds the code; the knowledge of how to
+rebuild the environment the code is tested in lives on one disk.
+
+**Why it happens.** Each change is small and urgent, and the machine is the obvious record of it.
+"Provisioning is a script" was already a rule for the shared VM, but the script lived in a kit
+folder beside the VM, on the same disk, so it shared the machine's fate.
+
+**What it costs.** A reinstalled system, a dead disk or a deleted VM turns every one of those small
+changes into archaeology: which PHP versions, which extensions, which mounts, which hosts entries,
+which seed. The rebuild takes days instead of minutes, and what it produces is a different machine
+whose test results no longer compare with the old ones.
+
+**The rule.** Every project that uses a machine keeps `docs/machines/` — the recipe plus every file
+and script it uses, the shared VM's base layer included — committed, current, and complete enough
+that an assistant with no memory rebuilds the machine from a fresh clone alone; nothing it depends on
+sits in a temporary directory or only beside the VM
+(`references/parallels-development.md`, "The machine recipe"). A change to a machine updates the
+recipe in the same session, and a commit that touches a machine definition without touching the
+recipe fails `scripts/keel-verify`. The recipe is not proven until a rebuild has followed it, and it
+says so until one has.
+
+---
+
 
 ## WordPress and WooCommerce
 
@@ -1238,6 +1293,8 @@ recollection** — an answer given from memory is not an answer, it is the trap 
 17n. Unless the card says `Sprints: off`: did every session since the last audit open with `scripts/keel-time start` and close with `scripts/keel-time end` — does every `done` slice marked `measured` appear in a `docs/sessions.md` row, does every row's deviation equal its actual minus its estimate, does every new row name its projection basis (`throughput` whenever `Max concurrency` is above 1 unless `Notes` says why not), does `scripts/keel-time slice-start` leave other open slices open unless the project is single-writer, and is `docs/.keel/clock.jsonl` gitignored?
 17o. Do `scripts/keel-affected-tests` and `.githooks/pre-push` exist with `core.hooksPath` set — does a diff touching an uncovered source file make the script widen or fail rather than select nothing and pass — does every test-point row carry its `scope:` line — and does the last release record show `scope: full` with the suite's total count?
 17p. Where the project generates `scripts/keel-tools/`: does every accepted tool have a row file with every field declared — does a grep of the shared `scripts/keel-*` for the registry's tool names return nothing outside comments — and does each tool's `KEEL_TOOL_HOOK_FILE` mention `scripts/keel-stop-hook` exactly when its `KEEL_TOOL_STOP_HOOK` is `yes`?
+17q. Where the project uses a machine (a shared-VM site, a dedicated VM or clone, a Docker or Compose stack, `wp-env`): does `docs/machines/recipe.md` exist — is the newest commit touching a machine definition contained in the newest commit touching the recipe — did anything change inside a machine since the last audit that the recipe does not say — and does its `Last rebuilt from this recipe:` line state a real rebuild or `never — unproven`?
+17r. On a chaining project: does `scripts/keel-continue` read `queue.workable` from `docs/.keel/plan.json` and keep the idle-link breaker — and does every slice parked on a person or an event carry `waiting_on`, so the launcher can see it?
 18. (WordPress) Does `wp i18n make-pot` report zero untranslated or wrongly-domained user-facing strings?
 19. (WordPress) Does uninstall remove every option, table, meta key and scheduled event the plugin creates?
 20. (WordPress) Does every entry point — admin, AJAX, REST, bulk, CLI — check its capability and its nonce?
