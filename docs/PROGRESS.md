@@ -51,7 +51,7 @@ This repository was adopted into its own discipline late (state files created 20
 - Previous states: v7.2.0 (published 2026-10-13) is the Git baseline this change started from; older release history is in `keel/CHANGELOG.md` and Git.
 - v7.3.1 (patch, D-040) published 2026-10-17: the session clock measures parallel development — evidence in `docs/release-v7.3.1.md`.
 - v7.5.0 (minor, D-043): cleanup contract, machines contract, `sweep`. Evidence in `docs/release-v7.5.0.md`.
-- On `develop`, unreleased (D-044, sprint 8 S-013): idle-queue REST and idle-link breaker for chaining (issue #30), mandatory `docs/machine-recipe.md` with standing check 4. **Waiting on the user's version instruction** (proposed v7.6.0, minor).
+- On `develop`, unreleased (D-044, sprint 8 S-013): idle-queue REST and idle-link breaker for chaining (issue #30), mandatory `docs/machines/recipe.md` with standing check 4. **Waiting on the user's version instruction** (proposed v7.6.0, minor).
 - v7.4.0 (minor, D-042): Parallels playground host, connected sites, `reap-worktrees`, the dead-traces rule. Evidence in `docs/release-v7.4.0.md`.
 - Previous next action: none for v7.3.1. Downstream projects reconcile per Table 3 v7.3.1 at their next session start. Still open from v7.0.0: the isolated backend and generated-hook acceptance described in `docs/parallel-development-review.md`.
 
