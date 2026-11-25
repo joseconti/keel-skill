@@ -11,6 +11,7 @@
 - Security profile: library/component — the packaged helper validates local plans/worktrees and launches only an adapter-provided argv under an explicit cwd; it has no network or model-service code. The confidential-data rule governs every commit.
 - Accessibility: n/a — no user interface. The Markdown is kept readable and structured.
 - i18n: single — English. The skill's *output* language contract is a separate matter, defined inside SKILL.md.
+- PHP range: n/a no PHP
 - Installed base: yes — released versions are installed by users and embedded in their projects. Every change must consider projects on older baselines (that is what `MANIFEST.md` Table 3 is for).
 - Design system: n/a no UI
 - Keel portability: lock only — this repo is the SOURCE of the skill; it does not embed a copy of itself.

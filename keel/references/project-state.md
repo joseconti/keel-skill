@@ -46,6 +46,7 @@ Keep it to roughly one page. Detail lives in the linked files, never accumulated
 - Accessibility: [targeted level] (references/accessibility.md)
 - i18n: [multi — base X, locales Y, mechanism Z / single — language X]
 - Installed base: [fresh v1 / upgrades vX.Y in production with data]
+- PHP range: [<floor>–<ceiling>, e.g. 8.2–8.5 (default for distributed code; wider welcome) | <version> only — <client server> | n/a no PHP]
 - Design system: [existing — source/location / founding — canonical, will live at X / one-off / n/a no UI]
 - Keel portability: [lock only / lock + embedded vX.Y.Z]
 - Assistant config: [none / rules / rules+agents / full] (tools: [claude, codex, copilot, cursor, gemini, windsurf, ...]) — per references/assistant-config.md
@@ -1625,7 +1626,8 @@ does not make it permanent: this contract does. The same goes for branches: a
 branch merged into `develop` and no longer needed is deleted, locally and on the
 remote, in the same session; branches never accumulate.
 
-**PHP (UNBREAKABLE):** all PHP code runs on every version from 8.2 to 8.5.
+**PHP (UNBREAKABLE):** all PHP code runs on every version in the card's
+`PHP range:` (8.2 to 8.5 by default for distributed code; narrower only for one client).
 
 1. Read the FULL Keel `SKILL.md` FIRST, before anything else in this repository —
    from the installed `keel` skill if present, otherwise from the embedded copy
