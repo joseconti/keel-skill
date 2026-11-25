@@ -1740,3 +1740,33 @@ portability lock.
 - **The launch command `exec`s `claude`**, so leaving a chained chat with `/exit` ends its shell too.
 
 **Minor update. Reconciliation:** `MANIFEST.md` Table 3, v7.6.0.
+
+## 7.7.0
+
+### Added
+
+- **Every project that writes PHP has a declared PHP range**, asked in Phase 1 (or at adoption) and
+  recorded on the new card line `PHP range:`. Code distributed to many sites runs on 8.2 through 8.5
+  at minimum, and a wider range (down to 7.x) is welcome; code for one client may target that server's
+  version only. The floor is declared in `Requires PHP` and `composer.json` (with
+  `config.platform.php`); nothing newer than the floor and nothing deprecated up to the ceiling;
+  verified with PHPCompatibility and the tests on both ends.
+- **Merged branches are deleted.** A work branch merged into `develop` and no longer needed is deleted
+  locally and on the remote in the same session. A branch-hygiene pass at session start deletes what
+  earlier sessions left fully merged and reports, never deletes, branches holding unmerged commits.
+- **Bot pull requests are merged instead of piling up.** At session start, at most once per 24 hours
+  (machine-local stamp `.keel-bot-prs-check`), Keel lists pull requests opened by Dependabot and
+  equivalents, retargets any aimed at `main`/`master` to `develop` (and sets `target-branch:
+  "develop"` in `dependabot.yml`), merges those that pass, and reports the red or conflicted ones.
+- **A housekeeping pass at session start**, in the same 24-hour window. It deletes what can be
+  rebuilt: Playwright browser builds no installation still uses, package-manager caches past 2 GB,
+  earlier build artifacts in `dist/`. It reports what only the user can judge: PRs idle for 14 days,
+  stashes, orphan dev servers and watchers, one-off scheduled tasks, unused dependencies, dead code,
+  and an oversized assistant history (proposed, never deleted). It turns on the forge's automatic
+  deletion of merged branches.
+- **`docs/PROGRESS.md` stays compact:** `scripts/keel-verify` fails above 200 lines. Earlier release
+  records move to `docs/archive/releases/` at each publication.
+- **The cleanup contract covers dev servers, watchers and one-off scheduled tasks.**
+- Release-linter checks 20 and 21.
+
+**Minor update. Reconciliation:** `MANIFEST.md` Table 3, v7.7.0.

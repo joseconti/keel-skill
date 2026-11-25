@@ -1602,7 +1602,7 @@ The project root carries the Keel block below in TWO files, always: `CLAUDE.md` 
 One tool needs a third step: **Gemini CLI reads `GEMINI.md`, not `AGENTS.md`, by default.** If the user works with Gemini CLI, ask once and record the pick: mirror the same block in `GEMINI.md` (a third copy of the lock, refreshed with the others), or commit a `.gemini/settings.json` whose `context.fileName` includes `AGENTS.md` (no third copy to maintain). Either satisfies the lock.
 
 ```
-<!-- KEEL:BEGIN — v7.6.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
+<!-- KEEL:BEGIN — v7.7.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
 # Keel protocol (mandatory for ANY assistant working in this repository)
 
 This project is governed by the Keel workflow. Before reading code or changing ANYTHING:
@@ -1624,7 +1624,8 @@ for specific tests are never accumulated. Verified, never forced;
 anything holding unintegrated work stays and is reported. Saying a rule in a chat
 does not make it permanent: this contract does. The same goes for branches: a
 branch merged into `develop` and no longer needed is deleted, locally and on the
-remote, in the same session; branches never accumulate.
+remote, in the same session; branches never accumulate. Dev servers, watchers
+and one-off scheduled tasks stop or are deleted when their use ends.
 
 **PHP (UNBREAKABLE):** all PHP code runs on every version in the card's
 `PHP range:` (8.2 to 8.5 by default for distributed code; narrower only for one client).
