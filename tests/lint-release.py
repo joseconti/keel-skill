@@ -528,6 +528,24 @@ if hygiene_problems:
 else:
     ok("PHP runs on 8.2-8.5, merged branches are deleted, bot PRs are swept every 24 hours")
 
+# ---- 21. Housekeeping: nothing useless accumulates -------------------------
+house_problems = [
+    what for what, present in (
+        ("keel-maintenance.md: the housekeeping section", "## Housekeeping (start of a session, in the bot-PR window)" in maint),
+        ("keel-maintenance.md: old Playwright browsers", "ms-playwright/.links/" in maint),
+        ("keel-maintenance.md: forge deletes merged branches", "delete_branch_on_merge=true" in maint),
+        ("keel-maintenance.md: stashes reported, never dropped", "They are never dropped" in maint),
+        ("keel-maintenance.md: assistant history only proposed", "a cleanup is PROPOSED to the user" in maint),
+        ("phase-5-development.md: PROGRESS size gate", "More than 200 lines fails the run" in phase5),
+        ("phase-7-release.md: old artifacts and records", "`docs/archive/releases/`" in phase7),
+        ("SKILL.md: dead traces include processes and tasks", "Dev servers, watchers and one-off scheduled tasks" in skill),
+    ) if not present
+]
+if house_problems:
+    fail(f"housekeeping contract is incomplete: {house_problems}")
+else:
+    ok("housekeeping clears what can be rebuilt and reports what the user must judge")
+
 # ---- Result ----------------------------------------------------------------
 print()
 if failures:
