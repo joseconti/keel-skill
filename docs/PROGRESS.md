@@ -52,6 +52,7 @@ This repository was adopted into its own discipline late (state files created 20
 - v7.3.1 (patch, D-040) published 2026-10-17: the session clock measures parallel development — evidence in `docs/release-v7.3.1.md`.
 - v7.5.0 (minor, D-043): cleanup contract, machines contract, `sweep`. Evidence in `docs/release-v7.5.0.md`.
 - v7.6.0 (minor, D-044, sprint 8 S-013): idle-queue REST and idle-link breaker (issue #30), mandatory `docs/machines/` with standing check 4. Ordered 2026-11-10. Published 2026-11-10: PR #31, tag `v7.6.0` on `c2e8be6`, release by hand with the zip. Evidence in `docs/release-v7.6.0.md`.
+- Unreleased on `develop` (D-045, 2026-11-25): PHP 8.2–8.5 contract, merged-branch deletion, 24-hour bot-PR sweep. No version ordered; a release needs its Table 3 row.
 - v7.4.0 (minor, D-042): Parallels playground host, connected sites, `reap-worktrees`, the dead-traces rule. Evidence in `docs/release-v7.4.0.md`.
 - Previous next action: none for v7.3.1. Downstream projects reconcile per Table 3 v7.3.1 at their next session start. Still open from v7.0.0: the isolated backend and generated-hook acceptance described in `docs/parallel-development-review.md`.
 

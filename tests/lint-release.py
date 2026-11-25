@@ -505,6 +505,29 @@ if recipe_problems:
 else:
     ok("every machine a project uses has a rebuild recipe, kept current")
 
+# ---- 20. PHP range, branch hygiene and bot pull requests --------------------
+# The user's standing rules (2026-11-25): PHP runs on 8.2 through 8.5, merged
+# branches never accumulate, and bot pull requests are merged once per 24 hours.
+maint = ref_text.get("keel-maintenance.md", "")
+acfg = ref_text.get("assistant-config.md", "")
+hygiene_problems = [
+    what for what, present in (
+        ("SKILL.md: the PHP compatibility section", "## PHP compatibility — 8.2 through 8.5, at minimum (cross-cutting, UNBREAKABLE)" in skill),
+        ("SKILL.md: PHPCompatibility from the floor", "`testVersion 8.2-`" in skill),
+        ("SKILL.md: merged branches are deleted", "**A merged branch that is no longer needed is deleted, in the same session (UNBREAKABLE).**" in skill),
+        ("keel-maintenance.md: the bot pull-request sweep", "## Bot pull requests (start of a session, throttled to once per 24 hours)" in maint),
+        ("keel-maintenance.md: bot PRs land on develop", "gh pr edit <n> --base develop" in maint),
+        ("keel-maintenance.md: the branch-hygiene pass", "## Branch hygiene (start of every session, and after every merge)" in maint),
+        ("project-state.md: the lock carries branches and PHP", "branches never accumulate." in project_state and "**PHP (UNBREAKABLE):**" in project_state),
+        ("assistant-config.md: the bot-PR stamp is ignored", acfg.count("`.keel-bot-prs-check`") >= 2),
+        ("MANIFEST.md: the bot-PR stamp is ignored", "`.keel-bot-prs-check`" in manifest),
+    ) if not present
+]
+if hygiene_problems:
+    fail(f"PHP range / branch hygiene / bot-PR contract is incomplete: {hygiene_problems}")
+else:
+    ok("PHP runs on 8.2-8.5, merged branches are deleted, bot PRs are swept every 24 hours")
+
 # ---- Result ----------------------------------------------------------------
 print()
 if failures:

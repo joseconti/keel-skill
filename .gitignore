@@ -148,6 +148,7 @@ build/
 .claude/settings.local.json
 CLAUDE.local.md
 .keel-update-check
+.keel-bot-prs-check
 .anthropic/
 
 # ---------------------------------------------------------------------------

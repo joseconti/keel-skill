@@ -1621,7 +1621,11 @@ leaves it for later: a worktree as soon as its work is integrated; a Parallels o
 Docker machine, clone, site or tunnel as soon as it is no longer needed. Machines
 for specific tests are never accumulated. Verified, never forced;
 anything holding unintegrated work stays and is reported. Saying a rule in a chat
-does not make it permanent: this contract does.
+does not make it permanent: this contract does. The same goes for branches: a
+branch merged into `develop` and no longer needed is deleted, locally and on the
+remote, in the same session; branches never accumulate.
+
+**PHP (UNBREAKABLE):** all PHP code runs on every version from 8.2 to 8.5.
 
 1. Read the FULL Keel `SKILL.md` FIRST, before anything else in this repository —
    from the installed `keel` skill if present, otherwise from the embedded copy
