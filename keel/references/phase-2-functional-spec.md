@@ -51,7 +51,7 @@ ALWAYS use this template for `docs/03-technical-plan.md`:
 # Technical Plan — [Project name]
 
 ## Stack (exact versions)
-- Language/runtime + minimum versions; host/framework (e.g. WP min, Woo min, PHP min — PHP is always 8.2 through 8.5 at minimum, SKILL.md "PHP compatibility"); key dependencies (pinned, from the Phase 1 dependency table)
+- Language/runtime + minimum versions; host/framework (e.g. WP min, Woo min, PHP min — PHP from the card's `PHP range:`, 8.2 through 8.5 by default, SKILL.md "PHP compatibility"); key dependencies (pinned, from the Phase 1 dependency table)
 - Why this stack: [1–3 lines]
 ## Support matrix & budgets
 - Minimum supported platform versions (e.g. PHP / WordPress / WooCommerce / browsers / OS) — these go in the platform headers where applicable

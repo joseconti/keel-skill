@@ -512,8 +512,8 @@ maint = ref_text.get("keel-maintenance.md", "")
 acfg = ref_text.get("assistant-config.md", "")
 hygiene_problems = [
     what for what, present in (
-        ("SKILL.md: the PHP compatibility section", "## PHP compatibility — 8.2 through 8.5, at minimum (cross-cutting, UNBREAKABLE)" in skill),
-        ("SKILL.md: PHPCompatibility from the floor", "`testVersion 8.2-`" in skill),
+        ("SKILL.md: the PHP compatibility section", "## PHP compatibility — a range asked at the start, 8.2 through 8.5 by default (cross-cutting, UNBREAKABLE)" in skill and "- PHP range: [" in project_state),
+        ("SKILL.md: PHPCompatibility from the floor", "`testVersion <floor>-<ceiling>`" in skill),
         ("SKILL.md: merged branches are deleted", "**A merged branch that is no longer needed is deleted, in the same session (UNBREAKABLE).**" in skill),
         ("keel-maintenance.md: the bot pull-request sweep", "## Bot pull requests (start of a session, throttled to once per 24 hours)" in maint),
         ("keel-maintenance.md: bot PRs land on develop", "gh pr edit <n> --base develop" in maint),
