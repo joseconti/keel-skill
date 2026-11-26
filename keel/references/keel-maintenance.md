@@ -123,6 +123,44 @@ With `env.PATH` set in that file, every command Keel runs already resolves the u
 
 `scripts/keel-doctor` reports the permission mode as an **advisory** row — never blocking (see `references/test-automation.md`, "`scripts/keel-doctor`").
 
+## Bot pull requests (start of a session, throttled to once per 24 hours)
+
+Forges open pull requests on their own — on GitHub, Dependabot (`dependabot[bot]`) bumping libraries and patching vulnerable dependencies; elsewhere the equivalents, such as Renovate (`renovate[bot]`). Left alone they pile up, go stale and conflict with each other. So Keel merges them, and checks for them at session start.
+
+**Throttle — at most one check per 24 hours per project.** Chained or back-to-back sessions must not repeat it, so it is rate-limited through a machine-local stamp at the project root: `.keel-bot-prs-check`, one line — the UTC timestamp of the last check and its outcome (e.g. `<UTC timestamp> — 3 found; 2 merged; 1 left: #41 checks failing`, with real values). Less than 24 hours old → skip silently. Missing, unparsable, or 24 hours old or more → run the sweep, then REWRITE the stamp, after every attempt, success or failure, so a failing forge is not retried in every session. The stamp is an unconditional `.gitignore` entry, like `.keel-update-check`. Nothing to do without a forge remote or without a forge tool (`gh`, the forge's API or connector): skip, and do not write the stamp.
+
+**The sweep:**
+1. **List the open pull requests authored by a bot account** (`gh pr list --state open --search "author:app/dependabot"`, and the same for `app/renovate` and any other dependency bot the repository uses). Human pull requests are not part of this sweep.
+2. **Bring each one to `develop`.** A bot PR that targets `main`/`master` is retargeted to `develop` (`gh pr edit <n> --base develop`) — the Git-flow rule holds for bots too: nothing reaches `main` without the user. Where the repository configures Dependabot (`.github/dependabot.yml`), add `target-branch: "develop"` to each update entry, in a commit to `develop`, so later PRs arrive at the right branch.
+3. **Merge it when it is green.** Required checks pass and the PR is mergeable → merge it (the repository's usual merge method) and delete its branch. A repository with no CI run on the PR → run the project's push test scope locally on the PR branch first; pass → merge. Merging into `develop` is the automatic mode's ordinary work; outside automatic mode, list the ready PRs and merge those the user OKs.
+4. **Never merge one that is red.** Failing checks or tests → not merged; the failure is triaged like any bug report (a needed code change is a fix slice), and the PR is listed in `docs/PROGRESS.md` open items. A conflict → ask the bot to rebase (`@dependabot rebase` as a PR comment) and leave it for the next sweep. Several PRs touching the same lock file → merge them one at a time, re-checking each after the previous one lands.
+5. **Report in one line** what was merged, retargeted and left, and why.
+
+## Branch hygiene (start of every session, and after every merge)
+
+Branches never accumulate (SKILL.md, "Git flow"). Right after a merge, the merged work branch is deleted locally (`git branch -d`) and on the remote (`git push origin --delete <branch>`). At session start, after a `git fetch --prune`, a pass catches what earlier sessions left:
+- **Delete** every local and remote branch fully merged into `develop` (`git branch --merged develop`, `git branch -r --merged origin/develop`), except `main`/`master`, `develop`, the current branch, a branch with an open pull request and a branch checked out in a live worktree (that one goes with its worktree, per the cleanup contract).
+- **Never delete** a branch that holds commits `develop` does not have. Report it once with its last commit date, so the user decides; a bot branch with an open PR belongs to the bot-PR sweep above.
+- Use `-d`, never `-D`, and never force: if git refuses, the branch holds unmerged work and stays.
+- Report in one line what was deleted.
+
+## Housekeeping (start of a session, in the bot-PR window)
+
+Nothing that has stopped being useful stays around. This pass runs in the same 24-hour window as the bot-PR sweep, and its outcome goes on the same `.keel-bot-prs-check` line. Each item either deletes what can be rebuilt or reports what only the user can judge, never the other way round, and the whole pass is reported in one line.
+
+1. **Tool caches on this machine.** Playwright keeps every browser build it ever downloaded. Keep only the builds still referenced by a Playwright installation on disk (the paths in `ms-playwright/.links/`, each one's `playwright-core/browsers.json`), and delete the rest. Package-manager caches (npm, Composer, pip, Go build cache) can always be rebuilt: past 2 GB each, clean them with the tool's own command (`npm cache clean --force`, `composer clear-cache`, `pip cache purge`, `go clean -cache`). Never delete a dependency folder (`node_modules/`, `vendor/`) of a project with a live session.
+2. **Build output.** In `dist/` (or the project's equivalent), keep only the current release's artifact; earlier ones live on the forge's releases.
+3. **The forge deletes merged branches by itself.** Where the user has admin rights and it is off, turn on "Automatically delete head branches" (`gh api -X PATCH repos/<owner>/<repo> -F delete_branch_on_merge=true`) and say so.
+4. **Forgotten pull requests.** Human or assistant PRs with no activity for 14 days are reported (number, title, age) so the user closes or merges them. They are never closed automatically.
+5. **Forgotten stashes.** `git stash list` entries are reported with their age. They are never dropped: a stash is unintegrated work.
+6. **Orphan processes.** Dev servers, `php -S`, watchers and test runners started from this repository and still running (`lsof -iTCP -sTCP:LISTEN` and processes whose working directory is inside the repo) are stopped when this session started them, and reported otherwise.
+7. **Forgotten scheduled tasks.** The project's cron entries, cloud scheduled tasks and remote triggers are listed. One created for a one-off job whose job is done is deleted by the session that created it, and reported otherwise.
+8. **Unused dependencies.** The stack's detector (`composer-unused`, `depcheck`/`knip`, `deptry`) runs, and each finding is removed in a slice or recorded as intentional. Where Dependabot is configured, its updates are grouped (`groups:`) and weekly, so one PR arrives instead of ten.
+9. **Dead code.** The stack's unused-code detector (`knip`, PHPStan or Psalm unused-code checks, `vulture`) runs as an advisory in `scripts/keel-verify`; a feature flag whose rollout is finished is removed with its dead branch.
+10. **Old records.** Release records other than the latest (`docs/release-v*.md` and equivalents) move to `docs/archive/releases/` when a new release is published: moved, never deleted.
+11. **`docs/PROGRESS.md` stays compact.** Every session re-reads it, so every extra line is paid again and again. `scripts/keel-verify` fails above 200 lines; history belongs in `docs/decisions.md`, the changelog and the archived sprint files.
+12. **Assistant history.** The assistant's own session store (for Claude Code, `~/.claude/projects/`: transcripts and tool output) is measured. Above 5 GB, or with sessions older than 6 months, a cleanup is PROPOSED to the user and never done without their OK: it is their history, not the project's.
+
 ## Version change policy (UNBREAKABLE RULE — never bump under any circumstance without explicit user instruction)
 
 This rule is **unbreakable**. There are no exceptions, no edge cases, no judgment calls. It overrides every other instinct or inference the assistant might have about how version numbers "should" evolve based on the scale of the edit.

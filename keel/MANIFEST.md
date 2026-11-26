@@ -1,4 +1,4 @@
-# Keel Manifest — v7.6.0
+# Keel Manifest — v7.7.0
 
 One file, three tables, one purpose: looking ONLY at this file, a session can tell (1) whether a project contains everything Keel requires at its current phase, (2) which skill files changed in which Keel version — so after an update it knows exactly what to re-read, without interpreting the changelog — and (3) what concrete actions each version asks of an existing project (the reconciliation delta).
 
@@ -40,7 +40,7 @@ Verification is phase-aware and condition-aware: read the project card and phase
 | `docs/design/design-handoff/` | The returned handoff per `references/handoff-contract.md` (Design's delivery, or the recorded no-Design branch) — holds NOTHING else, ever (contract rule 10: wholesale-replaceable) | Phase 4 start | UI projects only |
 | `docs/BUILD-SPEC.md` | Consolidated faithful-build contract (§1 is the evidence table) | Phase 4 | UI projects only |
 | `docs/design/design-requests/` | Numbered DR register | Phase 4 | When the first Design Request appears |
-| `.gitignore` + `.gitattributes` | Hygiene boundaries (full rules at Phase 7); `.gitignore` ALWAYS includes `CLAUDE.local.md`, `.claude/settings.local.json`, `docs/.keel/clock.jsonl` (since v6.0.0), `.keel-update-check` (the machine-local update-check throttle stamp), and `docs/continuation-prompt.md` (ephemeral session hand-off, never committed), plus the accepted tools' personal files (`AGENTS.override.md`, `.gemini/.env`, `.gemini/tmp/`). When parallel development is `auto`, it also excludes `docs/.keel/parallel/`, assignments, envelopes, raw logs and signals while leaving versioned result reports tracked. | Phase 5 scaffold | Always |
+| `.gitignore` + `.gitattributes` | Hygiene boundaries (full rules at Phase 7); `.gitignore` ALWAYS includes `CLAUDE.local.md`, `.claude/settings.local.json`, `docs/.keel/clock.jsonl` (since v6.0.0), `.keel-update-check` and `.keel-bot-prs-check` (the machine-local throttle stamps), and `docs/continuation-prompt.md` (ephemeral session hand-off, never committed), plus the accepted tools' personal files (`AGENTS.override.md`, `.gemini/.env`, `.gemini/tmp/`). When parallel development is `auto`, it also excludes `docs/.keel/parallel/`, assignments, envelopes, raw logs and signals while leaving versioned result reports tracked. | Phase 5 scaffold | Always |
 | `docs/sprints/` | One file per sprint: YAML frontmatter (`schema: keel.sprint/1`, or `keel.sprint/2` when parallel-capable) holding scope, estimates, dependencies and criteria. Version 2 adds each slice's exact `execution` mapping: write paths, contracts, exclusive resources and eligibility (`references/project-state.md`, "Scope ownership and residual estimates"; `references/parallel-development.md`). Holds EVERY unit of work; extractions reconcile ownership and residual balance in the same checkpoint, while original estimate and actual remain preserved. | Phase 5 §0 at the latest — before the first unit of work in ANY phase or entry mode (adoption, maintenance, reconciliation) | Unless `Sprints: off` with its D-entry |
 | `docs/sprints/deferred.md` | ONE backlog file: everything wanted and not in this version, same item schema plus `target:` (proposed version or `null`) and `reason:`. Ids share one namespace with the sprint slices, so promoting an item is a MOVE that keeps its id. Its hours are what the next version would cost and are NOT in the Phase 5 total | Phase 5 §0 at the latest — with the first sprint file | Unless `Sprints: off` with its D-entry |
 | `docs/.keel/plan.json` | The whole plan derived into one machine-readable file — original estimates, residual `remaining_hours`, actuals, reconciliation status, explained scope delta, deviation and computed percentages; regenerated in every commit that changes a slice, never hand-edited. Drift, unexplained residual changes, overlapping ownership, or a plan behind the work fails `scripts/keel-verify` (`references/project-state.md`) | Phase 5 §0 at the latest — with the first sprint file | Unless `Sprints: off` with its D-entry |
@@ -105,12 +105,12 @@ After an update, re-read `SKILL.md`, the current phase's reference, and THIS fil
 
 | Skill file | Last changed in |
 |---|---|
-| `SKILL.md` | v7.6.0 |
-| `MANIFEST.md` | v7.6.0 |
-| `CHANGELOG.md` | v7.6.0 |
+| `SKILL.md` | v7.7.0 |
+| `MANIFEST.md` | v7.7.0 |
+| `CHANGELOG.md` | v7.7.0 |
 | `scripts/keel_clock.py` | v7.3.1 |
 | `scripts/keel_parallel.py` | v7.5.0 |
-| `references/keel-maintenance.md` | v7.3.0 |
+| `references/keel-maintenance.md` | v7.7.0 |
 | `references/notifications.md` | v7.6.0 |
 | `references/parallels-development.md` | v7.6.0 |
 | `references/playground-recipes.md` | v7.4.0 |
@@ -118,12 +118,12 @@ After an update, re-read `SKILL.md`, the current phase's reference, and THIS fil
 | `references/test-automation.md` | v7.4.0 |
 | `references/maintenance.md` | v7.3.0 |
 | `references/guide-theme.md` | v3.2.1 |
-| `references/assistant-config.md` | v7.3.0 |
-| `references/phase-5-development.md` | v7.6.0 |
-| `references/phase-7-release.md` | v7.1.0 |
-| `references/project-state.md` | v7.6.0 |
-| `references/phase-1-discovery.md` | v7.4.0 |
-| `references/phase-2-functional-spec.md` | v7.4.0 |
+| `references/assistant-config.md` | v7.7.0 |
+| `references/phase-5-development.md` | v7.7.0 |
+| `references/phase-7-release.md` | v7.7.0 |
+| `references/project-state.md` | v7.7.0 |
+| `references/phase-1-discovery.md` | v7.7.0 |
+| `references/phase-2-functional-spec.md` | v7.7.0 |
 | `references/adoption.md` | v7.0.0 |
 | `references/estimation-budget.md` | v7.0.0 |
 | `references/parallel-development.md` | v7.5.0 |
@@ -225,6 +225,7 @@ What the reconciliation APPLIES, version by version, for every version newer tha
 | v7.3.2 | PATCH: **parallel workers develop; the full suite runs once per batch.** Every worker ran its tests — browser suites included — so N workers ran N suites at once, saturated memory and CPU and made parallel sprints slower than serial ones, or stalled them. **(1)** Copy the installed skill's `scripts/keel_parallel.py` over `scripts/keel-parallel` (new `verify-batch` command, per-repository test lane, `status` reports `batch.state`). **(2)** From the next dispatch, a worker assignment's `test_commands` holds only cheap static checks over its own paths (lint, syntax, types); no suite, browser, simulator, shared database or server. **(3)** Integration checks (`verify-integration`) run the cheap checks over the combination, never the full suite. **(4)** When no worker is in flight, run the full verification once with `verify-batch` on a clean checkout at the integration head; a failure is fixed by the coordinator, or by fix slices in a new run when the fixes are independent and substantial, then the batch runs again. A sprint closes, and the integration branch merges onward, only on `batch.state: verified`. **(5)** Update the worker-role branch of `scripts/keel-stop-hook`/generated worker controls if they name scoped tests. No new file, no new card line; refresh the portability lock stamp. |
 | v7.5.0 | MINOR: **Whoever creates something removes it when its use ends.** **(1)** Refresh the lock block: it gains the cleanup contract. **(2)** Copy the installed skill's `scripts/keel_parallel.py` over `scripts/keel-parallel` (new `sweep`, `sweep-hook`, `sweep-install`). **(3)** Declare a lease on each of this project's own Parallels or Docker machines (`references/parallels-development.md`, "Machines: contract"), or propose deleting those no longer needed; never touch another project's. **(4)** Once per machine, with the user's OK, run `sweep-install` and register the printed session-start command. |
 | v7.6.0 | MINOR: **An idle queue rests; every machine has a rebuild recipe.** **(1)** Refresh the lock block (stamp only). **(2)** Regenerate `scripts/keel-continue` per `references/project-state.md` (point 3a: read `queue.workable` from `docs/.keel/plan.json` before claiming a brake, REST on an idle queue, the `idle-links-<repo-key>` breaker; the launch `exec`s `claude`), `scripts/keel-chain-check` (row 7c), and the plan generator so `plan.json` carries `queue`; add `waiting_on` to every slice parked on a person or an event. Then `scripts/keel-chain-check --smoke`, since the launcher changed. **(3)** Standing check 4, NOT declinable: where the project uses any machine, write `docs/machines/` (`recipe.md`, the files and scripts it uses, and on `parallels-shared` the shared VM's documents in `docs/machines/keel-development/` at the VM's `keel-base-rev`) from the running machine; move anything a machine depends on out of temporary directories and out of folders beside the VM; add the `docs/machines/` drift check to `scripts/keel-verify`. **(4)** Link the recipe from `docs/PROGRESS.md`. |
+| v7.7.0 | MINOR: **PHP has a declared range, merged branches are deleted, bot pull requests are merged.** **(1)** Refresh the lock block: it gains the branch and PHP lines. **(2)** Add `.keel-bot-prs-check` to `.gitignore`. **(3)** Add the card line `PHP range:`: `n/a no PHP` where the project has no PHP; otherwise ask who runs the code (many sites → 8.2–8.5 at minimum, wider welcome; one client → that server's version) and record the answer; existing `Requires PHP` headers and `composer.json` follow the recorded floor in the next slice that touches them, and a narrowing is a D-entry. **(4)** Where `.github/dependabot.yml` exists, add `target-branch: "develop"` to each update entry; retarget open bot PRs that point at `main`/`master` to `develop`. **(5)** Run the branch-hygiene and housekeeping passes once now (`references/keel-maintenance.md`): delete branches fully merged into `develop`, turn on the forge's automatic deletion of merged branches, move earlier release records to `docs/archive/releases/`, keep only the current artifact in `dist/`, and report forgotten PRs, stashes, processes and scheduled tasks. **(6)** Add to `scripts/keel-verify` the 200-line limit on `docs/PROGRESS.md` and the stack's unused-dependency and unused-code detectors as advisories; group Dependabot updates weekly where it is configured. |
 | v7.4.0 | MINOR: **Parallels hosts the playground where it works, and nothing dead stays behind.** **(1)** Copy the installed skill's `scripts/keel_parallel.py` over `scripts/keel-parallel` (new `reap-worktrees`). **(2)** Add the card line `Playground host:`, filled from detection (`references/parallels-development.md`, "Choosing the host"). **(3)** Where `prlctl` works and the playground is on Docker, classify the project with the hosting test and add ONE migration row to the batched plan: an accepted row is recorded as `Playground migration pending` and runs at the start of the next work on the project, deleting this project's Docker resources only after verification, never with a global prune. A refusal is a D-entry. Without Parallels: `n/a`. **(4)** Standing check 3 from now on: card line, migration row, and `reap-worktrees` once per repository when no run is in flight. **(5)** A project on `parallels-shared` generates `scripts/keel-site`, and one with partner sites lists them in the technical plan. |
 
 ## Maintenance (part of EVERY release — no exceptions)
