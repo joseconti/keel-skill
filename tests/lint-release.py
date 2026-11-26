@@ -533,7 +533,7 @@ house_problems = [
     what for what, present in (
         ("keel-maintenance.md: the housekeeping section", "## Housekeeping (start of a session, in the bot-PR window)" in maint),
         ("keel-maintenance.md: old Playwright browsers", "ms-playwright/.links/" in maint),
-        ("keel-maintenance.md: forge deletes merged branches", "delete_branch_on_merge=true" in maint),
+        ("keel-maintenance.md: forge deletes merged branches, never develop", "delete_branch_on_merge=true" in maint and "but never `develop`" in maint),
         ("keel-maintenance.md: stashes reported, never dropped", "They are never dropped" in maint),
         ("keel-maintenance.md: assistant history only proposed", "a cleanup is PROPOSED to the user" in maint),
         ("phase-5-development.md: PROGRESS size gate", "More than 200 lines fails the run" in phase5),
