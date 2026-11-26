@@ -1763,7 +1763,8 @@ portability lock.
   earlier build artifacts in `dist/`. It reports what only the user can judge: PRs idle for 14 days,
   stashes, orphan dev servers and watchers, one-off scheduled tasks, unused dependencies, dead code,
   and an oversized assistant history (proposed, never deleted). It turns on the forge's automatic
-  deletion of merged branches.
+  deletion of merged branches only where `develop` and `main` are protected, since the release PR's
+  head is `develop`.
 - **`docs/PROGRESS.md` stays compact:** `scripts/keel-verify` fails above 200 lines. Earlier release
   records move to `docs/archive/releases/` at each publication.
 - **The cleanup contract covers dev servers, watchers and one-off scheduled tasks.**
