@@ -53,7 +53,7 @@ This repository was adopted into its own discipline late (state files created 20
 - v7.3.1 (patch, D-040) published 2026-10-17: the session clock measures parallel development — evidence in `docs/archive/releases/release-v7.3.1.md`.
 - v7.5.0 (minor, D-043): cleanup contract, machines contract, `sweep`. Evidence in `docs/archive/releases/release-v7.5.0.md`.
 - v7.6.0 (minor, D-044, sprint 8 S-013): idle-queue REST and idle-link breaker (issue #30), mandatory `docs/machines/` with standing check 4. Ordered 2026-11-10. Published 2026-11-10: PR #31, tag `v7.6.0` on `c2e8be6`, release by hand with the zip. Evidence in `docs/archive/releases/release-v7.6.0.md`.
-- v7.7.0 (minor, D-045, D-046): PHP range on the card (8.2–8.5 default for distributed code), merged-branch deletion, 24-hour bot-PR sweep, housekeeping pass. Ordered 2026-11-25 ("creamos la release", after v7.7.0 was proposed). Evidence in `docs/release-v7.7.0.md`. **Ready for `main`:** PR develop → main, then tag and release by hand.
+- v7.7.0 (minor, D-045, D-046): PHP range on the card (8.2–8.5 default for distributed code), merged-branch deletion, 24-hour bot-PR sweep, housekeeping pass. Ordered 2026-11-25 ("creamos la release", after v7.7.0 was proposed). Evidence in `docs/release-v7.7.0.md`. Published 2026-11-26: PRs #32 and #33, tag `v7.7.0` on `5bcd2e1`, release by hand with the zip.
 - v7.4.0 (minor, D-042): Parallels playground host, connected sites, `reap-worktrees`, the dead-traces rule. Evidence in `docs/archive/releases/release-v7.4.0.md`.
 - Previous next action: none for v7.3.1. Downstream projects reconcile per Table 3 v7.3.1 at their next session start. Still open from v7.0.0: the isolated backend and generated-hook acceptance described in `docs/parallel-development-review.md`.
 

@@ -25,3 +25,13 @@ the user must judge. Existing projects apply `MANIFEST.md` Table 3, v7.7.0.
 
 The bot-PR sweep has not yet met a real Dependabot PR: none was open here. The housekeeping pass is
 specified and linted; its first full run is this session's cleanup on the user's machine.
+
+## Publication
+
+Published on 2026-11-26. PR #32 merged `develop` into `main`; it deleted `develop` on GitHub through
+automatic head-branch deletion, which was re-pushed from the local copy and turned off. PR #33 shipped
+the corrected rule before tagging. Tag `v7.7.0` is on the merge commit `5bcd2e1`, whose tree equals
+`develop`'s. GitHub Actions is disabled, so the release was created by hand with
+`gh release create v7.7.0`, marked Latest, with `keel-v7.7.0.zip` attached, built from the tag
+(`git archive v7.7.0 keel`, 51 entries, no errors). SHA-256:
+`418341bd94d927c8636f2f038e17b11942c95571a73b6e1c358847350ea49328`.
